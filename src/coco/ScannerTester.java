@@ -40,6 +40,7 @@ public class ScannerTester {
                 valid_output = new BufferedReader( new FileReader( vname ));
             } catch (FileNotFoundException e) {
                 validate = false;
+                System.err.println("Validation File does not exist: " + vname);
             }
         }
 
