@@ -27,3 +27,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/CompilerProject.iml
+/.idea/libraries/lib.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
