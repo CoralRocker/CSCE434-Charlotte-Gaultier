@@ -1,18 +1,15 @@
 package ast;
 
-public class RootAST extends AST {
-
-    public RootAST() {
-    }
+public class DeclarationList extends AST {
 
     @Override
     public String type() {
-        return "Computation";
+        return "DeclList";
     }
 
     @Override
     public String printPreOrder() {
-        return "NOT IMPLEMENTED";
+        return null;
     }
 
     @Override
@@ -25,3 +22,4 @@ public class RootAST extends AST {
         return 0;
     }
 }
+

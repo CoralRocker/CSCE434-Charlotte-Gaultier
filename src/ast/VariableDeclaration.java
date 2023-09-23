@@ -1,18 +1,15 @@
 package ast;
 
-public class RootAST extends AST {
-
-    public RootAST() {
-    }
+public class VariableDeclaration extends AST {
 
     @Override
     public String type() {
-        return "Computation";
+        return "VarDecl";
     }
 
     @Override
     public String printPreOrder() {
-        return "NOT IMPLEMENTED";
+        return null;
     }
 
     @Override
