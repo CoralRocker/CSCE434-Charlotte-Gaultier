@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public class Scanner implements Iterator<Token> {
 
-    private BufferedReader input;   // buffered reader to read file
+    private BacktrackableLineReader input;   // buffered reader to read file
     private boolean closed; // flag for whether reader is closed or not
 
     private int lineNum;    // current line number
@@ -23,7 +23,7 @@ public class Scanner implements Iterator<Token> {
 
     // reader will be a FileReader over the source file
     public Scanner (Reader reader) throws IOException {
-        input = new BufferedReader( reader );
+        input = new BacktrackableLineReader( reader );
         closed = false;
     }
 
@@ -76,14 +76,6 @@ public class Scanner implements Iterator<Token> {
         return c;
     }
 
-    private String scanSubstr(int length) {
-        if( (charPos + length) >= scan.length() ) {
-            return null;
-        }
-
-        return scan.substring(charPos, charPos+length);
-    }
-
     private int toklen( Token token ) {
         if( token == null ) {
             return 0;
@@ -103,23 +95,33 @@ public class Scanner implements Iterator<Token> {
 
     private void stripLeadingWhitespace() {
         // Skip All Whitespace
-        while( charPos < scan.length() && Character.isWhitespace( scan.charAt( charPos ) ) ) {
+        while( charPos <= scan.length() && Character.isWhitespace( scan.charAt( charPos - 1 ) ) ) {
             charPos++;
         }
     }
 
-    private Token updateLine() {
+    private String scanString() {
+        return scan.substring(charPos-1);
+    }
+
+    /**
+     * @brief Get the next line from the input. Update line number and char pos. Return EOF if condition met.
+     * @return Null if line is OK, else EOF token.
+     */
+    private Token updateLine(boolean close) {
         scan = nextLine();
         if( scan == null ) {
-            try {
-                input.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            if( close ) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                closed = true;
             }
-            closed = true;
             return Token.EOF( lineNum, charPos );
         }
-        charPos = 0;
+        charPos = 1;
         lineNum++;
 
         return null;
@@ -141,7 +143,7 @@ public class Scanner implements Iterator<Token> {
 
         // If a line has not been read in, attempt to. Return EOF if the input is over.
         if( scan == null ) {
-            Token tkn = updateLine();
+            Token tkn = updateLine(true);
             // EOF condition
             if( tkn != null ) {
                 return tkn;
@@ -151,8 +153,8 @@ public class Scanner implements Iterator<Token> {
         // Strip all whitespace, traversing newlines, until something scannable is found.
         // May return EOF when encountered.
         stripLeadingWhitespace();
-        while( charPos >= scan.length() ) {
-            Token tkn = updateLine();
+        while( charPos > scan.length() ) {
+            Token tkn = updateLine(true);
             // EOF condition
             if (tkn != null) {
                 return tkn;
@@ -166,25 +168,27 @@ public class Scanner implements Iterator<Token> {
         // ArrayList of extracted tokens.
         ArrayList< Token > tokens = new ArrayList<>();
 
-        String scannable = scan.substring(charPos);
+        String scannable = scanString();
 
         Token symOp = extractOperator();
         tokens.add(symOp);
 
         // Check if operator is a comment type.
         if( symOp != null ) {
-            if ( symOp.kind == Token.Kind.LINE_COMMENT ) {
-                // System.out.printf("Line %d(%d) is commented: %s\n", lineNum, charPos, scan);
-                charPos = scan.length();
-                return next();
-            }
-            else if ( symOp.kind ==  Token.Kind.START_BLOCK_COMMENT  ) {
-                Token endBlock = findEndBlockComment();
-                if( endBlock.isKind( Token.Kind.EOF ) ) {
-                    return Token.ERROR("Missing end of block comment", lineNum, charPos );
+            switch( symOp.kind ) {
+                case LINE_COMMENT -> {
+                    charPos += scan.length();
+                    return next();
                 }
+                case START_BLOCK_COMMENT -> {
+                    charPos += symOp.length();
+                    Token endBlock = findEndBlockComment();
+                    if( endBlock.isKind( Token.Kind.EOF ) ) {
+                        return Token.ERROR("Missing end of block comment", lineNum, charPos );
+                    }
 
-                return next();
+                    return next();
+                }
             }
         }
 
@@ -206,8 +210,20 @@ public class Scanner implements Iterator<Token> {
 
         // In case of no munchability, return an error
         if( argmax == -1 ) {
-            System.out.printf("Input \"%s\" has no parseable input.\n", scan.substring(charPos));
-            return null;
+            // System.out.printf("Input \"%s\" has no parseable input.\n", scannable);
+            int pos = scannable.length();
+            for( int i = 0; i < scannable.length(); i++ ) {
+                if( Character.isWhitespace(scannable.charAt(i)) ) {
+                    pos = i;
+                    break;
+                }
+            }
+            scannable = scannable.substring(0, pos);
+            charPos += scannable.length();
+
+            Token err = Token.ERROR(scannable, lineNum, charPos);
+            // System.out.printf("Error: %s\n", err);
+            return err;
         }
         else {
             Token token = tokens.get(argmax);
@@ -223,28 +239,29 @@ public class Scanner implements Iterator<Token> {
      */
     private Token extractOperator() {
         Pattern rxp = Pattern.compile("^([\\Q%^,!<>(){}[]=+-.*/;:\\E]){1,2}");
-        Matcher matches = rxp.matcher(scan.substring(charPos));
+        Matcher matches = rxp.matcher(scanString());
 
         if( matches.find() ) {
-            String tkn = matches.group();
+            String len2 = matches.group();
+            String len1 = len2.substring(0, 1);
 
-            Token found = null;
-            for(Token.Kind kind : Token.Kind.values()) {
-                if( Objects.equals(tkn, kind.getDefaultLexeme()) ) {
-                    found = new Token( kind, lineNum, charPos );
+            Token found2 = null;
+            Token found1 = null;
+
+            for(Token.Kind kind : Token.operators) {
+                if( Objects.equals(len2, kind.getDefaultLexeme()) ) {
+                    found2 = new Token( kind, lineNum, charPos );
                 }
-            }
-            if( found == null ) {
-                tkn = tkn.substring(0, 1);
-                for(Token.Kind kind : Token.Kind.values()) {
-                    if( Objects.equals(tkn, kind.getDefaultLexeme()) ) {
-                        found = new Token( kind, lineNum, charPos );
-                    }
+                if( Objects.equals(len1, kind.getDefaultLexeme()) ) {
+                    found1 = new Token( kind, lineNum, charPos );
                 }
             }
 
-            if( found != null ) {
-                return found;
+            if( found2 != null ) {
+                return found2;
+            }
+            else if( found1 != null ) {
+                return found1;
             }
         }
 
@@ -259,7 +276,7 @@ public class Scanner implements Iterator<Token> {
     private Token extractIdentOrKeyword() {
 
         Pattern rxp = Pattern.compile("^([a-zA-Z][a-zA-Z0-9_]*)");
-        Matcher match = rxp.matcher(scan.substring(charPos));
+        Matcher match = rxp.matcher(scanString());
         if( ! match.find() ) {
             return null;
         }
@@ -268,7 +285,7 @@ public class Scanner implements Iterator<Token> {
 
         Token matched = null;
 
-        for( Token.Kind kind : Token.Kind.values() ) {
+        for( Token.Kind kind : Token.keywords ) {
             if( Objects.equals(kind.getDefaultLexeme(), tkn) ) {
                 matched = new Token( kind, lineNum, charPos );
             }
@@ -287,13 +304,11 @@ public class Scanner implements Iterator<Token> {
      */
     private Token extractInteger() {
        Pattern rxp = Pattern.compile("^-?\\d+");
-       Matcher matches = rxp.matcher(scan.substring(charPos));
+       Matcher matches = rxp.matcher(scanString());
 
        if( !matches.find() ) {
            return null;
        }
-
-       // System.out.printf("Found Integer: %s in \"%s\"\n", matches.group(), scan.substring(charPos));
 
        return Token.INT_VAL( matches.group(), lineNum, charPos );
     }
@@ -305,15 +320,13 @@ public class Scanner implements Iterator<Token> {
      */
     private Token extractFloat() {
         Pattern rxp = Pattern.compile("^-?\\d+\\.\\d*");
-        Matcher matches = rxp.matcher(scan.substring(charPos));
+        Matcher matches = rxp.matcher(scanString());
 
         if( !matches.find() ) {
             return null;
         }
 
         String lexeme = matches.group();
-
-        // System.out.printf("Found Float: %s in \"%s\"\n", lexeme, scan.substring(charPos));
 
         if( lexeme.endsWith(".") ) {
             return Token.ERROR("Float may not end in decimal point", lineNum, charPos);
@@ -330,21 +343,43 @@ public class Scanner implements Iterator<Token> {
     private Token findEndBlockComment() {
 
         Pattern rxp = Pattern.compile("\\*/");
-        Matcher matches = rxp.matcher(scan.substring(charPos));
+        Matcher matches = rxp.matcher(scanString());
 
         while( ! matches.find() ) {
-            scan = nextLine();
-            if( scan == null ) {
-                return Token.EOF(lineNum, charPos);
+            Token tkn = updateLine(false);
+            if( tkn != null ) {
+                return tkn;
             }
-            charPos = 0;
-            lineNum++;
             matches = rxp.matcher(scan);
         }
 
-        // System.out.printf("End Comment: %d :: %d: \"%s\"\n", lineNum, matches.end(), scan );
         charPos += matches.end();
 
         return new Token( Token.Kind.END_BLOCK_COMMENT, lineNum, matches.end()-2 );
+    }
+
+    public void backtrack( int line ) {
+        try {
+            input.backtrack(line);
+            scan = null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setPos( int line, int pos ) {
+        try {
+            input.backtrack(line);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        updateLine(false);
+        lineNum = line;
+        charPos = pos;
+    }
+
+    // Backtrack to right after given token
+    public void backtrack( Token tkn ) {
+        setPos( tkn.lineNumber(), tkn.charPosition() );
     }
 }

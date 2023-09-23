@@ -1,5 +1,10 @@
 package coco;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 public class Token {
 
     public enum Kind {
@@ -117,6 +122,74 @@ public class Token {
         //           may be useful
     }
 
+    public static HashSet< Kind > operators = new HashSet<>() {
+        private static final long serialVersionUID = 1L;
+
+        {
+            add(Kind.START_BLOCK_COMMENT);
+            add(Kind.LINE_COMMENT);
+            add(Kind.POW);
+            add(Kind.MUL);
+            add(Kind.DIV);
+            add(Kind.MOD);
+            add(Kind.ADD);
+            add(Kind.SUB);
+            add(Kind.EQUAL_TO);
+            add(Kind.NOT_EQUAL);
+            add(Kind.LESS_THAN);
+            add(Kind.LESS_EQUAL);
+            add(Kind.GREATER_EQUAL);
+            add(Kind.GREATER_THAN);
+            add(Kind.ASSIGN);
+            add(Kind.ADD_ASSIGN);
+            add(Kind.SUB_ASSIGN);
+            add(Kind.MUL_ASSIGN);
+            add(Kind.DIV_ASSIGN);
+            add(Kind.MOD_ASSIGN);
+            add(Kind.POW_ASSIGN);
+            add(Kind.UNI_INC);
+            add(Kind.UNI_DEC);
+            add(Kind.OPEN_PAREN);
+            add(Kind.CLOSE_PAREN);
+            add(Kind.OPEN_BRACE);
+            add(Kind.CLOSE_BRACE);
+            add(Kind.OPEN_BRACKET);
+            add(Kind.CLOSE_BRACKET);
+            add(Kind.COMMA);
+            add(Kind.COLON);
+            add(Kind.SEMICOLON);
+            add(Kind.PERIOD);
+        }
+    };
+
+    public static HashSet< Kind > keywords = new HashSet<>() {
+        private static final long serialVersionUID = 1L;
+
+        {
+            add( Kind.IF );
+            add( Kind.THEN );
+            add( Kind.ELSE );
+            add( Kind.FI );
+            add( Kind.WHILE );
+            add( Kind.DO );
+            add( Kind.OD );
+            add( Kind.REPEAT );
+            add( Kind.UNTIL );
+            add( Kind.CALL );
+            add( Kind.RETURN );
+            add( Kind.MAIN );
+            add( Kind.FUNC );
+            add( Kind.VOID );
+            add( Kind.BOOL );
+            add( Kind.INT );
+            add( Kind.FLOAT );
+            add( Kind.TRUE );
+            add( Kind.FALSE );
+            add( Token.Kind.AND );
+            add( Token.Kind.OR );
+            add( Token.Kind.NOT );
+        }
+    };
     private int lineNum;
     private int charPos;
     Kind kind;  // package-private

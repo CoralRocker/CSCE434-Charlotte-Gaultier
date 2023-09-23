@@ -12,7 +12,7 @@ import org.apache.commons.cli.*;
 
 public class ScannerTester {
 
-    public static void main (String[] args) {
+    public static void main (String[] args) throws IOException {
         Options options = new Options();
         options.addRequiredOption("s", "src", true, "Source File");
         options.addOption("c", "check", false, "Check against corresponding *.out file");
@@ -94,6 +94,14 @@ public class ScannerTester {
             }
 
             System.out.println( outstr.toString() );
+        }
+
+        if( validate ) {
+            String line = valid_output.readLine();
+            while( line != null ) {
+                System.err.printf("Missing output: \"%s\"\n", line);
+                line = valid_output.readLine();
+            }
         }
     }
 }
