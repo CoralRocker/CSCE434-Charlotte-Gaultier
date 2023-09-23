@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ast.AST;
+import ast.RootAST;
 
 public class Compiler {
 
@@ -66,7 +67,7 @@ public class Compiler {
 
     //TODO
     public AST genAST() {
-        return new AST();
+        return new RootAST();
     }
     
     public int[] compile () {
@@ -99,10 +100,12 @@ public class Compiler {
 
     private Symbol tryResolveVariable (Token ident) {
         //TODO: Try resolving variable, handle SymbolNotFoundError
+        return null;
     }
 
     private Symbol tryDeclareVariable (Token ident) {
         //TODO: Try declaring variable, handle RedeclarationError
+        return null;
     }
 
     private String reportResolveSymbolError (String name, int lineNum, int charPos) {
@@ -120,7 +123,7 @@ public class Compiler {
 
     // Helper Methods =============================================================
     private boolean have (Token.Kind kind) {
-        return currentToken.is(kind);
+        return currentToken.isKind(kind);
     }
 
     private boolean have (NonTerminal nt) {
@@ -203,7 +206,7 @@ public class Compiler {
     // TODO: copy remaining grammar rules from Compiler and make edits to build ast
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
-    private Computation computation () {
+    private RootAST computation () {
         throw new RuntimeException("implement all grammar rules to build ast");
     }
 }
