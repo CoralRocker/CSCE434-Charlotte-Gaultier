@@ -1,6 +1,21 @@
 package ast;
 
+import coco.Token;
+import coco.Variable;
+
+import java.util.ArrayList;
+
 public class DeclarationList extends AST {
+
+    public DeclarationList(Token tkn) {
+        super(tkn);
+    }
+
+    public void add( VariableDeclaration decl ) {
+        symbols.add( decl );
+    }
+
+    private ArrayList<VariableDeclaration> symbols;
 
     @Override
     public String type() {
@@ -10,16 +25,6 @@ public class DeclarationList extends AST {
     @Override
     public String printPreOrder() {
         return null;
-    }
-
-    @Override
-    public int lineNumber() {
-        return 0;
-    }
-
-    @Override
-    public int charPosition() {
-        return 0;
     }
 }
 

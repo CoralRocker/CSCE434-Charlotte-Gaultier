@@ -1,12 +1,24 @@
 package ast;
 
 
+import coco.Token;
+
 public abstract class AST {
+
+    private int line;
+    private int charpos;
+
+    public AST( Token tkn ) {
+        line = tkn.lineNumber();
+        charpos = tkn.charPosition();
+    }
+
+
     public abstract String type();
 
     public abstract String printPreOrder();
 
-    public abstract int lineNumber();
-    public abstract int charPosition();
+    public int lineNumber() { return line; }
+    public int charPosition() { return charpos; }
 }
 

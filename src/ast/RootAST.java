@@ -1,8 +1,20 @@
 package ast;
 
+import coco.Token;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 public class RootAST extends AST {
 
-    public RootAST() {
+    private ArrayList< AST > seq;
+
+    public RootAST( Token tkn ) {
+        super( tkn );
+    }
+
+    public void add( AST ast ) {
+        seq.add( ast );
     }
 
     @Override
@@ -15,13 +27,4 @@ public class RootAST extends AST {
         return "NOT IMPLEMENTED";
     }
 
-    @Override
-    public int lineNumber() {
-        return 0;
-    }
-
-    @Override
-    public int charPosition() {
-        return 0;
-    }
 }

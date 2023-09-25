@@ -1,6 +1,21 @@
 package ast;
 
+import coco.Token;
+
+import java.util.ArrayList;
+
 public class StatSeq extends AST {
+
+    private ArrayList< AST > seq;
+
+    private void add( AST ast ) {
+        seq.add( ast );
+    }
+
+    public StatSeq(Token tkn) {
+        super(tkn);
+    }
+
     @Override
     public String type() {
         return null;
@@ -9,15 +24,5 @@ public class StatSeq extends AST {
     @Override
     public String printPreOrder() {
         return null;
-    }
-
-    @Override
-    public int lineNumber() {
-        return 0;
-    }
-
-    @Override
-    public int charPosition() {
-        return 0;
     }
 }

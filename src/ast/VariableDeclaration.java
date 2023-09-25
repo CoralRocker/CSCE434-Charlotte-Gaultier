@@ -1,6 +1,16 @@
 package ast;
 
+import coco.Symbol;
+import coco.Token;
+
 public class VariableDeclaration extends AST {
+
+    private Symbol sym;
+
+    public VariableDeclaration(Token tkn, Symbol sym) {
+        super(tkn);
+        this.sym = sym;
+    }
 
     @Override
     public String type() {
@@ -12,13 +22,4 @@ public class VariableDeclaration extends AST {
         return null;
     }
 
-    @Override
-    public int lineNumber() {
-        return 0;
-    }
-
-    @Override
-    public int charPosition() {
-        return 0;
-    }
 }

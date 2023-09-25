@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ast.AST;
+import ast.DeclarationList;
 import ast.RootAST;
 
 public class Compiler {
@@ -53,6 +54,7 @@ public class Compiler {
     private Scanner scanner;
     private Token currentToken;
 
+    private RootAST ast;
     private int numDataRegisters; // available registers are [1..numDataRegisters]
     private List<Integer> instructions;
 
@@ -63,11 +65,13 @@ public class Compiler {
         currentToken = this.scanner.next();
         numDataRegisters = numRegs;
         instructions = new ArrayList<>();
+        ast = null;
     }
 
     //TODO
     public AST genAST() {
-        return new RootAST();
+        computation();
+        return ast;
     }
     
     public int[] compile () {
@@ -205,8 +209,82 @@ public class Compiler {
 
     // TODO: copy remaining grammar rules from Compiler and make edits to build ast
 
+    private ArrayType typeDecl() {
+        Token type = expectRetrieve( NonTerminal.TYPE_DECL );
+
+        ArrayList< Integer > dimensions = null;
+        while( accept( Token.Kind.OPEN_BRACKET ) ) {
+
+            Token dim = expectRetrieve(Token.Kind.INT_VAL);
+            expect(Token.Kind.CLOSE_BRACKET);
+
+            if( dimensions == null ) { dimensions = new ArrayList<>(); }
+            dimensions.add( Integer.parseInt(dim.lexeme()) );
+
+        }
+
+        return new ArrayType(type, dimensions);
+    }
+
+
+    private ArrayList< Symbol > varDecl () {
+        ArrayType arrtype = typeDecl(); // Array Identifier Generator
+        Token.Kind type = arrtype.getType(); // Array Data Type
+        Token ident = expectRetrieve( Token.Kind.IDENT ); // Initial Identifier
+
+        // Check if a symbol exists with the given identifier.
+        if( symbols.containsKey( ident.lexeme() ) ) {
+            reportSyntaxError( ident.kind() );
+            throw new Interpreter.QuitParseException("Duplicate identifier declaration: \"%s\" on line %d, char %d".formatted(ident.lexeme(), ident.lineNumber(), ident.charPosition()));
+        }
+        else {
+            symbols.put( ident.lexeme(), arrtype );
+
+            // Generate list of all identifiers for array. Returns single identifier for non-array type
+            ArrayList< String > idents = arrtype.allIdents( ident );
+            for( String name : idents ) {
+                variables.put( name, new Variable( type ) ); // Create the appropriate variables
+            }
+
+        }
+
+        while( accept(Token.Kind.COMMA ) ) {
+            ident = expectRetrieve( Token.Kind.IDENT );
+
+            // Check if a symbol exists with the given identifier.
+            if( symbols.containsKey( ident.lexeme() ) ) {
+                reportSyntaxError( ident.kind() );
+                throw new Interpreter.QuitParseException("Duplicate identifier declaration: \"%s\" on line %d, char %d".formatted(ident.lexeme(), ident.lineNumber(), ident.charPosition()));
+            }
+            else {
+                symbols.put( ident.lexeme(), arrtype );
+
+                // Generate list of all identifiers for array. Returns single identifier for non-array type
+                ArrayList< String > idents = arrtype.allIdents( ident );
+                for( String name : idents ) {
+                    variables.put( name, new Variable( type ) ); // Create the appropriate variables
+                }
+
+            }
+        }
+
+        expect( Token.Kind.SEMICOLON );
+    }
+
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
     private RootAST computation () {
-        throw new RuntimeException("implement all grammar rules to build ast");
+        // throw new RuntimeException("implement all grammar rules to build ast");
+        Token main = expectRetrieve(Token.Kind.MAIN);
+        this.ast = new RootAST(main);
+
+        if( have( NonTerminal.VAR_DECL ) ) {
+            DeclarationList list = new DeclarationList(currentToken);
+
+            while (have(NonTerminal.VAR_DECL)) {
+
+            }
+        }
+
+        return ast;
     }
 }
