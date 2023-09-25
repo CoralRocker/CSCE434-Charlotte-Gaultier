@@ -8,12 +8,13 @@ public class StatSeq extends AST {
 
     private ArrayList< AST > seq;
 
-    private void add( AST ast ) {
+    public void add( AST ast ) {
         seq.add( ast );
     }
 
     public StatSeq(Token tkn) {
         super(tkn);
+        seq = new ArrayList<>();
     }
 
     @Override
@@ -23,7 +24,15 @@ public class StatSeq extends AST {
 
     @Override
     public String printPreOrder() {
-        return null;
+        StringBuilder builder = new StringBuilder(this + "\n");
+
+        for( AST ast : seq ) {
+            for( String line : ast.preOrderLines() ) {
+                builder.append(String.format("\t%s\n", line));
+            }
+        }
+
+        return builder.toString();
     }
 
     @Override

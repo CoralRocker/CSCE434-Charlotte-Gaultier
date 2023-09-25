@@ -564,7 +564,54 @@ public class Compiler {
         return expr;
     }
 
-    private AST statement( boolean execute ) {
+    private AST ifStat( ) {
+        Token tkn = expectRetrieve( Token.Kind.IF );
+        Relation bool = (Relation) relation();
+        expect( Token.Kind.THEN );
+        StatSeq ifseq = statSeq();
+        StatSeq elseseq = null;
+
+        if( accept( Token.Kind.ELSE ) ) {
+            elseseq = statSeq();
+        }
+
+        expect( Token.Kind.FI );
+
+        return new IfStat( tkn, bool, ifseq, elseseq);
+    }
+
+    private AST returnStat() {
+        Token ret = expectRetrieve( Token.Kind.RETURN );
+
+        if( have( NonTerminal.GROUP_EXPR ) ) {
+            AST retval = relExpr();
+            return new Return(ret, retval);
+        }
+        else {
+            return new Return(ret);
+        }
+    }
+
+    private StatSeq statSeq() {
+        if( ! have( NonTerminal.STATEMENT) ) {
+            String err = reportSyntaxError(NonTerminal.STATEMENT);
+            throw new Interpreter.QuitParseException(err);
+        }
+
+        StatSeq seq = new StatSeq(currentToken);
+
+        seq.add( statement() );
+        expect(Token.Kind.SEMICOLON);
+
+        while( have( NonTerminal.STATEMENT ) ) {
+            seq.add( statement() );
+            expect(Token.Kind.SEMICOLON);
+        }
+
+        return seq;
+    }
+
+    private AST statement( ) {
         if( have( NonTerminal.ASSIGN ) ) {
             return assign();
         }
@@ -575,10 +622,12 @@ public class Compiler {
             return ifStat();
         }
         else if( have( Token.Kind.WHILE ) ) {
-            return whileStat();
+            // return whileStat();
+            return null;
         }
         else if( have( Token.Kind.REPEAT ) ) {
-            return repeatStat();
+            // return repeatStat();
+            return null;
         }
         else if( have( Token.Kind.RETURN ) ) {
             return returnStat();
@@ -610,10 +659,8 @@ public class Compiler {
 
         expect(Token.Kind.OPEN_BRACE);
 
-        while( have(NonTerminal.FUNC_CALL ) ) {
-            ast.add( funcCall() );
-            expect( Token.Kind.SEMICOLON );
-        }
+        ast.add( statSeq() );
+
 
         expect(Token.Kind.CLOSE_BRACE);
         expect(Token.Kind.PERIOD);
