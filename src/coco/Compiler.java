@@ -128,10 +128,10 @@ public class Compiler {
         );
         currentSymbolTable.insert("printBool", new Symbol("printBool", printBool));
 
-        ArrayType printLn = ArrayType.makeFunctionType(
+        ArrayType println = ArrayType.makeFunctionType(
                 Token.Kind.VOID
         );
-        currentSymbolTable.insert("printLn", new Symbol("printLn", printLn));
+        currentSymbolTable.insert("println", new Symbol("println", println));
 
     }
 
@@ -478,29 +478,17 @@ public class Compiler {
         ArrayList< AST > args = new ArrayList<>();
         FuncCall function = new FuncCall(call, sym);
 
-        if( accept( Token.Kind.CLOSE_PAREN ) ) {
-            return function;
-        }
-        else {
-
-            ArrayList< AST > arguments = new ArrayList<>();
-            ArgList list = new ArgList(currentToken);
-            function.setArgs(list);
-            if( have(NonTerminal.LITERAL ) ) {
-                Token lit = expectRetrieve(NonTerminal.LITERAL);
-                list.add( new IntegerLiteral(lit) );
+        ArrayList< AST > arguments = new ArrayList<>();
+        ArgList list = new ArgList(currentToken);
+        function.setArgs(list);
+        if( !have( Token.Kind.CLOSE_PAREN ) ) {
+            list.add(relExpr());
+            while (have(Token.Kind.COMMA)) {
+                list.add(relExpr());
             }
-            expect( Token.Kind.CLOSE_PAREN );
-            // arguments.add( relExpr( execute && !earlyReturn ) );
-            // while( accept( Token.Kind.COMMA ) ) {
-            //     arguments.add( relExpr( execute && !earlyReturn ) );
-            // }
-            // expect( Token.Kind.CLOSE_PAREN );
-
-
         }
+        expect( Token.Kind.CLOSE_PAREN );
 
-        // Reached if not executing
         return function;
     }
 
@@ -749,6 +737,7 @@ public class Compiler {
                 ArrayList<VariableDeclaration> decls = varDecl();
                 for( VariableDeclaration decl : decls ) {
                     list.add( decl );
+                    currentSymbolTable.insert( decl.symbol().name(), decl.symbol() );
                 }
             }
 

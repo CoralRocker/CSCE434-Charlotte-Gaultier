@@ -28,6 +28,6 @@ public class VariableDeclaration extends AST {
 
     @Override
     public String toString() {
-        return String.format("ast.VariableDeclaration(%d,%d)[%s]", lineNumber(), charPosition(), sym);
+        return String.format("VariableDeclaration[%s:%s]", sym.name(), sym.type());
     }
 }

@@ -49,7 +49,7 @@ public class DeclarationList extends AST {
 
     @Override
     public String toString() {
-        return String.format("ast.DeclarationList(%d,%d)", lineNumber(), charPosition());
+        return String.format("DeclarationList");
     }
 }
 
