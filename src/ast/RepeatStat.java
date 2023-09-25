@@ -3,8 +3,12 @@ package ast;
 import coco.Token;
 
 public class RepeatStat extends AST {
-    public RepeatStat(Token tkn) {
+    private AST relation;
+    private StatSeq seq;
+    public RepeatStat(Token tkn, AST rel, StatSeq seq ) {
         super(tkn);
+        this.relation = rel;
+        this.seq = seq;
     }
 
     @Override
@@ -14,16 +18,22 @@ public class RepeatStat extends AST {
 
     @Override
     public String printPreOrder() {
-        return null;
+        StringBuilder builder = new StringBuilder(this + "\n");
+
+        for( String line : relation.preOrderLines() ) {
+            builder.append(String.format("\t%s\n", line));
+        }
+
+        for( String line : seq.preOrderLines() ) {
+            builder.append(String.format("\t%s\n", line));
+        }
+
+        return builder.toString();
+
     }
 
     @Override
-    public int lineNumber() {
-        return 0;
-    }
-
-    @Override
-    public int charPosition() {
-        return 0;
+    public String toString() {
+        return "RepeatStatement";
     }
 }

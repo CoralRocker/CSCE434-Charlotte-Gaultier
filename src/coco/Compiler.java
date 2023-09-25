@@ -592,6 +592,26 @@ public class Compiler {
         }
     }
 
+    private AST whileStat() {
+        Token wtok = expectRetrieve( Token.Kind.WHILE );
+        AST cond = relation();
+        expectRetrieve( Token.Kind.DO );
+        StatSeq seq = statSeq();
+
+        expect( Token.Kind.OD );
+
+        return new WhileStat(wtok, cond, seq);
+    }
+
+    private AST repeatStat() {
+        Token rep = expectRetrieve( Token.Kind.REPEAT );
+        StatSeq seq = statSeq();
+        expect( Token.Kind.UNTIL );
+        AST cond = relation();
+
+        return new RepeatStat(rep, cond, seq);
+    }
+
     private StatSeq statSeq() {
         if( ! have( NonTerminal.STATEMENT) ) {
             String err = reportSyntaxError(NonTerminal.STATEMENT);
@@ -622,12 +642,10 @@ public class Compiler {
             return ifStat();
         }
         else if( have( Token.Kind.WHILE ) ) {
-            // return whileStat();
-            return null;
+            return whileStat();
         }
         else if( have( Token.Kind.REPEAT ) ) {
-            // return repeatStat();
-            return null;
+            return repeatStat();
         }
         else if( have( Token.Kind.RETURN ) ) {
             return returnStat();
