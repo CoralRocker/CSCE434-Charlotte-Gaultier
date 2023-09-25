@@ -2,11 +2,11 @@ package ast;
 
 import coco.Token;
 
-public class Exponent extends AST {
+public class Subtraction extends AST {
     public Token op;
     public AST rvalue, lvalue;
 
-    public Exponent(Token tkn, AST lvalue, AST rvalue) {
+    public Subtraction(Token tkn, AST lvalue, AST rvalue) {
         super(tkn);
         this.lvalue = lvalue;
         this.rvalue = rvalue;
@@ -36,6 +36,6 @@ public class Exponent extends AST {
 
     @Override
     public String toString() {
-        return String.format("Exponentiation[%s]", op.lexeme());
+        return String.format("Subtraction[%s]", op.lexeme());
     }
 }

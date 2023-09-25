@@ -5,12 +5,10 @@ import coco.Token;
 
 public abstract class AST {
 
-    private int line;
-    private int charpos;
+    private Token tkn;
 
     public AST( Token tkn ) {
-        line = tkn.lineNumber();
-        charpos = tkn.charPosition();
+        this.tkn = tkn;
     }
 
 
@@ -22,7 +20,9 @@ public abstract class AST {
         return printPreOrder().split(System.lineSeparator());
     }
 
-    public int lineNumber() { return line; }
-    public int charPosition() { return charpos; }
+    public int lineNumber() { return tkn.lineNumber(); }
+    public int charPosition() { return tkn.charPosition(); }
+
+    public Token token() { return tkn; }
 }
 

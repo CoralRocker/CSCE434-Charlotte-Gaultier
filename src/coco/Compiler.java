@@ -504,6 +504,91 @@ public class Compiler {
         return function;
     }
 
+    private AST assign() {
+        Designator var = designator();
+        Token op;
+
+        Assignment expr = null;
+
+        if( have( NonTerminal.UNARY_OP ) ) {
+            op = expectRetrieve( NonTerminal.UNARY_OP );
+
+            Addition opr = null;
+
+            switch (op.lexeme()) {
+                case "++" -> {
+                    // var.set(var.getInt() + 1);
+                    opr = new Addition(op, var, new IntegerLiteral(Token.INT_VAL("1", 0, 0)));
+                }
+                case "--" -> {
+                    opr = new Addition(op, var, new IntegerLiteral(Token.INT_VAL("-1", 0, 0)));
+                }
+                default -> {
+                    String err = reportSyntaxError(NonTerminal.UNARY_OP);
+                    throw new Interpreter.QuitParseException("Unable to parse unary op \"%s\": %s".formatted(op.lexeme(), err));
+                }
+            }
+
+            expr = new Assignment( var.token(), var, opr);
+        }
+        else {
+            op = expectRetrieve( NonTerminal.ASSIGN_OP );
+            AST rvalue = relExpr();
+            switch (op.lexeme()) {
+                case "=" -> {
+                    expr = new Assignment(var.token(), var, rvalue);
+                }
+                case "+=" -> {
+                    expr = new Assignment(var.token(), var,
+                        new Addition( op, var, rvalue )
+                    );
+                }
+                case "-=" -> {
+                    expr = new Assignment(var.token(), var,
+                        new Subtraction( op, var, rvalue )
+                    );
+                }
+                case "*=", "/=", "%=" -> {
+                    expr = new Assignment(var.token(), var,
+                        new Multiplication( op, var, rvalue )
+                    );
+                }
+                case "^=" -> {
+                    expr = new Assignment(var.token(), var,
+                        new Exponent( op, var, rvalue )
+                    );
+                }
+            }
+        }
+
+        return expr;
+    }
+
+    private AST statement( boolean execute ) {
+        if( have( NonTerminal.ASSIGN ) ) {
+            return assign();
+        }
+        else if( have( Token.Kind.CALL ) ) {
+            return funcCall();
+        }
+        else if( have( Token.Kind.IF ) ) {
+            return ifStat();
+        }
+        else if( have( Token.Kind.WHILE ) ) {
+            return whileStat();
+        }
+        else if( have( Token.Kind.REPEAT ) ) {
+            return repeatStat();
+        }
+        else if( have( Token.Kind.RETURN ) ) {
+            return returnStat();
+        }
+        else {
+            String err = reportSyntaxError(NonTerminal.STATEMENT);
+            throw new Interpreter.QuitParseException("No executable statement: " + err );
+        }
+    }
+
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
     private RootAST computation () {
         // throw new RuntimeException("implement all grammar rules to build ast");
