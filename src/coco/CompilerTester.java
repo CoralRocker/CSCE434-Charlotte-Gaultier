@@ -1,6 +1,10 @@
 package coco;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+
 import org.apache.commons.cli.*;
 
 public class CompilerTester {
@@ -12,6 +16,7 @@ public class CompilerTester {
         options.addOption("nr", "reg", true, "Num Regs");
         options.addOption("b", "asm", false, "Print DLX instructions");
         options.addOption("a", "astOut", false, "Print AST to screen");
+        options.addOption("d", "diff-ast", false, "If output file is present, get diff between the two ASTs");
 
         options.addOption("gDir", "graphDir", false, "Graph dir, default will be current dir");
         options.addOption("ast", "ast", false, "Print AST.txt - requires graphs/");
@@ -74,6 +79,51 @@ public class CompilerTester {
         String ast_text = ast.printPreOrder();
         if (cmd.hasOption("a")) { // AST to Screen
             System.out.println(ast_text);
+        }
+
+        if( cmd.hasOption("d") ) {
+            String[] userAst = ast_text.split(System.lineSeparator());
+            ArrayList<String> testAst = new ArrayList<>();
+
+            String testName = sourceFile.replace(".txt", "_ast.txt");
+            BufferedReader testFile;
+
+            try {
+                testFile = new BufferedReader( new FileReader( testName ) );
+                String line = null;
+                while( (line = testFile.readLine()) != null ) {
+                    testAst.add(line);
+                }
+
+            } catch (FileNotFoundException e) {
+                System.err.printf("File %s does not exist\n", testName );
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            if( ! testAst.isEmpty() ) {
+                for( int i = 0; i < userAst.length; i++ ) {
+                    if( i >= testAst.size() ) {
+                        System.err.printf("Line %d: Test AST EOF\n", i+1);
+                        return;
+                    }
+                    else if( !Objects.equals(userAst[i], testAst.get(i)) ) {
+                        System.err.printf("Line %d: Test AST != User AST\n", i+1);
+                        System.err.printf("\"%s\" != \"%s\"\n", testAst.get(i), userAst[i] );
+                        return;
+                    }
+                }
+
+                if( testAst.size() > userAst.length ) {
+                    System.err.printf("Line %d: Test AST has more lines than User AST\n", userAst.length+1);
+                    for( int i = userAst.length; i < testAst.size(); i++ ) {
+                        System.err.printf("\t%d: \"%s\"\n", i+1, testAst.get(i));
+                    }
+                    return;
+                }
+
+                System.out.printf("Test AST & User AST are equal\n");
+            }
         }
 
         // create graph dir if needed

@@ -25,10 +25,10 @@ public class Multiplication extends AST {
         builder.append("\n");
 
         for( String line : lvalue.preOrderLines() ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
         for( String line : rvalue.preOrderLines() ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
 
         return builder.toString();

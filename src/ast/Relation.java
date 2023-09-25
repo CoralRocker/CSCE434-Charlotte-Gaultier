@@ -26,11 +26,11 @@ public class Relation extends AST {
         builder.append("\n");
         String[] lines = lvalue.printPreOrder().split(System.lineSeparator());
         for( String line : lines ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
         lines = rvalue.printPreOrder().split(System.lineSeparator());
         for( String line : lines ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
 
         return builder.toString();

@@ -20,7 +20,7 @@ public class LogicalNot extends AST {
         builder.append(this);
         builder.append("\n");
         for( String line : rvalue.preOrderLines() ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
 
         return builder.toString();

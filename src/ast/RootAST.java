@@ -40,7 +40,7 @@ public class RootAST extends AST {
         for( AST ast : seq ) {
             String[] lines = ast.printPreOrder().split(System.lineSeparator());
             for( String line : lines ) {
-                builder.append("\t");
+                builder.append("  ");
                 builder.append(line);
                 builder.append("\n");
             }

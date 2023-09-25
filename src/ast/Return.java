@@ -26,7 +26,7 @@ public class Return extends AST {
         }
 
         for( String line : retval.preOrderLines() ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
 
         return builder.toString();

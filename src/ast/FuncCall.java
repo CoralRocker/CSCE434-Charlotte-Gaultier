@@ -30,7 +30,7 @@ public class FuncCall extends AST {
         if( args != null ) {
             String[] lines = args.printPreOrder().split(System.lineSeparator());
             for( String line : lines ) {
-                builder.append(String.format("\t%s\n", line));
+                builder.append(String.format("  %s\n", line));
             }
         }
 

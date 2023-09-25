@@ -22,9 +22,9 @@ public class Assignment extends AST {
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("%s\n", this));
-        builder.append(String.format("\t%s\n", target));
+        builder.append(String.format("  %s\n", target));
         for( String line : rvalue.preOrderLines() ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
 
         return builder.toString();

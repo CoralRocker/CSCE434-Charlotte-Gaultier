@@ -39,7 +39,7 @@ public class DeclarationList extends AST {
         ret.append( this );
         ret.append("\n");
         for( VariableDeclaration var : symbols ) {
-            ret.append("\t");
+            ret.append("  ");
             ret.append(var);
             ret.append("\n");
         }

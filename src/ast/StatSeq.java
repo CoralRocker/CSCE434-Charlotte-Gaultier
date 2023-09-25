@@ -28,7 +28,7 @@ public class StatSeq extends AST {
 
         for( AST ast : seq ) {
             for( String line : ast.preOrderLines() ) {
-                builder.append(String.format("\t%s\n", line));
+                builder.append(String.format("  %s\n", line));
             }
         }
 

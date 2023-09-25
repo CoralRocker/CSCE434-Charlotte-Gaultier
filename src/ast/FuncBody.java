@@ -22,7 +22,7 @@ public class FuncBody extends AST {
         StringBuilder builder = new StringBuilder(this + "\n");
 
         for( String line : seq.preOrderLines() ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
 
         return builder.toString();

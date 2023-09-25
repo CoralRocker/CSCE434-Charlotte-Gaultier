@@ -31,7 +31,7 @@ public class ArgList extends AST {
         for( AST arg : args ) {
             String[] lines = arg.printPreOrder().split(System.lineSeparator());
             for( String line : lines ) {
-                builder.append("\t");
+                builder.append("  ");
                 builder.append( line );
                 builder.append("\n");
             }

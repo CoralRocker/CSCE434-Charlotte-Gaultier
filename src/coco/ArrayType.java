@@ -241,7 +241,7 @@ public class ArrayType {
         }
         else if( function ) {
             StringBuilder builder = new StringBuilder();
-            builder.append("TypeList(");
+            builder.append("(");
             for( int i = 0; i < arglist.size(); i++ ) {
                 builder.append(arglist.get(i));
                 if( (i + 1) < arglist.size() ) {

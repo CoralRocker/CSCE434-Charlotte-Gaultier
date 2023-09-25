@@ -35,7 +35,7 @@ public class FuncDecl extends AST {
         StringBuilder builder = new StringBuilder();
 
         for( String line : body.preOrderLines() ) {
-            builder.append(String.format("\t%s\n", line));
+            builder.append(String.format("  %s\n", line));
         }
 
         return builder.toString();
