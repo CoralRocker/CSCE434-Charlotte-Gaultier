@@ -1,5 +1,6 @@
 package ast;
 
+import coco.ArrayType;
 import coco.Token;
 
 import java.lang.reflect.Array;
@@ -21,7 +22,8 @@ public class RootAST extends AST {
 
     @Override
     public String type() {
-        return "Computation[main:()->void]";
+        ArrayType mainfunc = ArrayType.makeFunctionType(new ArrayType(new Token(Token.Kind.VOID, 0,0), null), new ArrayList<>() );
+        return String.format("Computation[main:%s]", mainfunc);
     }
 
     @Override

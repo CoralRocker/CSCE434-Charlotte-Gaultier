@@ -1,22 +1,34 @@
 package coco;
 
 
+import java.util.HashMap;
+
 public class SymbolTable {
 
     // TODO: Create Symbol Table structure
+    private HashMap< String, Symbol > table;
 
     public SymbolTable () {
-        throw new RuntimeException("Create Symbol Table and initialize predefined functions");
+        table = new HashMap<>();
     }
 
     // lookup name in SymbolTable
     public Symbol lookup (String name) throws SymbolNotFoundError {
-        throw new RuntimeException("implement lookup variable");
+        Symbol sym = table.get(name);
+        if( sym == null ) {
+            throw new SymbolNotFoundError(name);
+        }
+
+        return sym;
     }
 
     // insert name in SymbolTable
-    public Symbol insert (String name) throws RedeclarationError {
-        throw new RuntimeException("implement insert variable");
+    public Symbol insert (String name, Symbol sym) throws RedeclarationError {
+        if( table.containsKey(name) ) {
+            throw new RedeclarationError(name);
+        }
+        table.put(name, sym);
+        return sym;
     }
 
 }

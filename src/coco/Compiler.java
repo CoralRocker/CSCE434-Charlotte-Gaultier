@@ -2,16 +2,10 @@ package coco;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import ast.AST;
-import ast.DeclarationList;
-import ast.RootAST;
-import ast.VariableDeclaration;
-
-import javax.lang.model.element.VariableElement;
+import ast.*;
 
 public class Compiler {
 
@@ -73,6 +67,7 @@ public class Compiler {
 
     //TODO
     public AST genAST() {
+        initSymbolTable();
         computation();
         return ast;
     }
@@ -94,7 +89,47 @@ public class Compiler {
     private SymbolTable symbolTable;
 
     private void initSymbolTable () {
-        throw new RuntimeException("implement initSymbolTable");
+        symbolTable = new SymbolTable();
+
+        // Add Default Function Declarations
+        ArrayType readInt = ArrayType.makeFunctionType(
+                new ArrayType( Token.Kind.INT ),
+                new ArrayList<>()
+        );
+        symbolTable.insert("readInt", new Symbol("readInt", readInt));
+
+        ArrayType readFloat = ArrayType.makeFunctionType(
+                Token.Kind.FLOAT
+        );
+        symbolTable.insert("readFloat", new Symbol("readFloat", readFloat));
+
+        ArrayType readBool = ArrayType.makeFunctionType(
+                Token.Kind.BOOL
+        );
+        symbolTable.insert("readBool", new Symbol("readBool", readBool));
+
+        ArrayType printInt = ArrayType.makeFunctionType(
+                Token.Kind.VOID,
+                new Token.Kind[]{Token.Kind.INT}
+        );
+        symbolTable.insert("printInt", new Symbol("printInt", printInt));
+
+        ArrayType printFloat = ArrayType.makeFunctionType(
+                Token.Kind.VOID,
+                new Token.Kind[]{Token.Kind.FLOAT}
+        );
+        symbolTable.insert("printFloat", new Symbol("printFloat", printFloat));
+
+        ArrayType printBool = ArrayType.makeFunctionType(
+                Token.Kind.VOID,
+                new Token.Kind[]{Token.Kind.BOOL}
+        );
+        symbolTable.insert("printBool", new Symbol("printBool", printBool));
+
+        ArrayType printLn = ArrayType.makeFunctionType(
+                Token.Kind.VOID
+        );
+        symbolTable.insert("println", new Symbol("println", printLn));
     }
 
     private void enterScope () {
@@ -248,6 +283,42 @@ public class Compiler {
         return vars;
     }
 
+    private FuncCall funcCall() {
+        Token call = expectRetrieve( Token.Kind.CALL );
+        Token func = expectRetrieve( Token.Kind.IDENT );
+        expect( Token.Kind.OPEN_PAREN );
+
+        Symbol sym = symbolTable.lookup(func.lexeme());
+
+        ArrayList< AST > args = new ArrayList<>();
+        FuncCall function = new FuncCall(call, sym);
+
+        if( accept( Token.Kind.CLOSE_PAREN ) ) {
+            return function;
+        }
+        else {
+
+            ArrayList< AST > arguments = new ArrayList<>();
+            ArgList list = new ArgList(currentToken);
+            function.setArgs(list);
+            if( have(NonTerminal.LITERAL ) ) {
+                Token lit = expectRetrieve(NonTerminal.LITERAL);
+                list.add( new IntegerLiteral(lit) );
+            }
+            expect( Token.Kind.CLOSE_PAREN );
+            // arguments.add( relExpr( execute && !earlyReturn ) );
+            // while( accept( Token.Kind.COMMA ) ) {
+            //     arguments.add( relExpr( execute && !earlyReturn ) );
+            // }
+            // expect( Token.Kind.CLOSE_PAREN );
+
+
+        }
+
+        // Reached if not executing
+        return function;
+    }
+
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
     private RootAST computation () {
         // throw new RuntimeException("implement all grammar rules to build ast");
@@ -266,6 +337,16 @@ public class Compiler {
 
             ast.add( list );
         }
+
+        expect(Token.Kind.OPEN_BRACE);
+
+        while( have(NonTerminal.FUNC_CALL ) ) {
+            ast.add( funcCall() );
+            expect( Token.Kind.SEMICOLON );
+        }
+
+        expect(Token.Kind.CLOSE_BRACE);
+        expect(Token.Kind.PERIOD);
 
         return ast;
     }
