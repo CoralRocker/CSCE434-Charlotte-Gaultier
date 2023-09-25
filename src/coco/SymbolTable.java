@@ -32,7 +32,7 @@ public class SymbolTable {
         // recursive, base case returns null or symbol
         // if found in self: return
 
-        if(map.get(name) != null){
+        if(map.containsKey(name)){
             return map.get(name);
         }else{
             if(parent == null) {throw new SymbolNotFoundError(name);}
@@ -43,7 +43,7 @@ public class SymbolTable {
 
     // insert name in SymbolTable
     public Symbol insert (Token ident, Symbol value) throws RedeclarationError {
-        if(map.get(ident.lexeme()) == null){
+        if(!map.containsKey(ident.lexeme())){
             map.put(ident.lexeme(), value);
         }else{
             throw new RedeclarationError(ident.lexeme());
@@ -52,7 +52,7 @@ public class SymbolTable {
     }
 
     public Symbol insert (String str, Symbol value) throws RedeclarationError {
-        if(map.get(str) == null){
+        if(!map.containsKey(str)){
             map.put(str, value);
         }else{
             throw new RedeclarationError(str);

@@ -131,6 +131,8 @@ public class Compiler {
         ArrayType printLn = ArrayType.makeFunctionType(
                 Token.Kind.VOID
         );
+        currentSymbolTable.insert("printLn", new Symbol("printLn", printLn));
+
     }
 
     private void enterScope () {
@@ -174,6 +176,7 @@ public class Compiler {
     }
 
     private Symbol tryDeclareVariable (String str) {
+
         try{
             return currentSymbolTable.insert(str, null);
         }
@@ -198,13 +201,13 @@ public class Compiler {
     private String reportResolveSymbolError (String name, int lineNum, int charPos) {
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
         errorBuffer.append(message + "\n");
-        return message;
+        throw new QuitParseException(message);
     }
 
     private String reportDeclareSymbolError (String name, int lineNum, int charPos) {
         String message = "DeclareSymbolError(" + lineNum + "," + charPos + ")[" + name + " already exists.]";
         errorBuffer.append(message + "\n");
-        return message;
+        throw new QuitParseException(message);
     }
 
 
