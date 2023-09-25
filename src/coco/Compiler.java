@@ -131,8 +131,6 @@ public class Compiler {
         ArrayType printLn = ArrayType.makeFunctionType(
                 Token.Kind.VOID
         );
-        currentSymbolTable.insert("println", new Symbol("println", printLn));
-
     }
 
     private void enterScope () {
@@ -170,6 +168,28 @@ public class Compiler {
         }
         catch(RedeclarationError e){
             reportDeclareSymbolError(ident.lexeme(), lineNumber(), charPosition());
+        }
+        //TODO: Try declaring variable, handle RedeclarationError
+        return null;
+    }
+
+    private Symbol tryDeclareVariable (String str) {
+        try{
+            return currentSymbolTable.insert(str, null);
+        }
+        catch(RedeclarationError e){
+            reportDeclareSymbolError(str, lineNumber(), charPosition());
+        }
+        //TODO: Try declaring variable, handle RedeclarationError
+        return null;
+    }
+
+    private Symbol tryDeclareVariable (String str, Symbol var) {
+        try{
+            return currentSymbolTable.insert(str, var);
+        }
+        catch(RedeclarationError e){
+            reportDeclareSymbolError(str, lineNumber(), charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
         return null;

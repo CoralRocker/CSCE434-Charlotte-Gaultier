@@ -59,6 +59,10 @@ public class SymbolTable {
         }
         return map.get(str);
     }
+
+    public String toString() {
+        return map.toString();
+    }
 }
 
 class SymbolNotFoundError extends Error {
