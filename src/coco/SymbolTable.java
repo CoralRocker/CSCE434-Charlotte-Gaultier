@@ -1,36 +1,64 @@
 package coco;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SymbolTable {
 
     // TODO: Create Symbol Table structure
-    private HashMap< String, Symbol > table;
 
-    public SymbolTable () {
-        table = new HashMap<>();
+    private final SymbolTable parent;
+    private HashMap<String, Symbol> map;
+
+    public SymbolTable (SymbolTable parent) {
+        this.parent = parent;
+        this.map = new HashMap<String, Symbol>();
+    }
+
+    public SymbolTable pushScope(){
+        // add a new scope, enter it, with parent as this (current scope)
+        return new SymbolTable(this);
+    }
+
+    public SymbolTable popScope(){
+        // enter parent scope
+        return parent;
     }
 
     // lookup name in SymbolTable
     public Symbol lookup (String name) throws SymbolNotFoundError {
-        Symbol sym = table.get(name);
-        if( sym == null ) {
-            throw new SymbolNotFoundError(name);
-        }
+        // look in current scope and then look in parents, call lookup on this.parent
+        // recursive, base case returns null or symbol
+        // if found in self: return
 
-        return sym;
+        if(map.get(name) != null){
+            return map.get(name);
+        }else{
+            if(parent == null) {throw new SymbolNotFoundError(name);}
+            return parent.lookup(name);
+        }
+        // else: return lookup parent
     }
 
     // insert name in SymbolTable
-    public Symbol insert (String name, Symbol sym) throws RedeclarationError {
-        if( table.containsKey(name) ) {
-            throw new RedeclarationError(name);
+    public Symbol insert (Token ident, Symbol value) throws RedeclarationError {
+        if(map.get(ident.lexeme()) == null){
+            map.put(ident.lexeme(), value);
+        }else{
+            throw new RedeclarationError(ident.lexeme());
         }
-        table.put(name, sym);
-        return sym;
+        return map.get(ident.lexeme());
     }
 
+    public Symbol insert (String str, Symbol value) throws RedeclarationError {
+        if(map.get(str) == null){
+            map.put(str, value);
+        }else{
+            throw new RedeclarationError(str);
+        }
+        return map.get(str);
+    }
 }
 
 class SymbolNotFoundError extends Error {

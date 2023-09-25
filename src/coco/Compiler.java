@@ -52,6 +52,8 @@ public class Compiler {
     private Token currentToken;
 
     private RootAST ast;
+    private SymbolTable currentSymbolTable;
+
     private int numDataRegisters; // available registers are [1..numDataRegisters]
     private List<Integer> instructions;
 
@@ -86,66 +88,89 @@ public class Compiler {
     }
 
     // SymbolTable Management =====================================================
-    private SymbolTable symbolTable;
 
     private void initSymbolTable () {
-        symbolTable = new SymbolTable();
+
+        currentSymbolTable = new SymbolTable(null);
 
         // Add Default Function Declarations
         ArrayType readInt = ArrayType.makeFunctionType(
                 new ArrayType( Token.Kind.INT ),
                 new ArrayList<>()
         );
-        symbolTable.insert("readInt", new Symbol("readInt", readInt));
+        currentSymbolTable.insert("readInt", new Symbol("readInt", readInt));
 
         ArrayType readFloat = ArrayType.makeFunctionType(
                 Token.Kind.FLOAT
         );
-        symbolTable.insert("readFloat", new Symbol("readFloat", readFloat));
+        currentSymbolTable.insert("readFloat", new Symbol("readFloat", readFloat));
 
         ArrayType readBool = ArrayType.makeFunctionType(
                 Token.Kind.BOOL
         );
-        symbolTable.insert("readBool", new Symbol("readBool", readBool));
+        currentSymbolTable.insert("readBool", new Symbol("readBool", readBool));
 
         ArrayType printInt = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.INT}
         );
-        symbolTable.insert("printInt", new Symbol("printInt", printInt));
+        currentSymbolTable.insert("printInt", new Symbol("printInt", printInt));
 
         ArrayType printFloat = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.FLOAT}
         );
-        symbolTable.insert("printFloat", new Symbol("printFloat", printFloat));
+        currentSymbolTable.insert("printFloat", new Symbol("printFloat", printFloat));
 
         ArrayType printBool = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.BOOL}
         );
-        symbolTable.insert("printBool", new Symbol("printBool", printBool));
+        currentSymbolTable.insert("printBool", new Symbol("printBool", printBool));
 
         ArrayType printLn = ArrayType.makeFunctionType(
                 Token.Kind.VOID
         );
-        symbolTable.insert("println", new Symbol("println", printLn));
+        currentSymbolTable.insert("println", new Symbol("println", printLn));
+
     }
 
     private void enterScope () {
-        throw new RuntimeException("implement enterScope");
+        currentSymbolTable = currentSymbolTable.pushScope();
     }
 
     private void exitScope () {
-        throw new RuntimeException("implement exitScope");
+        currentSymbolTable = currentSymbolTable.popScope();
     }
 
     private Symbol tryResolveVariable (Token ident) {
+        try{
+            return currentSymbolTable.lookup(ident.lexeme());
+        }catch(SymbolNotFoundError e){
+            reportResolveSymbolError(ident.lexeme(), lineNumber(), charPosition());
+        }
         //TODO: Try resolving variable, handle SymbolNotFoundError
         return null;
     }
 
     private Symbol tryDeclareVariable (Token ident) {
+        try{
+            return currentSymbolTable.insert(ident, null);
+        }
+        catch(RedeclarationError e){
+            reportDeclareSymbolError(ident.lexeme(), lineNumber(), charPosition());
+        }
+        //TODO: Try declaring variable, handle RedeclarationError
+        return null;
+    }
+
+    private Symbol tryDeclareVariable (Token ident, Symbol var) {
+        try{
+            return currentSymbolTable.insert(ident, var);
+        }
+        catch(RedeclarationError e){
+            reportDeclareSymbolError(ident.lexeme(), lineNumber(), charPosition());
+        }
         //TODO: Try declaring variable, handle RedeclarationError
         return null;
     }
@@ -288,7 +313,7 @@ public class Compiler {
         Token func = expectRetrieve( Token.Kind.IDENT );
         expect( Token.Kind.OPEN_PAREN );
 
-        Symbol sym = symbolTable.lookup(func.lexeme());
+        Symbol sym = tryResolveVariable(func);
 
         ArrayList< AST > args = new ArrayList<>();
         FuncCall function = new FuncCall(call, sym);
