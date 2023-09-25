@@ -9,6 +9,9 @@ import java.util.NoSuchElementException;
 import ast.AST;
 import ast.DeclarationList;
 import ast.RootAST;
+import ast.VariableDeclaration;
+
+import javax.lang.model.element.VariableElement;
 
 public class Compiler {
 
@@ -227,48 +230,22 @@ public class Compiler {
     }
 
 
-    private ArrayList< Symbol > varDecl () {
+    private ArrayList<VariableDeclaration> varDecl () {
         ArrayType arrtype = typeDecl(); // Array Identifier Generator
         Token.Kind type = arrtype.getType(); // Array Data Type
         Token ident = expectRetrieve( Token.Kind.IDENT ); // Initial Identifier
 
-        // Check if a symbol exists with the given identifier.
-        if( symbols.containsKey( ident.lexeme() ) ) {
-            reportSyntaxError( ident.kind() );
-            throw new Interpreter.QuitParseException("Duplicate identifier declaration: \"%s\" on line %d, char %d".formatted(ident.lexeme(), ident.lineNumber(), ident.charPosition()));
-        }
-        else {
-            symbols.put( ident.lexeme(), arrtype );
-
-            // Generate list of all identifiers for array. Returns single identifier for non-array type
-            ArrayList< String > idents = arrtype.allIdents( ident );
-            for( String name : idents ) {
-                variables.put( name, new Variable( type ) ); // Create the appropriate variables
-            }
-
-        }
+        ArrayList<VariableDeclaration> vars = new ArrayList<>();
+        vars.add( new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) ) );
 
         while( accept(Token.Kind.COMMA ) ) {
             ident = expectRetrieve( Token.Kind.IDENT );
-
-            // Check if a symbol exists with the given identifier.
-            if( symbols.containsKey( ident.lexeme() ) ) {
-                reportSyntaxError( ident.kind() );
-                throw new Interpreter.QuitParseException("Duplicate identifier declaration: \"%s\" on line %d, char %d".formatted(ident.lexeme(), ident.lineNumber(), ident.charPosition()));
-            }
-            else {
-                symbols.put( ident.lexeme(), arrtype );
-
-                // Generate list of all identifiers for array. Returns single identifier for non-array type
-                ArrayList< String > idents = arrtype.allIdents( ident );
-                for( String name : idents ) {
-                    variables.put( name, new Variable( type ) ); // Create the appropriate variables
-                }
-
-            }
+            vars.add( new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) ) );
         }
 
         expect( Token.Kind.SEMICOLON );
+
+        return vars;
     }
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
@@ -281,8 +258,13 @@ public class Compiler {
             DeclarationList list = new DeclarationList(currentToken);
 
             while (have(NonTerminal.VAR_DECL)) {
-
+                ArrayList<VariableDeclaration> decls = varDecl();
+                for( VariableDeclaration decl : decls ) {
+                    list.add( decl );
+                }
             }
+
+            ast.add( list );
         }
 
         return ast;

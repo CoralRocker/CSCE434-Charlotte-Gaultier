@@ -161,4 +161,19 @@ public class ArrayType {
         return results;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder ret = new StringBuilder();
+        ret.append( type.lexeme() );
+
+        if( dims != null ) {
+            for (int dim : dims) {
+                ret.append("[");
+                ret.append(dim);
+                ret.append("]");
+            }
+        }
+
+        return ret.toString();
+    }
 }

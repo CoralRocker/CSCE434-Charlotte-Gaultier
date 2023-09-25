@@ -1,6 +1,12 @@
 package ast;
 
+import coco.Token;
+
 public class WhileStat extends AST {
+    public WhileStat(Token tkn) {
+        super(tkn);
+    }
+
     @Override
     public String type() {
         return null;

@@ -12,6 +12,10 @@ public class VariableDeclaration extends AST {
         this.sym = sym;
     }
 
+    public Symbol symbol() {
+        return sym;
+    }
+
     @Override
     public String type() {
         return "VarDecl";
@@ -22,4 +26,8 @@ public class VariableDeclaration extends AST {
         return null;
     }
 
+    @Override
+    public String toString() {
+        return String.format("ast.VariableDeclaration(%d,%d)[%s]", lineNumber(), charPosition(), sym);
+    }
 }

@@ -22,4 +22,9 @@ public class Symbol {
         return type;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Symbol(%s:%s)", name, type);
+    }
+
 }

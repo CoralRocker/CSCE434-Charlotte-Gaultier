@@ -25,4 +25,9 @@ public class StatSeq extends AST {
     public String printPreOrder() {
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "StatementSequence";
+    }
 }

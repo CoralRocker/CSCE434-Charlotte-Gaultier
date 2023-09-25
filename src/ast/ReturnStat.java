@@ -1,6 +1,12 @@
 package ast;
 
+import coco.Token;
+
 public class ReturnStat extends AST {
+    public ReturnStat(Token tkn) {
+        super(tkn);
+    }
+
     @Override
     public String type() {
         return null;

@@ -1,6 +1,12 @@
 package ast;
 
+import coco.Token;
+
 public class Assign extends AST {
+    public Assign(Token tkn) {
+        super(tkn);
+    }
+
     @Override
     public String type() {
         return null;

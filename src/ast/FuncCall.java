@@ -1,6 +1,12 @@
 package ast;
 
+import coco.Token;
+
 public class FuncCall extends AST {
+    public FuncCall(Token tkn) {
+        super(tkn);
+    }
+
     @Override
     public String type() {
         return null;
