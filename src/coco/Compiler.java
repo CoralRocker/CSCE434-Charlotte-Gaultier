@@ -656,6 +656,86 @@ public class Compiler {
         }
     }
 
+
+    private FuncDecl funcDecl () {
+        Token ftok = expectRetrieve( Token.Kind.FUNC );
+        Token funcName = expectRetrieve(Token.Kind.IDENT);
+        ArrayList< Symbol > argSymbols = formalParam();
+        expect( Token.Kind.COLON );
+        ArrayType returnType = paramType();
+
+        FuncBody body = funcBody();
+        ArrayList< ArrayType > params = new ArrayList<>();
+        for( Symbol sym : argSymbols ) {
+            params.add( sym.type() );
+        }
+
+        ArrayType funcType = ArrayType.makeFunctionType(returnType, params );
+        Symbol funcSym = new Symbol(funcName.lexeme(), funcType);
+
+        FuncDecl decl = new FuncDecl(ftok, funcSym, body);
+        decl.setArgs(argSymbols);
+
+        return decl;
+    }
+
+    private ArrayType paramType() {
+        Token type = expectRetrieve(NonTerminal.TYPE);
+        ArrayList<Integer> dims = new ArrayList<>();
+        while( accept( Token.Kind.OPEN_BRACKET ) ) {
+            expect( Token.Kind.CLOSE_BRACKET );
+            dims.add(-1);
+        }
+
+        if( dims.isEmpty() ) {
+            return new ArrayType(type, null );
+        }
+        return new ArrayType(type, dims);
+
+    }
+
+    private Symbol paramDecl() {
+        ArrayType type = paramType();
+        Token param = expectRetrieve( Token.Kind.IDENT );
+        return new Symbol(param.lexeme(), type);
+    }
+
+    private ArrayList< Symbol > formalParam() {
+
+        ArrayList<Symbol> params = new ArrayList<>();
+        expect(Token.Kind.OPEN_PAREN);
+
+        if( have( NonTerminal.PARAM_DECL ) ) {
+            params.add( paramDecl() );
+            while( accept( Token.Kind.COMMA ) ) {
+                params.add( paramDecl() );
+            }
+        }
+        expect( Token.Kind.CLOSE_PAREN );
+
+        return params;
+    }
+
+    private FuncBody funcBody( ) {
+        Token brace = expectRetrieve( Token.Kind.OPEN_BRACE );
+        DeclarationList vars = null;
+
+        if( have(NonTerminal.VAR_DECL ) ) {
+            vars = new DeclarationList(currentToken);
+        }
+
+        while( have( NonTerminal.VAR_DECL ) ) {
+            vars.addAll( varDecl() );
+        }
+
+        StatSeq seq = statSeq();
+
+        expect( Token.Kind.CLOSE_BRACE );
+        expect( Token.Kind.SEMICOLON );
+
+        return new FuncBody(brace, vars, seq);
+    }
+
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
     private RootAST computation () {
         // throw new RuntimeException("implement all grammar rules to build ast");
@@ -673,6 +753,10 @@ public class Compiler {
             }
 
             ast.add( list );
+        }
+
+        while (have(NonTerminal.FUNC_DECL) ) {
+            ast.add( funcDecl() );
         }
 
         expect(Token.Kind.OPEN_BRACE);

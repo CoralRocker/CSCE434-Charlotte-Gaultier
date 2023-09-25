@@ -1,10 +1,28 @@
 package ast;
 
+import coco.Symbol;
 import coco.Token;
 
+import java.util.ArrayList;
+
 public class FuncDecl extends AST {
-    public FuncDecl(Token tkn) {
+
+    private Symbol sym;
+    private ArrayList<Symbol> argList;
+    private FuncBody body;
+    public FuncDecl(Token tkn, Symbol func, FuncBody body ) {
         super(tkn);
+        this.sym = func;
+        this.body = body;
+        this.argList = new ArrayList<>();
+    }
+
+    public void setArgs( ArrayList<Symbol> list) {
+        this.argList = list;
+    }
+
+    public void add( Symbol arg ) {
+        argList.add( arg );
     }
 
     @Override
@@ -14,16 +32,23 @@ public class FuncDecl extends AST {
 
     @Override
     public String printPreOrder() {
-        return null;
+        StringBuilder builder = new StringBuilder();
+
+        for( String line : body.preOrderLines() ) {
+            builder.append(String.format("\t%s\n", line));
+        }
+
+        return builder.toString();
     }
 
     @Override
-    public int lineNumber() {
-        return 0;
-    }
-
-    @Override
-    public int charPosition() {
-        return 0;
+    public String toString() {
+        StringBuilder builder = new StringBuilder("FunctionDeclaration[");
+        builder.append(sym);
+        for( Symbol arg : argList ) {
+            builder.append(String.format(", %s", arg));
+        }
+        builder.append("]");
+        return builder.toString();
     }
 }

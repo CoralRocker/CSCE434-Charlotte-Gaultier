@@ -19,6 +19,8 @@ public class ArrayType {
 
     private ArrayList< Integer > dims;
 
+    private int paramdims = 0;
+
 
 
     public ArrayType( Token type, ArrayList< Integer > d) {
@@ -29,10 +31,19 @@ public class ArrayType {
             return;
         }
 
+        boolean allNegOne = true;
         for( Integer dim : dims ) {
-            if( dim <= 0 ) {
-                throw new RuntimeException("All dimensions must be >= 0!");
+            if( !allNegOne && dim < -1 ) {
+
+                throw new RuntimeException("All dimensions must be >= 0 or exactly -1!");
             }
+            else if( dim > -1 && allNegOne){
+                allNegOne = false;
+            }
+        }
+
+        if( allNegOne ) {
+            paramdims = dims.size();
         }
     }
 
@@ -118,6 +129,11 @@ public class ArrayType {
      * @return The String identifier for the position
      */
     public String at( Token ident, ArrayList< Integer > idx ) {
+        if( idx != null && paramdims == idx.size() ) {
+            return genIdent( ident.lexeme(), idx );
+        }
+
+
         if( dims == null && idx != null ) {
             throw new RuntimeException("Cannot array-index non-array type!");
         }
@@ -150,7 +166,12 @@ public class ArrayType {
      */
     public ArrayList< String > allIdents( Token ident ) {
         if( dims == null ) {
-            return new ArrayList<>(Arrays.asList(ident.lexeme()));
+            if( paramdims > 0 ) {
+                return new ArrayList<>(Arrays.asList(this.toString()));
+            }
+            else {
+                return new ArrayList<>(Arrays.asList(ident.lexeme()));
+            }
         }
 
         ArrayList<String> results = new ArrayList<>();
@@ -213,8 +234,12 @@ public class ArrayType {
                 ret.append("]");
             }
         }
-
-        if( function ) {
+        else if( paramdims > 0 ) {
+            for( int i = 0; i < paramdims; i++ ) {
+                ret.append("[]");
+            }
+        }
+        else if( function ) {
             StringBuilder builder = new StringBuilder();
             builder.append("TypeList(");
             for( int i = 0; i < arglist.size(); i++ ) {
@@ -231,5 +256,7 @@ public class ArrayType {
         else {
             return ret.toString();
         }
+
+        return ret.toString();
     }
 }

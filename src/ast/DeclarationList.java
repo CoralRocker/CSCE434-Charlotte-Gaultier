@@ -4,6 +4,7 @@ import coco.Token;
 import coco.Variable;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DeclarationList extends AST {
 
@@ -12,8 +13,16 @@ public class DeclarationList extends AST {
         symbols = new ArrayList<>();
     }
 
+    public DeclarationList(Token tkn, ArrayList<VariableDeclaration> vars) {
+        super(tkn);
+        this.symbols = vars;
+    }
+
     public void add( VariableDeclaration decl ) {
         symbols.add( decl );
+    }
+    public void addAll( List<VariableDeclaration> vars ) {
+        symbols.addAll(vars);
     }
 
     private ArrayList<VariableDeclaration> symbols;
