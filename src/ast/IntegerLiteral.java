@@ -18,7 +18,7 @@ public class IntegerLiteral extends AST {
 
     @Override
     public String printPreOrder() {
-        return this.toString();
+        return this.toString() + "\n";
     }
 
     @Override

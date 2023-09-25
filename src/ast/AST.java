@@ -18,6 +18,10 @@ public abstract class AST {
 
     public abstract String printPreOrder();
 
+    public String[] preOrderLines() {
+        return printPreOrder().split(System.lineSeparator());
+    }
+
     public int lineNumber() { return line; }
     public int charPosition() { return charpos; }
 }

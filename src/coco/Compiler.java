@@ -309,6 +309,143 @@ public class Compiler {
         return new ArrayType(type, dimensions);
     }
 
+    private Designator designator ( ) {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
+        Token ident = expectRetrieve(Token.Kind.IDENT);
+        return new Designator( ident, currentSymbolTable.lookup(ident.lexeme()) );
+        // ArrayList< Integer > dims = null;
+
+        // while( accept( Token.Kind.OPEN_BRACKET ) ) {
+        //     Variable dim = relExpr( execute && !earlyReturn );
+        //     if( ! dim.isInt() ) {
+        //         throw new Interpreter.QuitParseException("Expected integer as index for array, but got %s. Line %d Pos %d".formatted(dim.getType(), lineNumber(), charPosition() ) );
+        //     }
+        //     if( dims == null ) {
+        //         dims = new ArrayList<>();
+        //     }
+        //     dims.add( dim.getInt() );
+        //     expect( Token.Kind.CLOSE_BRACKET );
+        // }
+
+        // if( execute && !earlyReturn ) {
+        //     ArrayType typeInfo = symbols.getOrDefault(ident.lexeme(), null);
+        //     if (typeInfo == null) {
+        //         reportSyntaxError(NonTerminal.STATEMENT);
+        //         throw new Interpreter.QuitParseException("Identifier \"%s\" Does not exist. Line %d Pos %d".formatted(ident.lexeme(), lineNumber(), charPosition()));
+        //     }
+
+        //     String uniqueIdent = typeInfo.at(ident, dims);
+
+        //     Variable var = variables.getOrDefault(uniqueIdent, null);
+        //     if (var == null) {
+        //         throw new RuntimeException("Unique identifier \"%s\" does not exist in the variables map.".formatted(uniqueIdent));
+        //     }
+
+        //     return var;
+        // }
+        // else {
+        //     return null;
+        // }
+    }
+
+
+    private AST addExpr( ) {
+        AST var = multExpr();
+
+        while( have( NonTerminal.ADD_OP )
+                || ( have( NonTerminal.LITERAL ) && currentToken.lexeme().startsWith("-") ) ) {
+            Token op;
+            AST rval;
+            op = expectRetrieve(NonTerminal.ADD_OP);
+            rval = multExpr();
+
+            var = new Addition( op, var, rval );
+        }
+
+        return var;
+    }
+
+    private AST multExpr( ) {
+        AST var = powExpr();
+
+        while( have( NonTerminal.MUL_OP ) ) {
+            Token op = expectRetrieve( NonTerminal.MUL_OP );
+            AST rval = powExpr();
+
+            var = new Multiplication(op, var, rval);
+        }
+
+        return var;
+    }
+
+    private AST powExpr() {
+        AST var = groupExpr();
+
+        while( have( Token.Kind.POW ) ) {
+            Token op = expectRetrieve(Token.Kind.POW);
+            AST rval = groupExpr();
+
+            var = new Exponent(op, var, rval);
+        }
+
+        return var;
+    }
+
+    private AST groupExpr() {
+        if( have( NonTerminal.LITERAL ) ) {
+            Token lit = expectRetrieve( NonTerminal.LITERAL );
+            switch ( lit.kind ) {
+                case FLOAT_VAL -> {
+                    return new FloatLiteral( lit );
+                }
+                case INT_VAL -> {
+                    return new IntegerLiteral( lit );
+                }
+            }
+        }
+        else if( have( Token.Kind.IDENT ) ) {
+            return designator();
+        }
+        else if( have( Token.Kind.NOT ) ) {
+            AST var = relExpr();
+            return new LogicalNot( expectRetrieve(Token.Kind.NOT), var );
+        }
+        else if( have( Token.Kind.OPEN_PAREN ) ) {
+            return relation();
+        } else if (have(Token.Kind.CALL) ) {
+            return funcCall();
+        }
+        else {
+            String err = reportSyntaxError( NonTerminal.GROUP_EXPR );
+            throw new Interpreter.QuitParseException(err);
+        }
+
+        return null;
+    }
+
+    private AST relExpr() {
+        AST lval = addExpr();
+
+        while( have( NonTerminal.REL_OP ) ) {
+            Token op = expectRetrieve( NonTerminal.REL_OP );
+            AST rval =  addExpr();
+
+            lval = new Relation(op, lval, rval);
+        }
+
+        return lval;
+    }
+
+    private AST relation() {
+        expect( Token.Kind.OPEN_PAREN );
+        AST var = relExpr();
+        expect( Token.Kind.CLOSE_PAREN );
+
+        return var;
+    }
+
 
     private ArrayList<VariableDeclaration> varDecl () {
         ArrayType arrtype = typeDecl(); // Array Identifier Generator

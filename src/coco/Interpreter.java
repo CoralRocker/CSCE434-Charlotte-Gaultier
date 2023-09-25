@@ -33,7 +33,7 @@ public class Interpreter {
         return errorBuffer.length() != 0;
     }
 
-    private class QuitParseException extends RuntimeException {
+    static class QuitParseException extends RuntimeException {
         private static final long serialVersionUID = 1L;
         public QuitParseException (String errorMessage) {
             super(errorMessage);
