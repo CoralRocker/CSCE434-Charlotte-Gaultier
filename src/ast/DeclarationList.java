@@ -14,6 +14,7 @@ public class DeclarationList extends AST {
 
     public DeclarationList(Token tkn, ArrayList<AST> vars) {
         super(tkn);
+        assert( vars != null );
         this.symbols = vars;
     }
 

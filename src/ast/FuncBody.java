@@ -8,6 +8,7 @@ public class FuncBody extends AST {
     private DeclarationList varList;
     public FuncBody(Token tkn, DeclarationList vars, StatSeq seq) {
         super(tkn);
+        assert( vars != null );
         this.seq = seq;
         this.varList = vars;
     }
@@ -21,8 +22,10 @@ public class FuncBody extends AST {
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder(this + "\n");
 
-        for( String line : varList.preOrderLines() ) {
-            builder.append(String.format("  %s\n", line));
+        if( varList != null ) {
+            for (String line : varList.preOrderLines()) {
+                builder.append(String.format("  %s\n", line));
+            }
         }
 
         for( String line : seq.preOrderLines() ) {

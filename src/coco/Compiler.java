@@ -483,7 +483,7 @@ public class Compiler {
         function.setArgs(list);
         if( !have( Token.Kind.CLOSE_PAREN ) ) {
             list.add(relExpr());
-            while (have(Token.Kind.COMMA)) {
+            while ( accept(Token.Kind.COMMA)) {
                 list.add(relExpr());
             }
         }
@@ -659,16 +659,20 @@ public class Compiler {
         Token ftok = expectRetrieve( Token.Kind.FUNC );
         Token funcName = expectRetrieve(Token.Kind.IDENT);
 
-        currentSymbolTable.pushScope();
 
         ArrayList< Symbol > argSymbols = formalParam();
         expect( Token.Kind.COLON );
-        ArrayType returnType = paramType();
+        ArrayType returnType;
+        if( accept( Token.Kind.VOID ) ) {
+            returnType = new ArrayType(Token.Kind.VOID);
+        }
+        else {
+            returnType = paramType();
+        }
 
         ArrayList< ArrayType > params = new ArrayList<>();
         for( Symbol sym : argSymbols ) {
             params.add( sym.type() );
-            currentSymbolTable.insert(sym.name(), sym);
         }
 
         ArrayType funcType = ArrayType.makeFunctionType(returnType, params );
@@ -676,11 +680,17 @@ public class Compiler {
 
         currentSymbolTable.insert(funcSym.name(), funcSym);
 
+        currentSymbolTable = currentSymbolTable.pushScope();
+
+        for( Symbol sym : argSymbols ) {
+            currentSymbolTable.insert(sym.name(), sym);
+        }
+
         FuncBody body = funcBody();
         FuncDecl decl = new FuncDecl(ftok, funcSym, body);
         decl.setArgs(argSymbols);
 
-        currentSymbolTable.popScope();
+        currentSymbolTable = currentSymbolTable.popScope();
 
         return decl;
     }
