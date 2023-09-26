@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.*;
 
@@ -123,6 +124,44 @@ public class CompilerTester {
                 }
 
                 System.out.printf("Test AST & User AST are equal\n");
+            }
+
+            testName = sourceFile.replace(".txt", ".out");
+            String[] userErr = c.errorReport().split(System.lineSeparator());
+            ArrayList<String> testErr = new ArrayList<>();
+            try {
+                testFile = new BufferedReader( new FileReader( testName ) );
+                String line = null;
+                while( (line = testFile.readLine()) != null ) {
+                    testErr.add(line);
+                }
+            } catch (FileNotFoundException e) {
+                System.err.printf("File %s does not exist.\n", testName );
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            if( ! testErr.isEmpty() ) {
+                for (int i = 0; i < userErr.length; i++) {
+                    if (i >= testErr.size()) {
+                        System.err.printf("Line %d: Test ERR EOF\n", i + 1);
+                        return;
+                    } else if (!Objects.equals(userErr[i], testErr.get(i))) {
+                        System.err.printf("Line %d: Test ERR != User ERR\n", i + 1);
+                        System.err.printf("\"%s\" != \"%s\"\n", testErr.get(i), userErr[i]);
+                        return;
+                    }
+                }
+
+                if (testErr.size() > userErr.length) {
+                    System.err.printf("Line %d: Test ERR has more lines than User ERR\n", userErr.length + 1);
+                    for (int i = userErr.length; i < testErr.size(); i++) {
+                        System.err.printf("\t%d: \"%s\"\n", i + 1, testErr.get(i));
+                    }
+                    return;
+                }
+
+                System.out.printf("Test ERR & User ERR are equal\n");
             }
         }
 

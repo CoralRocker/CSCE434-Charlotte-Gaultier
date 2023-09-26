@@ -69,8 +69,14 @@ public class Compiler {
 
     //TODO
     public AST genAST() {
-        initSymbolTable();
-        computation();
+
+        try {
+            initSymbolTable();
+            computation();
+        }
+        catch( QuitParseException e ) {
+            System.out.println("CAUGHT ERROR: " + e);
+        }
         return ast;
     }
     
@@ -145,7 +151,7 @@ public class Compiler {
 
     private Symbol tryResolveVariable (Token ident) {
         try{
-            return currentSymbolTable.lookup(ident.lexeme());
+            return currentSymbolTable.lookup(ident);
         }catch(SymbolNotFoundError e){
             reportResolveSymbolError(ident.lexeme(), lineNumber(), charPosition());
         }
@@ -199,12 +205,18 @@ public class Compiler {
     }
 
     private String reportResolveSymbolError (String name, int lineNum, int charPos) {
+        if( errorBuffer.isEmpty() ) {
+            errorBuffer.append("Error parsing file.\n");
+        }
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
         errorBuffer.append(message + "\n");
         throw new QuitParseException(message);
     }
 
     private String reportDeclareSymbolError (String name, int lineNum, int charPos) {
+        if( errorBuffer.isEmpty() ) {
+            errorBuffer.append("Error parsing file.\n");
+        }
         String message = "DeclareSymbolError(" + lineNum + "," + charPos + ")[" + name + " already exists.]";
         errorBuffer.append(message + "\n");
         throw new QuitParseException(message);
@@ -317,7 +329,7 @@ public class Compiler {
         int charPos = charPosition();
 
         Token ident = expectRetrieve(Token.Kind.IDENT);
-        AST symbol = new Designator( ident, currentSymbolTable.lookup(ident.lexeme()) );
+        AST symbol = new Designator(ident, tryResolveVariable(ident));
 
         ArrayList<AST> indexes = new ArrayList<>();
         while( accept( Token.Kind.OPEN_BRACKET ) ) {
@@ -441,11 +453,14 @@ public class Compiler {
         Token ident = expectRetrieve( Token.Kind.IDENT ); // Initial Identifier
 
         ArrayList<VariableDeclaration> vars = new ArrayList<>();
-        vars.add( new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) ) );
+        VariableDeclaration decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
+        vars.add( decl );
+        tryDeclareVariable(decl.token(), decl.symbol());
 
         while( accept(Token.Kind.COMMA ) ) {
             ident = expectRetrieve( Token.Kind.IDENT );
-            vars.add( new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) ) );
+            decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
+            tryDeclareVariable(ident, decl.symbol());
         }
 
         expect( Token.Kind.SEMICOLON );
@@ -746,7 +761,6 @@ public class Compiler {
                 ArrayList<VariableDeclaration> decls = varDecl();
                 for( VariableDeclaration decl : decls ) {
                     list.add( decl );
-                    currentSymbolTable.insert( decl.symbol().name(), decl.symbol() );
                 }
             }
 

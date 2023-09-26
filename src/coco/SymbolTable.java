@@ -27,15 +27,15 @@ public class SymbolTable {
     }
 
     // lookup name in SymbolTable
-    public Symbol lookup (String name) throws SymbolNotFoundError {
+    public Symbol lookup (Token name) throws SymbolNotFoundError {
         // look in current scope and then look in parents, call lookup on this.parent
         // recursive, base case returns null or symbol
         // if found in self: return
 
-        if(map.containsKey(name)){
-            return map.get(name);
+        if(map.containsKey(name.lexeme())){
+            return map.get(name.lexeme());
         }else{
-            if(parent == null) {throw new SymbolNotFoundError(name);}
+            if(parent == null) {throw new SymbolNotFoundError(name.lexeme(), name.lineNumber(), name.charPosition() );}
             return parent.lookup(name);
         }
         // else: return lookup parent
@@ -69,10 +69,13 @@ class SymbolNotFoundError extends Error {
 
     private static final long serialVersionUID = 1L;
     private final String name;
+    private final int line, cpos;
 
-    public SymbolNotFoundError (String name) {
-        super("Symbol " + name + " not found.");
+    public SymbolNotFoundError (String name, int line, int cpos) {
+        super(String.format("ResolveSymbolError(%d,%d)[Could not find %s.]", line, cpos, name));
         this.name = name;
+        this.line = line;
+        this.cpos = cpos;
     }
 
     public String name () {
