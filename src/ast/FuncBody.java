@@ -21,6 +21,10 @@ public class FuncBody extends AST {
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder(this + "\n");
 
+        for( String line : varList.preOrderLines() ) {
+            builder.append(String.format("  %s\n", line));
+        }
+
         for( String line : seq.preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }

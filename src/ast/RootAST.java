@@ -38,11 +38,8 @@ public class RootAST extends AST {
         builder.append(this);
         builder.append("\n");
         for( AST ast : seq ) {
-            String[] lines = ast.printPreOrder().split(System.lineSeparator());
-            for( String line : lines ) {
-                builder.append("  ");
-                builder.append(line);
-                builder.append("\n");
+            for( String line : ast.preOrderLines() ) {
+                builder.append(String.format("  %s\n", line));
             }
         }
 

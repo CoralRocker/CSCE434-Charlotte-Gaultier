@@ -23,7 +23,7 @@ public class VariableDeclaration extends AST {
 
     @Override
     public String printPreOrder() {
-        return null;
+        return this + "\n";
     }
 
     @Override

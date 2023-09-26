@@ -1,10 +1,9 @@
 package ast;
 
 import coco.Token;
-import coco.Variable;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 public class DeclarationList extends AST {
 
@@ -13,19 +12,19 @@ public class DeclarationList extends AST {
         symbols = new ArrayList<>();
     }
 
-    public DeclarationList(Token tkn, ArrayList<VariableDeclaration> vars) {
+    public DeclarationList(Token tkn, ArrayList<AST> vars) {
         super(tkn);
         this.symbols = vars;
     }
 
-    public void add( VariableDeclaration decl ) {
+    public <T extends AST> void add( T decl ) {
         symbols.add( decl );
     }
-    public void addAll( List<VariableDeclaration> vars ) {
+    public void addAll(ArrayList<? extends AST> vars ) {
         symbols.addAll(vars);
     }
 
-    private ArrayList<VariableDeclaration> symbols;
+    private ArrayList<AST> symbols;
 
     @Override
     public String type() {
@@ -38,10 +37,10 @@ public class DeclarationList extends AST {
 
         ret.append( this );
         ret.append("\n");
-        for( VariableDeclaration var : symbols ) {
-            ret.append("  ");
-            ret.append(var);
-            ret.append("\n");
+        for( AST var : symbols ) {
+            for( String line : var.preOrderLines() ) {
+                ret.append(String.format("  %s\n", line));
+            }
         }
 
         return ret.toString();

@@ -1,5 +1,6 @@
 package ast;
 
+import coco.ArrayType;
 import coco.Symbol;
 import coco.Token;
 
@@ -25,6 +26,10 @@ public class FuncDecl extends AST {
         argList.add( arg );
     }
 
+    public Symbol symbol() {
+        return sym;
+    }
+
     @Override
     public String type() {
         return null;
@@ -33,6 +38,8 @@ public class FuncDecl extends AST {
     @Override
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder();
+
+        builder.append(String.format("%s\n", this));
 
         for( String line : body.preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
@@ -43,12 +50,12 @@ public class FuncDecl extends AST {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("FunctionDeclaration[");
-        builder.append(sym);
-        for( Symbol arg : argList ) {
-            builder.append(String.format(", %s", arg));
-        }
-        builder.append("]");
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("FunctionDeclaration[%s:%s]", sym.name(), sym.type()));
+        // for( Symbol arg : argList ) {
+        //     builder.append(String.format(", %s", arg));
+        // }
+        // builder.append("]");
         return builder.toString();
     }
 }

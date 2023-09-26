@@ -319,11 +319,16 @@ public class Compiler {
         Token ident = expectRetrieve(Token.Kind.IDENT);
         AST symbol = new Designator( ident, currentSymbolTable.lookup(ident.lexeme()) );
 
+        ArrayList<AST> indexes = new ArrayList<>();
         while( accept( Token.Kind.OPEN_BRACKET ) ) {
             AST dim = relExpr();
             expect( Token.Kind.CLOSE_BRACKET );
 
-            symbol = new ArrayIndex(dim.token(), symbol, dim);
+            indexes.add( dim );
+        }
+
+        for( int i = indexes.size()-1; i >= 0; i-- ) {
+            symbol = new ArrayIndex(indexes.get(i).token(), symbol, indexes.get(i));
         }
 
         return symbol;
@@ -628,21 +633,29 @@ public class Compiler {
     private FuncDecl funcDecl () {
         Token ftok = expectRetrieve( Token.Kind.FUNC );
         Token funcName = expectRetrieve(Token.Kind.IDENT);
+
+        currentSymbolTable.pushScope();
+
         ArrayList< Symbol > argSymbols = formalParam();
         expect( Token.Kind.COLON );
         ArrayType returnType = paramType();
 
-        FuncBody body = funcBody();
         ArrayList< ArrayType > params = new ArrayList<>();
         for( Symbol sym : argSymbols ) {
             params.add( sym.type() );
+            currentSymbolTable.insert(sym.name(), sym);
         }
 
         ArrayType funcType = ArrayType.makeFunctionType(returnType, params );
         Symbol funcSym = new Symbol(funcName.lexeme(), funcType);
 
+        currentSymbolTable.insert(funcSym.name(), funcSym);
+
+        FuncBody body = funcBody();
         FuncDecl decl = new FuncDecl(ftok, funcSym, body);
         decl.setArgs(argSymbols);
+
+        currentSymbolTable.popScope();
 
         return decl;
     }
@@ -690,10 +703,16 @@ public class Compiler {
 
         if( have(NonTerminal.VAR_DECL ) ) {
             vars = new DeclarationList(currentToken);
+
         }
 
         while( have( NonTerminal.VAR_DECL ) ) {
-            vars.addAll( varDecl() );
+            ArrayList<VariableDeclaration> decls = varDecl();
+            vars.addAll( decls );
+
+            for( VariableDeclaration decl : decls ) {
+                currentSymbolTable.insert(decl.symbol().name(), decl.symbol());
+            }
         }
 
         StatSeq seq = statSeq();
@@ -724,8 +743,12 @@ public class Compiler {
             ast.add( list );
         }
 
-        while (have(NonTerminal.FUNC_DECL) ) {
-            ast.add( funcDecl() );
+        if( have( NonTerminal.FUNC_DECL ) ) {
+            DeclarationList list = new DeclarationList(currentToken);
+            while (have(NonTerminal.FUNC_DECL) ) {
+                list.add( funcDecl() );
+            }
+            ast.add(list);
         }
 
         expect(Token.Kind.OPEN_BRACE);

@@ -36,6 +36,6 @@ public class Addition extends AST {
 
     @Override
     public String toString() {
-        return String.format("Addition[%s]", op.lexeme());
+        return String.format("Addition");
     }
 }
