@@ -312,45 +312,21 @@ public class Compiler {
         return new ArrayType(type, dimensions);
     }
 
-    private Designator designator ( ) {
+    private AST designator ( ) {
         int lineNum = lineNumber();
         int charPos = charPosition();
 
         Token ident = expectRetrieve(Token.Kind.IDENT);
-        return new Designator( ident, currentSymbolTable.lookup(ident.lexeme()) );
-        // ArrayList< Integer > dims = null;
+        AST symbol = new Designator( ident, currentSymbolTable.lookup(ident.lexeme()) );
 
-        // while( accept( Token.Kind.OPEN_BRACKET ) ) {
-        //     Variable dim = relExpr( execute && !earlyReturn );
-        //     if( ! dim.isInt() ) {
-        //         throw new Interpreter.QuitParseException("Expected integer as index for array, but got %s. Line %d Pos %d".formatted(dim.getType(), lineNumber(), charPosition() ) );
-        //     }
-        //     if( dims == null ) {
-        //         dims = new ArrayList<>();
-        //     }
-        //     dims.add( dim.getInt() );
-        //     expect( Token.Kind.CLOSE_BRACKET );
-        // }
+        while( accept( Token.Kind.OPEN_BRACKET ) ) {
+            AST dim = relExpr();
+            expect( Token.Kind.CLOSE_BRACKET );
 
-        // if( execute && !earlyReturn ) {
-        //     ArrayType typeInfo = symbols.getOrDefault(ident.lexeme(), null);
-        //     if (typeInfo == null) {
-        //         reportSyntaxError(NonTerminal.STATEMENT);
-        //         throw new Interpreter.QuitParseException("Identifier \"%s\" Does not exist. Line %d Pos %d".formatted(ident.lexeme(), lineNumber(), charPosition()));
-        //     }
+            symbol = new ArrayIndex(dim.token(), symbol, dim);
+        }
 
-        //     String uniqueIdent = typeInfo.at(ident, dims);
-
-        //     Variable var = variables.getOrDefault(uniqueIdent, null);
-        //     if (var == null) {
-        //         throw new RuntimeException("Unique identifier \"%s\" does not exist in the variables map.".formatted(uniqueIdent));
-        //     }
-
-        //     return var;
-        // }
-        // else {
-        //     return null;
-        // }
+        return symbol;
     }
 
 
@@ -406,14 +382,18 @@ public class Compiler {
                 case INT_VAL -> {
                     return new IntegerLiteral( lit );
                 }
+                case TRUE, FALSE -> {
+                    return new BoolLiteral( lit );
+                }
             }
         }
         else if( have( Token.Kind.IDENT ) ) {
             return designator();
         }
         else if( have( Token.Kind.NOT ) ) {
+            Token not = expectRetrieve(Token.Kind.NOT);
             AST var = relExpr();
-            return new LogicalNot( expectRetrieve(Token.Kind.NOT), var );
+            return new LogicalNot( not, var );
         }
         else if( have( Token.Kind.OPEN_PAREN ) ) {
             return relation();
@@ -493,7 +473,7 @@ public class Compiler {
     }
 
     private AST assign() {
-        Designator var = designator();
+        AST var = designator();
         Token op;
 
         Assignment expr = null;

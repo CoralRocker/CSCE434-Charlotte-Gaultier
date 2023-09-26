@@ -79,6 +79,28 @@ public class ArrayType {
         return func;
     }
 
+    boolean isValidIndex( ArrayList<Integer> idx ) {
+        if( paramdims > 0 ) {
+            return idx.size() == paramdims;
+        }
+
+        if( dims == null && (idx == null || idx.isEmpty()) ) {
+            return true;
+        }
+
+        if( dims.size() != idx.size() ) {
+            return false;
+        }
+
+        for( int i = 0; i < dims.size(); i++ ) {
+            if( dims.get(i) != idx.get(i) ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * @brief Get the token type. Upon creation, this is the datatype. After setting the identifier, this is a IDENT
      * @return

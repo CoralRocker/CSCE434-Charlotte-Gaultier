@@ -4,10 +4,10 @@ import coco.Token;
 
 public class Assignment extends AST {
 
-    public Designator target;
+    public AST target;
     public AST rvalue;
 
-    public Assignment(Token tkn, Designator trgt, AST rval ) {
+    public Assignment(Token tkn, AST trgt, AST rval ) {
         super(tkn);
         target = trgt;
         rvalue = rval;
