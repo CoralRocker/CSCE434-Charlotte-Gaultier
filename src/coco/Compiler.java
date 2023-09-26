@@ -350,14 +350,23 @@ public class Compiler {
     private AST addExpr( ) {
         AST var = multExpr();
 
-        while( have( NonTerminal.ADD_OP )
-                || ( have( NonTerminal.LITERAL ) && currentToken.lexeme().startsWith("-") ) ) {
+        while( have( NonTerminal.ADD_OP ) ) {
             Token op;
             AST rval;
             op = expectRetrieve(NonTerminal.ADD_OP);
             rval = multExpr();
 
-            var = new Addition( op, var, rval );
+            switch ( op.kind() ) {
+                case ADD -> {
+                    var = new Addition(op, var, rval);
+                }
+                case SUB -> {
+                    var = new Subtraction(op, var, rval);
+                }
+                case OR -> {
+                    var = new LogicalOr( op, var, rval );
+                }
+            }
         }
 
         return var;
@@ -370,7 +379,20 @@ public class Compiler {
             Token op = expectRetrieve( NonTerminal.MUL_OP );
             AST rval = powExpr();
 
-            var = new Multiplication(op, var, rval);
+            switch( op.kind() ) {
+                case MUL -> {
+                    var = new Multiplication(op, var, rval);
+                }
+                case DIV -> {
+                    var = new Division(op, var, rval);
+                }
+                case MOD -> {
+                    var = new Modulo(op, var, rval);
+                }
+                case AND -> {
+                    var = new LogicalAnd(op, var, rval);
+                }
+            }
         }
 
         return var;
@@ -461,6 +483,7 @@ public class Compiler {
             ident = expectRetrieve( Token.Kind.IDENT );
             decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
             tryDeclareVariable(ident, decl.symbol());
+            vars.add( decl );
         }
 
         expect( Token.Kind.SEMICOLON );
