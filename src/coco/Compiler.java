@@ -486,7 +486,7 @@ public class Compiler {
         if( have( NonTerminal.UNARY_OP ) ) {
             op = expectRetrieve( NonTerminal.UNARY_OP );
 
-            Addition opr = null;
+            AST opr = null;
 
             switch (op.lexeme()) {
                 case "++" -> {
@@ -494,7 +494,7 @@ public class Compiler {
                     opr = new Addition(op, var, new IntegerLiteral(Token.INT_VAL("1", 0, 0)));
                 }
                 case "--" -> {
-                    opr = new Addition(op, var, new IntegerLiteral(Token.INT_VAL("-1", 0, 0)));
+                    opr = new Subtraction(op, var, new IntegerLiteral(Token.INT_VAL("1", 0, 0)));
                 }
                 default -> {
                     String err = reportSyntaxError(NonTerminal.UNARY_OP);
@@ -521,9 +521,19 @@ public class Compiler {
                         new Subtraction( op, var, rvalue )
                     );
                 }
-                case "*=", "/=", "%=" -> {
+                case "*=" -> {
                     expr = new Assignment(var.token(), var,
                         new Multiplication( op, var, rvalue )
+                    );
+                }
+                case "%=" -> {
+                    expr = new Assignment(var.token(), var,
+                        new Modulo( op, var, rvalue )
+                    );
+                }
+                case "/=" -> {
+                    expr = new Assignment(var.token(), var,
+                        new Division( op, var, rvalue)
                     );
                 }
                 case "^=" -> {
