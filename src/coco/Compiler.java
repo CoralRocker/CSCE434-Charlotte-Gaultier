@@ -678,19 +678,19 @@ public class Compiler {
         ArrayType funcType = ArrayType.makeFunctionType(returnType, params );
         Symbol funcSym = new Symbol(funcName.lexeme(), funcType);
 
-        currentSymbolTable.insert(funcSym.name(), funcSym);
+        tryDeclareVariable(funcSym.name(), funcSym);
 
-        currentSymbolTable = currentSymbolTable.pushScope();
+        enterScope();
 
         for( Symbol sym : argSymbols ) {
-            currentSymbolTable.insert(sym.name(), sym);
+            tryDeclareVariable(sym.name(), sym);
         }
 
         FuncBody body = funcBody();
         FuncDecl decl = new FuncDecl(ftok, funcSym, body);
         decl.setArgs(argSymbols);
 
-        currentSymbolTable = currentSymbolTable.popScope();
+        exitScope();
 
         return decl;
     }
@@ -746,7 +746,7 @@ public class Compiler {
             vars.addAll( decls );
 
             for( VariableDeclaration decl : decls ) {
-                currentSymbolTable.insert(decl.symbol().name(), decl.symbol());
+                tryDeclareVariable(decl.symbol().name(), decl.symbol());
             }
         }
 
