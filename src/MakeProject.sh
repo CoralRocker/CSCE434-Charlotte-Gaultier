@@ -2,4 +2,4 @@
 
 ZIPFILE=project.zip
 
-zip $ZIPFILE ast/ coco/
+zip $ZIPFILE ast/* coco/*
