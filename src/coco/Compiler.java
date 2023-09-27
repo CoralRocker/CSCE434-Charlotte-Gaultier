@@ -820,9 +820,10 @@ public class Compiler {
         expect(Token.Kind.CLOSE_BRACE);
         expect(Token.Kind.PERIOD);
 
-        PrintVisitor visitor = new PrintVisitor();
-        visitor.visit(ast);
-        System.err.println(visitor);
+        // // Example PrintVisitor usage
+        // PrintVisitor visitor = new PrintVisitor();
+        // visitor.visit(ast);
+        // System.err.println(visitor);
 
         return ast;
     }

@@ -106,7 +106,8 @@ public class PrintVisitor implements NodeVisitor {
     public void visit(FuncBody fb) {
         printf(fb);
         depth++;
-        fb.getVarList().accept(this);
+        if( fb.getVarList() != null )
+            fb.getVarList().accept(this);
         fb.getSeq().accept(this);
         depth--;
     }
@@ -221,17 +222,21 @@ public class PrintVisitor implements NodeVisitor {
     @Override
     public void visit(Return ret) {
         printf(ret);
-        depth++;
-        ret.getReturn().accept(this);
-        depth--;
+        if( ret.getReturn() != null ) {
+            depth++;
+            ret.getReturn().accept(this);
+            depth--;
+        }
     }
 
     @Override
     public void visit(RootAST root) {
         printf(root);
         depth++;
-        root.getVars().accept(this);
-        root.getFuncs().accept(this);
+        if( root.getVars() != null )
+            root.getVars().accept(this);
+        if( root.getFuncs() != null )
+            root.getFuncs().accept(this);
         root.getSeq().accept(this);
         depth--;
     }
