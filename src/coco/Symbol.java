@@ -34,7 +34,7 @@ public class Symbol {
 
     @Override
     public String toString() {
-        return String.format("Symbol(%s:%s)", name, type);
+        return String.format("Symbol(%s:%s)=%s", name, type, value);
     }
 
 }

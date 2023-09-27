@@ -24,6 +24,7 @@ public class CompilerTester {
 
         options.addOption("gDir", "graphDir", false, "Graph dir, default will be current dir");
         options.addOption("ast", "ast", false, "Print AST.txt - requires graphs/");
+        options.addOption("sym", "sym", false, "Print Symbol Table to screen");
 
 
         HelpFormatter formatter = new HelpFormatter();
@@ -112,6 +113,10 @@ public class CompilerTester {
             String ast_text = ast.printPreOrder();
             if (cmd.hasOption("a")) { // AST to Screen
                 System.out.println(ast_text);
+            }
+
+            if (cmd.hasOption("sym")) { // Symbol Table to Screen
+                System.out.println(c.symbolTable());
             }
 
             if (cmd.hasOption("d")) {

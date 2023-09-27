@@ -6,8 +6,6 @@ import java.util.HashMap;
 
 public class SymbolTable {
 
-    // TODO: Create Symbol Table structure
-
     private final SymbolTable parent;
     private HashMap<String, Symbol> map;
 
@@ -40,6 +38,15 @@ public class SymbolTable {
         }
         // else: return lookup parent
     }
+    public Symbol assign (Token ident, Symbol value) throws SymbolNotFoundError {
+        if(map.containsKey(ident.lexeme())){
+            map.put(ident.lexeme(), value);
+            return map.get(ident.lexeme());
+        }else{
+            if(parent == null) {throw new SymbolNotFoundError(ident.lexeme(), ident.lineNumber(), ident.charPosition() );}
+            return parent.assign(ident, value);
+        }
+    }
 
     // insert name in SymbolTable
     public Symbol insert (Token ident, Symbol value) throws RedeclarationError {
@@ -52,6 +59,7 @@ public class SymbolTable {
     }
 
     public Symbol insert (String str, Symbol value) throws RedeclarationError {
+        System.out.println(value);
         if(!map.containsKey(str)){
             map.put(str, value);
         }else{

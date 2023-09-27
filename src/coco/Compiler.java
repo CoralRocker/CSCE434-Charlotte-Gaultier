@@ -69,6 +69,10 @@ public class Compiler {
         ast = null;
     }
 
+    public SymbolTable symbolTable(){
+        return currentSymbolTable;
+    }
+
     //TODO
     public AST genAST() {
 
@@ -163,6 +167,16 @@ public class Compiler {
             }
         }
         //TODO: Try resolving variable, handle SymbolNotFoundError
+        return null;
+    }
+    private Symbol tryAssignVariable (Token ident, Symbol var) {
+        try{
+            return currentSymbolTable.assign(ident, var);
+        }
+        catch(SymbolNotFoundError e){
+            reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
+        }
+
         return null;
     }
 
