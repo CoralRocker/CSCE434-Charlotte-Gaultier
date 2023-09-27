@@ -153,7 +153,7 @@ public class Compiler {
         try{
             return currentSymbolTable.lookup(ident);
         }catch(SymbolNotFoundError e){
-            reportResolveSymbolError(ident.lexeme(), lineNumber(), charPosition());
+            reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try resolving variable, handle SymbolNotFoundError
         return null;
@@ -164,7 +164,7 @@ public class Compiler {
             return currentSymbolTable.insert(ident, null);
         }
         catch(RedeclarationError e){
-            reportDeclareSymbolError(ident.lexeme(), lineNumber(), charPosition());
+            reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
         return null;
@@ -175,7 +175,7 @@ public class Compiler {
             return currentSymbolTable.insert(ident, var);
         }
         catch(RedeclarationError e){
-            reportDeclareSymbolError(ident.lexeme(), lineNumber(), charPosition());
+            reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
         return null;
@@ -767,10 +767,6 @@ public class Compiler {
         while( have( NonTerminal.VAR_DECL ) ) {
             ArrayList<VariableDeclaration> decls = varDecl();
             vars.addAll( decls );
-
-            for( VariableDeclaration decl : decls ) {
-                tryDeclareVariable(decl.symbol().name(), decl.symbol());
-            }
         }
 
         StatSeq seq = statSeq();

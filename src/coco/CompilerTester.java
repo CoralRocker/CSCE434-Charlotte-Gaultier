@@ -61,6 +61,7 @@ public class CompilerTester {
             files.add(cmd.getOptionValue("src"));
         }
 
+        SourceLoop:
         for (String sourceFile : files) {
 
             if( files.size() > 1 ) {
@@ -137,7 +138,7 @@ public class CompilerTester {
                     for (int i = 0; i < userAst.length; i++) {
                         if (i >= testAst.size()) {
                             System.err.printf("Line %d: Test AST EOF\n", i + 1);
-                            return;
+                            continue SourceLoop;
                         } else if (!Objects.equals(userAst[i], testAst.get(i))) {
                             System.err.printf("Line %d: Test AST != User AST\n", i + 1);
                             System.err.printf("\"%s\" != \"%s\"\n", testAst.get(i), userAst[i]);
@@ -146,7 +147,7 @@ public class CompilerTester {
                             for( String line : userAst ) {
                                 System.err.printf("\t%3d : \"%s\"\n", idx++, line);
                             }
-                            return;
+                            continue SourceLoop;
                         }
                     }
 
@@ -160,7 +161,7 @@ public class CompilerTester {
                         for( String line : userAst ) {
                             System.err.printf("\t%3d: \"%s\"\n", idx++, line);
                         }
-                        return;
+                        continue SourceLoop;
                     }
 
                     System.out.printf("Test AST & User AST are equal\n");
@@ -185,11 +186,11 @@ public class CompilerTester {
                     for (int i = 0; i < userErr.length; i++) {
                         if (i >= testErr.size()) {
                             System.err.printf("Line %d: Test ERR EOF\n", i + 1);
-                            return;
+                            continue SourceLoop;
                         } else if (!Objects.equals(userErr[i], testErr.get(i))) {
                             System.err.printf("Line %d: Test ERR != User ERR\n", i + 1);
                             System.err.printf("\"%s\" != \"%s\"\n", testErr.get(i), userErr[i]);
-                            return;
+                            continue SourceLoop;
                         }
                     }
 
@@ -198,7 +199,7 @@ public class CompilerTester {
                         for (int i = userErr.length; i < testErr.size(); i++) {
                             System.err.printf("\t%d: \"%s\"\n", i + 1, testErr.get(i));
                         }
-                        return;
+                        continue SourceLoop;
                     }
 
                     System.out.printf("Test ERR & User ERR are equal\n");
