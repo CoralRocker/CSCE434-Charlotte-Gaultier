@@ -5,7 +5,7 @@ import coco.Token;
 
 import java.util.ArrayList;
 
-public class ArgList extends AST {
+public class ArgList extends AST implements Visitable {
 
     public ArrayList<AST> args;
 
@@ -43,5 +43,10 @@ public class ArgList extends AST {
     @Override
     public String toString() {
         return "ArgumentList";
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
 }

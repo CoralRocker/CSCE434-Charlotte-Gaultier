@@ -26,4 +26,9 @@ public class ReturnStat extends AST {
     public int charPosition() {
         return 0;
     }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

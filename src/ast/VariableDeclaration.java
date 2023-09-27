@@ -27,6 +27,11 @@ public class VariableDeclaration extends AST {
     }
 
     @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public String toString() {
         return String.format("VariableDeclaration[%s:%s]", sym.name(), sym.type());
     }

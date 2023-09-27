@@ -2,7 +2,7 @@ package ast;
 
 import coco.Token;
 
-public class ArrayIndex extends AST {
+public class ArrayIndex extends AST implements Visitable {
 
     private AST index;
     private AST array;
@@ -35,5 +35,10 @@ public class ArrayIndex extends AST {
     @Override
     public String toString() {
         return "ArrayIndex";
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
 }

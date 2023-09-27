@@ -35,6 +35,11 @@ public class Designator extends AST {
     }
 
     @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public String toString() {
         return String.format("%s:%s", sym.name(), type() );
     }

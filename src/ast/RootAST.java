@@ -46,4 +46,9 @@ public class RootAST extends AST {
         return builder.toString();
     }
 
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
+
 }

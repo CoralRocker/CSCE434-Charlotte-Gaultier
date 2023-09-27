@@ -3,7 +3,7 @@ package ast;
 
 import coco.Token;
 
-public abstract class AST {
+public abstract class AST implements Visitable {
 
     private Token tkn;
 
@@ -24,5 +24,7 @@ public abstract class AST {
     public int charPosition() { return tkn.charPosition(); }
 
     public Token token() { return tkn; }
+
+    public abstract void accept(NodeVisitor visitor);
 }
 

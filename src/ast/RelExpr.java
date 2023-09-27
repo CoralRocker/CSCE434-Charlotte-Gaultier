@@ -16,4 +16,9 @@ public class RelExpr extends AST {
     public String printPreOrder() {
         return null;
     }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
 }

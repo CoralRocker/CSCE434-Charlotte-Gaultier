@@ -32,6 +32,11 @@ public class WhileStat extends AST {
     }
 
     @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public String toString() {
         return "WhileStatement";
     }

@@ -20,6 +20,11 @@ public class FloatLiteral extends AST {
     }
 
     @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public String toString() {
         return String.format("FloatLiteral[%f]", literal);
     }

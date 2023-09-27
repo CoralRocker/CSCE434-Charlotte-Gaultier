@@ -47,6 +47,11 @@ public class DeclarationList extends AST {
         return ret.toString();
     }
 
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
+
     public ArrayList<AST> getContained() {
         return symbols;
     }

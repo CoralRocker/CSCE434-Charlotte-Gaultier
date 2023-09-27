@@ -2,7 +2,7 @@ package ast;
 
 import coco.Token;
 
-public class Addition extends AST {
+public class Addition extends AST implements Visitable {
     public Token op;
     public AST rvalue, lvalue;
 
@@ -37,5 +37,10 @@ public class Addition extends AST {
     @Override
     public String toString() {
         return String.format("Addition");
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
 }

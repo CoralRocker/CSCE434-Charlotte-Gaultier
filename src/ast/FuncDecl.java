@@ -49,6 +49,11 @@ public class FuncDecl extends AST {
     }
 
     @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("FunctionDeclaration[%s:%s]", sym.name(), sym.type()));

@@ -2,7 +2,7 @@ package ast;
 
 import coco.Token;
 
-public class Assign extends AST {
+public class Assign extends AST implements Visitable {
     public Assign(Token tkn) {
         super(tkn);
     }
@@ -25,5 +25,10 @@ public class Assign extends AST {
     @Override
     public int charPosition() {
         return 0;
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+
     }
 }
