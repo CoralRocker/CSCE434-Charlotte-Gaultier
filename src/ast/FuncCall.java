@@ -27,8 +27,8 @@ public class FuncCall extends AST {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("%s\n", this));
 
-        if( args != null ) {
-            String[] lines = args.printPreOrder().split(System.lineSeparator());
+        if( getArgs() != null ) {
+            String[] lines = getArgs().printPreOrder().split(System.lineSeparator());
             for( String line : lines ) {
                 builder.append(String.format("  %s\n", line));
             }
@@ -39,7 +39,7 @@ public class FuncCall extends AST {
 
     @Override
     public String toString() {
-        return String.format("FunctionCall[%s:%s]", func.name(), func.type());
+        return String.format("FunctionCall[%s:%s]", getFunc().name(), getFunc().type());
     }
 
     @Override
@@ -55,5 +55,13 @@ public class FuncCall extends AST {
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public Symbol getFunc() {
+        return func;
+    }
+
+    public ArgList getArgs() {
+        return args;
     }
 }

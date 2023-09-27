@@ -4,6 +4,7 @@ import coco.Token;
 
 public class LogicalNot extends AST {
     private AST rvalue;
+    public AST getRvalue() { return rvalue; }
     public LogicalNot(Token tkn, AST expr) {
         super(tkn);
         rvalue = expr;

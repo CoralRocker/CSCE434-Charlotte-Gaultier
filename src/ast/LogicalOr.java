@@ -3,7 +3,8 @@ package ast;
 import coco.Token;
 
 public class LogicalOr extends AST {
-    private AST rvalue, lvalue;
+    private AST rvalue;
+    private AST lvalue;
     public LogicalOr(Token tkn, AST lval, AST rval) {
         super(tkn);
         rvalue = rval;
@@ -21,11 +22,11 @@ public class LogicalOr extends AST {
         builder.append(this);
         builder.append("\n");
 
-        for( String line : lvalue.preOrderLines() ) {
+        for( String line : getLvalue().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
-        for( String line : rvalue.preOrderLines() ) {
+        for( String line : getRvalue().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
@@ -40,5 +41,13 @@ public class LogicalOr extends AST {
     @Override
     public String toString() {
         return "LogicalOr";
+    }
+
+    public AST getRvalue() {
+        return rvalue;
+    }
+
+    public AST getLvalue() {
+        return lvalue;
     }
 }

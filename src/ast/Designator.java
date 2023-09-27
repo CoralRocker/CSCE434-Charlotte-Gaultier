@@ -7,7 +7,10 @@ import java.util.ArrayList;
 
 public class Designator extends AST {
     private Symbol sym;
+    public Symbol getSymbol() { return sym; }
     private ArrayList<Integer> index = null;
+    public ArrayList<Integer> getIndex() { return index; }
+
     public Designator(Token tkn, Symbol sym ) {
         super(tkn);
         this.sym = sym;

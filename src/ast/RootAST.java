@@ -3,22 +3,20 @@ package ast;
 import coco.ArrayType;
 import coco.Token;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class RootAST extends AST {
 
-    private ArrayList< AST > seq;
+
+    private DeclarationList funcs = null;
+    private DeclarationList vars = null;
+    private StatSeq seq = null;
 
     public RootAST( Token tkn ) {
 
         super( tkn );
-        seq = new ArrayList<>();
     }
 
-    public void add( AST ast ) {
-        seq.add( ast );
-    }
 
     @Override
     public String type() {
@@ -37,11 +35,15 @@ public class RootAST extends AST {
 
         builder.append(this);
         builder.append("\n");
-        for( AST ast : seq ) {
-            for( String line : ast.preOrderLines() ) {
+        if( vars != null )
+            for( String line : vars.preOrderLines() )
                 builder.append(String.format("  %s\n", line));
-            }
-        }
+        if( funcs != null )
+            for( String line : funcs.preOrderLines() )
+                builder.append(String.format("  %s\n", line));
+        if( seq != null )
+            for( String line : seq.preOrderLines() )
+                builder.append(String.format("  %s\n", line));
 
         return builder.toString();
     }
@@ -51,4 +53,27 @@ public class RootAST extends AST {
         visitor.visit(this);
     }
 
+    public DeclarationList getFuncs() {
+        return funcs;
+    }
+
+    public void setFuncs(DeclarationList funcs) {
+        this.funcs = funcs;
+    }
+
+    public DeclarationList getVars() {
+        return vars;
+    }
+
+    public void setVars(DeclarationList vars) {
+        this.vars = vars;
+    }
+
+    public StatSeq getSeq() {
+        return seq;
+    }
+
+    public void setSeq(StatSeq seq) {
+        this.seq = seq;
+    }
 }

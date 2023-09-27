@@ -5,6 +5,7 @@ import coco.Token;
 public class BoolLiteral extends AST {
 
     private boolean literal;
+    public boolean getLiteral() { return literal; }
 
     public BoolLiteral(Token tkn) {
         super(tkn);

@@ -4,8 +4,9 @@ import coco.Token;
 
 public class IfStat extends AST {
 
-    public StatSeq ifseq, elseseq;
-    public Relation ifrel;
+    private StatSeq ifseq;
+    private StatSeq elseseq;
+    private Relation ifrel;
 
     public IfStat(Token tkn, Relation ifrel, StatSeq ifseq, StatSeq elseseq) {
         super(tkn);
@@ -23,16 +24,16 @@ public class IfStat extends AST {
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder(this + "\n");
 
-        for( String line : ifrel.preOrderLines() ) {
+        for( String line : getIfrel().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
-        for( String line : ifseq.preOrderLines() ) {
+        for( String line : getIfseq().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
-        if( elseseq != null ) {
-            for (String line : elseseq.preOrderLines()) {
+        if( getElseseq() != null ) {
+            for (String line : getElseseq().preOrderLines()) {
                 builder.append(String.format("  %s\n", line));
             }
         }
@@ -48,5 +49,17 @@ public class IfStat extends AST {
     @Override
     public String toString() {
         return "IfStatement";
+    }
+
+    public StatSeq getIfseq() {
+        return ifseq;
+    }
+
+    public StatSeq getElseseq() {
+        return elseseq;
+    }
+
+    public Relation getIfrel() {
+        return ifrel;
     }
 }

@@ -1,13 +1,12 @@
 package ast;
 
-import coco.ArrayType;
 import coco.Token;
 
 import java.util.ArrayList;
 
 public class ArgList extends AST implements Visitable {
 
-    public ArrayList<AST> args;
+    private ArrayList<AST> args;
 
     public ArgList(Token tkn) {
         super(tkn);
@@ -15,7 +14,7 @@ public class ArgList extends AST implements Visitable {
     }
 
     public void add( AST arg ) {
-        args.add(arg);
+        getArgs().add(arg);
     }
 
     @Override
@@ -28,7 +27,7 @@ public class ArgList extends AST implements Visitable {
         StringBuilder builder = new StringBuilder();
         builder.append(this);
         builder.append("\n");
-        for( AST arg : args ) {
+        for( AST arg : getArgs()) {
             String[] lines = arg.printPreOrder().split(System.lineSeparator());
             for( String line : lines ) {
                 builder.append("  ");
@@ -48,5 +47,9 @@ public class ArgList extends AST implements Visitable {
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public ArrayList<AST> getArgs() {
+        return args;
     }
 }

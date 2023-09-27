@@ -8,6 +8,8 @@ public class StatSeq extends AST {
 
     private ArrayList< AST > seq;
 
+    public ArrayList< AST > getSequence() { return seq; }
+
     public void add( AST ast ) {
         seq.add( ast );
     }

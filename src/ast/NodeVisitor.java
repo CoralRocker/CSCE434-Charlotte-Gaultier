@@ -7,8 +7,6 @@ public interface NodeVisitor {
     public void visit(ArgList list);
 
     public void visit(ArrayIndex idx);
-
-    public void visit(Assign asn);
     public void visit(Assignment asn);
     public void visit(BoolLiteral bool);
     public void visit(DeclarationList list);
@@ -27,10 +25,8 @@ public interface NodeVisitor {
     public void visit(Multiplication mul);
     public void visit(Power pwr);
     public void visit(Relation rel);
-    public void visit(RelExpr rel);
     public void visit(RepeatStat rep);
     public void visit(Return ret);
-    public void visit(ReturnStat stat);
     public void visit(RootAST root);
     public void visit(StatSeq seq);
     public void visit(Subtraction sub);

@@ -4,6 +4,7 @@ import coco.Token;
 
 public class Return extends AST {
     private AST retval = null;
+    public AST getReturn() { return retval; }
     public Return(Token tkn) {
         super(tkn);
     }

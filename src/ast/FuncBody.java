@@ -1,6 +1,5 @@
 package ast;
 
-import coco.Symbol;
 import coco.Token;
 
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ public class FuncBody extends AST {
     }
 
     public void addUnresolved( Token sym ) {
-        unresolvedSymbols.add(sym);
+        getUnresolvedSymbols().add(sym);
     }
 
     @Override
@@ -31,13 +30,13 @@ public class FuncBody extends AST {
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder(this + "\n");
 
-        if( varList != null ) {
-            for (String line : varList.preOrderLines()) {
+        if( getVarList() != null ) {
+            for (String line : getVarList().preOrderLines()) {
                 builder.append(String.format("  %s\n", line));
             }
         }
 
-        for( String line : seq.preOrderLines() ) {
+        for( String line : getSeq().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
@@ -52,5 +51,17 @@ public class FuncBody extends AST {
     @Override
     public String toString() {
         return "FunctionBody";
+    }
+
+    public ArrayList<Token> getUnresolvedSymbols() {
+        return unresolvedSymbols;
+    }
+
+    public StatSeq getSeq() {
+        return seq;
+    }
+
+    public DeclarationList getVarList() {
+        return varList;
     }
 }

@@ -27,6 +27,8 @@ public class DeclarationList extends AST {
 
     private ArrayList<AST> symbols;
 
+    public ArrayList<AST> getSymbols() { return symbols; }
+
     @Override
     public String type() {
         return "DeclList";

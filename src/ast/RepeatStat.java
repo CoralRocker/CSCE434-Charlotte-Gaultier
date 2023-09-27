@@ -20,11 +20,11 @@ public class RepeatStat extends AST {
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder(this + "\n");
 
-        for( String line : relation.preOrderLines() ) {
+        for( String line : getRelation().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
-        for( String line : seq.preOrderLines() ) {
+        for( String line : getSeq().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
@@ -40,5 +40,13 @@ public class RepeatStat extends AST {
     @Override
     public String toString() {
         return "RepeatStatement";
+    }
+
+    public AST getRelation() {
+        return relation;
+    }
+
+    public StatSeq getSeq() {
+        return seq;
     }
 }

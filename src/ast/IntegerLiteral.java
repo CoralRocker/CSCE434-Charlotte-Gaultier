@@ -28,6 +28,10 @@ public class IntegerLiteral extends AST {
 
     @Override
     public String toString() {
-        return String.format("IntegerLiteral[%d]", literal);
+        return String.format("IntegerLiteral[%d]", getLiteral());
+    }
+
+    public int getLiteral() {
+        return literal;
     }
 }

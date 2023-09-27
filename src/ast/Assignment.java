@@ -4,8 +4,8 @@ import coco.Token;
 
 public class Assignment extends AST {
 
-    public AST target;
-    public AST rvalue;
+    private AST target;
+    private AST rvalue;
 
     public Assignment(Token tkn, AST trgt, AST rval ) {
         super(tkn);
@@ -22,10 +22,10 @@ public class Assignment extends AST {
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("%s\n", this));
-        for( String line : target.preOrderLines() ) {
+        for( String line : getTarget().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
-        for( String line : rvalue.preOrderLines() ) {
+        for( String line : getRvalue().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
@@ -40,5 +40,13 @@ public class Assignment extends AST {
     @Override
     public String toString() {
         return "Assignment";
+    }
+
+    public AST getTarget() {
+        return target;
+    }
+
+    public AST getRvalue() {
+        return rvalue;
     }
 }

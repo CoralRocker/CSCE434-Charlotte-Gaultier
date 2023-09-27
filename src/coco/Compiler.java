@@ -802,7 +802,7 @@ public class Compiler {
                 }
             }
 
-            ast.add( list );
+            ast.setVars(list);
         }
 
         if( have( NonTerminal.FUNC_DECL ) ) {
@@ -810,13 +810,12 @@ public class Compiler {
             while (have(NonTerminal.FUNC_DECL) ) {
                 list.add( funcDecl() );
             }
-            ast.add(list);
+            ast.setFuncs(list);
         }
 
         expect(Token.Kind.OPEN_BRACE);
 
-        ast.add( statSeq() );
-
+        ast.setSeq( statSeq() );
 
         expect(Token.Kind.CLOSE_BRACE);
         expect(Token.Kind.PERIOD);

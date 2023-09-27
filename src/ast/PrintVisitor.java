@@ -1,11 +1,11 @@
 package ast;
 
-import org.w3c.dom.Node;
-
 public class PrintVisitor implements NodeVisitor {
     @Override
     public void visit(Addition add) {
-
+        System.out.printf("Addition\n");
+        add.getLvalue().accept(this);
+        add.getRvalue().accept(this);
     }
 
     @Override
@@ -15,11 +15,6 @@ public class PrintVisitor implements NodeVisitor {
 
     @Override
     public void visit(ArrayIndex idx) {
-
-    }
-
-    @Override
-    public void visit(Assign asn) {
 
     }
 
@@ -113,10 +108,6 @@ public class PrintVisitor implements NodeVisitor {
 
     }
 
-    @Override
-    public void visit(RelExpr rel) {
-
-    }
 
     @Override
     public void visit(RepeatStat rep) {
@@ -125,11 +116,6 @@ public class PrintVisitor implements NodeVisitor {
 
     @Override
     public void visit(Return ret) {
-
-    }
-
-    @Override
-    public void visit(ReturnStat stat) {
 
     }
 

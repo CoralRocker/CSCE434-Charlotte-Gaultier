@@ -26,6 +26,10 @@ public class FloatLiteral extends AST {
 
     @Override
     public String toString() {
-        return String.format("FloatLiteral[%f]", literal);
+        return String.format("FloatLiteral[%f]", getLiteral());
+    }
+
+    public float getLiteral() {
+        return literal;
     }
 }

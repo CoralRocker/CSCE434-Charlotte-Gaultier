@@ -5,7 +5,10 @@ import coco.Token;
 public class ArrayIndex extends AST implements Visitable {
 
     private AST index;
+
+    public AST getIndex() { return index; }
     private AST array;
+    public AST getArray() { return array; }
 
     public ArrayIndex(Token tkn, AST arr, AST idx) {
         super(tkn);

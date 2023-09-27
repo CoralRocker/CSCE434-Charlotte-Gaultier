@@ -3,8 +3,9 @@ package ast;
 import coco.Token;
 
 public class Power extends AST {
-    public Token op;
-    public AST rvalue, lvalue;
+    private Token op;
+    private AST rvalue;
+    private AST lvalue;
 
     public Power(Token tkn, AST lvalue, AST rvalue) {
         super(tkn);
@@ -24,10 +25,10 @@ public class Power extends AST {
         builder.append(this);
         builder.append("\n");
 
-        for( String line : lvalue.preOrderLines() ) {
+        for( String line : getLvalue().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
-        for( String line : rvalue.preOrderLines() ) {
+        for( String line : getRvalue().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
         }
 
@@ -42,5 +43,13 @@ public class Power extends AST {
     @Override
     public String toString() {
         return String.format("Power", op.lexeme());
+    }
+
+    public AST getRvalue() {
+        return rvalue;
+    }
+
+    public AST getLvalue() {
+        return lvalue;
     }
 }
