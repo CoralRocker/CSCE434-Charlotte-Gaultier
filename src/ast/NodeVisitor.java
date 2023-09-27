@@ -15,7 +15,6 @@ public interface NodeVisitor {
     public void visit(Designator des);
     public void visit(Division div);
     public void visit(FloatLiteral flt);
-    public void visit(FormalParam fp);
     public void visit(FuncBody fb);
     public void visit(FuncCall fc);
     public void visit(FuncDecl fd);
