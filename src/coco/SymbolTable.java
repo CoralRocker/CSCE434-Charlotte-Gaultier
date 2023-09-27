@@ -4,6 +4,36 @@ package coco;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+class SymbolEntry {
+
+    private String name;
+    private Symbol symbol;
+
+    public SymbolEntry(String name) {
+        this.name = name;
+        this.symbol = null;
+    }
+
+    public SymbolEntry(Symbol sym) {
+        this.name = sym.name();
+        this.symbol = sym;
+    }
+
+    public SymbolEntry getUnresolved() {
+        return new SymbolEntry(name);
+    }
+
+    @Override
+    public int hashCode() {
+        if( symbol == null ) {
+            return String.format("%s_unresolved_", name).hashCode();
+        }
+        else {
+            return String.format("%s_%s_", name, symbol.type()).hashCode();
+        }
+    }
+}
+
 public class SymbolTable {
 
     // TODO: Create Symbol Table structure
