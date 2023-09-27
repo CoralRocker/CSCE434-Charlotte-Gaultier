@@ -52,6 +52,8 @@ public class Compiler {
     private Token currentToken;
 
     private RootAST ast;
+
+    private FuncBody unresolvedFunction = null;
     private SymbolTable currentSymbolTable;
 
     private int numDataRegisters; // available registers are [1..numDataRegisters]
@@ -153,7 +155,12 @@ public class Compiler {
         try{
             return currentSymbolTable.lookup(ident);
         }catch(SymbolNotFoundError e){
-            reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
+            if( unresolvedFunction != null ) {
+                unresolvedFunction.addUnresolved(ident);
+            }
+            else {
+                reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
+            }
         }
         //TODO: Try resolving variable, handle SymbolNotFoundError
         return null;
@@ -176,18 +183,6 @@ public class Compiler {
         }
         catch(RedeclarationError e){
             reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
-        }
-        //TODO: Try declaring variable, handle RedeclarationError
-        return null;
-    }
-
-    private Symbol tryDeclareVariable (String str) {
-
-        try{
-            return currentSymbolTable.insert(str, null);
-        }
-        catch(RedeclarationError e){
-            reportDeclareSymbolError(str, lineNumber(), charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
         return null;
@@ -405,7 +400,7 @@ public class Compiler {
             Token op = expectRetrieve(Token.Kind.POW);
             AST rval = groupExpr();
 
-            var = new Exponent(op, var, rval);
+            var = new Power(op, var, rval);
         }
 
         return var;
@@ -576,7 +571,7 @@ public class Compiler {
                 }
                 case "^=" -> {
                     expr = new Assignment(var.token(), var,
-                        new Exponent( op, var, rvalue )
+                        new Power( op, var, rvalue )
                     );
                 }
             }

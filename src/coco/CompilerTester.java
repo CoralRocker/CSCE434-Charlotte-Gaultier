@@ -230,7 +230,8 @@ public class CompilerTester {
             if (c.hasError()) {
                 System.out.println("Error parsing file.");
                 System.out.println(c.errorReport());
-                System.exit(-8);
+                continue SourceLoop;
+                // System.exit(-8);
             }
         }
     }

@@ -36,6 +36,6 @@ public class Multiplication extends AST {
 
     @Override
     public String toString() {
-        return String.format("Multiplication[%s]", op.lexeme());
+        return String.format("Multiplication", op.lexeme());
     }
 }

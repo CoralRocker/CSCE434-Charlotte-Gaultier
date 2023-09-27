@@ -47,6 +47,10 @@ public class DeclarationList extends AST {
         return ret.toString();
     }
 
+    public ArrayList<AST> getContained() {
+        return symbols;
+    }
+
     @Override
     public String toString() {
         return String.format("DeclarationList");

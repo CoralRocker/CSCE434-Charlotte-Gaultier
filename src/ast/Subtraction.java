@@ -36,6 +36,6 @@ public class Subtraction extends AST {
 
     @Override
     public String toString() {
-        return String.format("Subtraction[%s]", op.lexeme());
+        return String.format("Subtraction", op.lexeme());
     }
 }

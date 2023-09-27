@@ -1,9 +1,13 @@
 package ast;
 
+import coco.Symbol;
 import coco.Token;
+
+import java.util.ArrayList;
 
 public class FuncBody extends AST {
 
+    private ArrayList<Token> unresolvedSymbols;
     private StatSeq seq;
     private DeclarationList varList;
     public FuncBody(Token tkn, DeclarationList vars, StatSeq seq) {
@@ -11,6 +15,11 @@ public class FuncBody extends AST {
         assert( vars != null );
         this.seq = seq;
         this.varList = vars;
+        unresolvedSymbols = new ArrayList<>();
+    }
+
+    public void addUnresolved( Token sym ) {
+        unresolvedSymbols.add(sym);
     }
 
     @Override
