@@ -81,7 +81,7 @@ public class Compiler {
             computation();
         }
         catch( QuitParseException e ) {
-            System.out.println("CAUGHT ERROR: " + e);
+//            System.out.println("CAUGHT ERROR: " + e);
         }
         return ast;
     }

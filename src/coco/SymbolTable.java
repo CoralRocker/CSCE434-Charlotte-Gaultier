@@ -59,7 +59,6 @@ public class SymbolTable {
     }
 
     public Symbol insert (String str, Symbol value) throws RedeclarationError {
-        System.out.println(value);
         if(!map.containsKey(str)){
             map.put(str, value);
         }else{
