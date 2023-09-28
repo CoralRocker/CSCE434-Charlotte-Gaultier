@@ -167,7 +167,7 @@ public class Compiler {
             }
         }
         //TODO: Try resolving variable, handle SymbolNotFoundError
-        return null;
+        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
     }
     private Symbol tryAssignVariable (Token ident, Symbol var) {
         try{
@@ -177,7 +177,8 @@ public class Compiler {
             reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
 
-        return null;
+        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+
     }
 
     private Symbol tryDeclareVariable (Token ident) {
@@ -188,7 +189,8 @@ public class Compiler {
             reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return null;
+        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+
     }
 
     private Symbol tryDeclareVariable (Token ident, Symbol var) {
@@ -199,7 +201,8 @@ public class Compiler {
             reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return null;
+        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+
     }
 
     private Symbol tryDeclareVariable (String str, Symbol var) {
@@ -210,25 +213,27 @@ public class Compiler {
             reportDeclareSymbolError(str, lineNumber(), charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return null;
+        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+
     }
 
-    private String reportResolveSymbolError (String name, int lineNum, int charPos) {
+    private void reportResolveSymbolError (String name, int lineNum, int charPos) {
         if( errorBuffer.isEmpty() ) {
 //            errorBuffer.append("Error parsing file.\n");
         }
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
         errorBuffer.append(message + "\n");
-        throw new QuitParseException(message);
+//        throw new QuitParseException(message);
     }
 
-    private String reportDeclareSymbolError (String name, int lineNum, int charPos) {
+    private void reportDeclareSymbolError (String name, int lineNum, int charPos) {
         if( errorBuffer.isEmpty() ) {
 //            errorBuffer.append("Error parsing file.\n");
         }
         String message = "DeclareSymbolError(" + lineNum + "," + charPos + ")[" + name + " already exists.]";
         errorBuffer.append(message + "\n");
-        throw new QuitParseException(message);
+//        return
+//        throw new QuitParseException(message);
     }
 
 
