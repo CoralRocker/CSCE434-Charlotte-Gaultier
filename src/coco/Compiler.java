@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ast.*;
+import types.TypeChecker;
 
 public class Compiler {
 
@@ -824,6 +825,11 @@ public class Compiler {
         // PrintVisitor visitor = new PrintVisitor();
         // visitor.visit(ast);
         // System.err.println(visitor);
+
+        // TypeChecker usage
+//        TypeChecker visitor = new TypeChecker();
+//        visitor.visit(ast);
+//        System.err.println(visitor.errorReport());
 
         return ast;
     }
