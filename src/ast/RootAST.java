@@ -45,6 +45,9 @@ public class RootAST extends AST {
             for( String line : seq.preOrderLines() )
                 builder.append(String.format("  %s\n", line));
 
+        if( builder.charAt(builder.length()-1) == '\n' ) {
+            builder.deleteCharAt(builder.length()-1);
+        }
         return builder.toString();
     }
 
