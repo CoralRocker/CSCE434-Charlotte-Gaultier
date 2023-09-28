@@ -210,6 +210,7 @@ public class Compiler {
             return currentSymbolTable.insert(str, var);
         }
         catch(RedeclarationError e){
+            // TODO this is causing the line num errors. require this to take a token not a string and use the line num char pos of the token
             reportDeclareSymbolError(str, lineNumber(), charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
@@ -715,7 +716,7 @@ public class Compiler {
         ArrayType funcType = ArrayType.makeFunctionType(returnType, params );
         Symbol funcSym = new Symbol(funcName.lexeme(), funcType);
 
-        tryDeclareVariable(funcSym.name(), funcSym);
+        tryDeclareVariable(funcName, funcSym);
 
         enterScope();
 
