@@ -195,6 +195,17 @@ public class CompilerTester {
                         } else if (!Objects.equals(userErr[i], testErr.get(i))) {
                             System.err.printf("Line %d: Test ERR != User ERR\n", i + 1);
                             System.err.printf("\"%s\" != \"%s\"\n", testErr.get(i), userErr[i]);
+                            System.err.println("Full User ERR:");
+                            int idx = 1;
+                            for( String line : userErr ) {
+                                System.err.printf("\t%3d: \"%s\"\n", idx++, line);
+                            }
+                            idx = 0;
+                            System.err.println("Full Test ERR:");
+                            for( String line : testErr ) {
+                                System.err.printf("\t%3d: \"%s\"\n", idx++, line);
+                            }
+
                             continue SourceLoop;
                         }
                     }

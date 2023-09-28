@@ -252,7 +252,8 @@ public class ArrayType {
         if (dims != null) {
             for (int dim : dims) {
                 ret.append("[");
-                ret.append(dim);
+                if( dim != -1 )
+                    ret.append(dim);
                 ret.append("]");
             }
         }

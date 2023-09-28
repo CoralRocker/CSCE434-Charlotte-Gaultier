@@ -222,16 +222,16 @@ public class Compiler {
 //            errorBuffer.append("Error parsing file.\n");
         }
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
-        errorBuffer.append(message + "\n");
+        errorBuffer.append(message);
 //        throw new QuitParseException(message);
     }
 
     private void reportDeclareSymbolError (String name, int lineNum, int charPos) {
         if( errorBuffer.isEmpty() ) {
-//            errorBuffer.append("Error parsing file.\n");
+        //    errorBuffer.append("Error parsing file.\n");
         }
         String message = "DeclareSymbolError(" + lineNum + "," + charPos + ")[" + name + " already exists.]";
-        errorBuffer.append(message + "\n");
+        errorBuffer.append(message);
 //        return
 //        throw new QuitParseException(message);
     }
@@ -491,12 +491,12 @@ public class Compiler {
         ArrayList<VariableDeclaration> vars = new ArrayList<>();
         VariableDeclaration decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
         vars.add( decl );
-        tryDeclareVariable(decl.token(), decl.symbol());
+        tryDeclareVariable(ident.lexeme(), decl.symbol());
 
         while( accept(Token.Kind.COMMA ) ) {
             ident = expectRetrieve( Token.Kind.IDENT );
             decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
-            tryDeclareVariable(ident, decl.symbol());
+            tryDeclareVariable(ident.lexeme(), decl.symbol());
             vars.add( decl );
         }
 
