@@ -826,10 +826,10 @@ public class Compiler {
         // visitor.visit(ast);
         // System.err.println(visitor);
 
-        // TypeChecker usage
-//        TypeChecker visitor = new TypeChecker();
-//        visitor.visit(ast);
-//        System.err.println(visitor.errorReport());
+//         TypeChecker usage
+        TypeChecker visitor = new TypeChecker();
+        visitor.visit(ast);
+        System.err.println(visitor.errorReport());
 
         return ast;
     }

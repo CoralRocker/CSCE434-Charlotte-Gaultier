@@ -88,6 +88,10 @@ public class TypeChecker implements NodeVisitor {
         asn.getTarget().accept(this);
         asn.getRvalue().accept(this);
 
+        asn.setType(asn.getTarget().typeClass().assign(asn.getRvalue().typeClass()));
+        if(asn.typeClass() instanceof ErrorType){
+            reportError(asn.lineNumber(), asn.charPosition(), ((ErrorType) asn.typeClass()).message);
+        }
     }
 
     @Override

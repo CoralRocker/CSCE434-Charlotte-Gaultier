@@ -21,7 +21,7 @@ public class Assignment extends AST {
 
     @Override
     public Type typeClass() {
-        return null;
+        return type;
     }
 
     @Override
