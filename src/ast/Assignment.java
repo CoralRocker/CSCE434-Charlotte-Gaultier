@@ -1,6 +1,7 @@
 package ast;
 
 import coco.Token;
+import types.Type;
 
 public class Assignment extends AST {
 
@@ -15,6 +16,11 @@ public class Assignment extends AST {
 
     @Override
     public String type() {
+        return null;
+    }
+
+    @Override
+    public Type typeClass() {
         return null;
     }
 

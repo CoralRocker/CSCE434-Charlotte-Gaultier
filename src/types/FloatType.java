@@ -1,4 +1,6 @@
 package types;
 
-public class FloatType {
+public class FloatType extends Type {
+
+
 }

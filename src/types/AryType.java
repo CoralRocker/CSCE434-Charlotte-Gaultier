@@ -1,4 +1,5 @@
 package types;
 
-public class AryType {
+public class AryType extends Type {
+
 }

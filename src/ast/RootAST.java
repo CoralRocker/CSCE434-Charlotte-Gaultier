@@ -2,6 +2,7 @@ package ast;
 
 import coco.ArrayType;
 import coco.Token;
+import types.Type;
 
 import java.util.ArrayList;
 
@@ -22,6 +23,11 @@ public class RootAST extends AST {
     public String type() {
         ArrayType mainfunc = ArrayType.makeFunctionType(new ArrayType(new Token(Token.Kind.VOID, 0,0), null), new ArrayList<>() );
         return String.format("Computation[main:%s]", mainfunc);
+    }
+
+    @Override
+    public Type typeClass() {
+        return null;
     }
 
     @Override

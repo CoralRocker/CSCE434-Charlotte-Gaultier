@@ -1,6 +1,7 @@
 package ast;
 
 import coco.Token;
+import types.Type;
 
 public class Power extends AST {
     private Token op;
@@ -17,6 +18,11 @@ public class Power extends AST {
     @Override
     public String type() {
         return null;
+    }
+
+    @Override
+    public Type typeClass() {
+        return this.type;
     }
 
     @Override

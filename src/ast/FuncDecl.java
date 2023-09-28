@@ -2,6 +2,7 @@ package ast;
 
 import coco.Symbol;
 import coco.Token;
+import types.Type;
 
 import java.util.ArrayList;
 
@@ -31,6 +32,11 @@ public class FuncDecl extends AST {
 
     @Override
     public String type() {
+        return null;
+    }
+
+    @Override
+    public Type typeClass() {
         return null;
     }
 

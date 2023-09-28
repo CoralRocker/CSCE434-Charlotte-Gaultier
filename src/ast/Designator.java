@@ -2,6 +2,7 @@ package ast;
 
 import coco.Token;
 import coco.Symbol;
+import types.*;
 
 import java.util.ArrayList;
 
@@ -29,6 +30,23 @@ public class Designator extends AST {
             }
         }
         return builder.toString();
+    }
+
+    @Override
+    public Type typeClass() {
+        switch (sym.type().getType()){
+            case INT:
+                return new IntType();
+            case FLOAT:
+                return new FloatType();
+            case BOOL:
+                return new BoolType();
+            case FUNC:
+                return new FuncType();
+            default:
+                return new ErrorType("Could not resolve designator type");
+        }
+
     }
 
 

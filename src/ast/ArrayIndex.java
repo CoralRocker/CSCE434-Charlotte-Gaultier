@@ -1,6 +1,7 @@
 package ast;
 
 import coco.Token;
+import types.Type;
 
 public class ArrayIndex extends AST implements Visitable {
 
@@ -18,6 +19,11 @@ public class ArrayIndex extends AST implements Visitable {
 
     @Override
     public String type() {
+        return null;
+    }
+
+    @Override
+    public Type typeClass() {
         return null;
     }
 

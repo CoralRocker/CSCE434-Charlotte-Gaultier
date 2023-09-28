@@ -1,4 +1,6 @@
 package types;
 
-public class VoidType {
+public class VoidType extends Type {
+
+
 }

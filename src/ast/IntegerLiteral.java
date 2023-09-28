@@ -1,6 +1,8 @@
 package ast;
 
 import coco.Token;
+import types.IntType;
+import types.Type;
 
 public class IntegerLiteral extends AST {
 
@@ -14,6 +16,11 @@ public class IntegerLiteral extends AST {
     @Override
     public String type() {
         return "IntegerLiteral";
+    }
+
+    @Override
+    public Type typeClass() {
+        return new IntType();
     }
 
     @Override

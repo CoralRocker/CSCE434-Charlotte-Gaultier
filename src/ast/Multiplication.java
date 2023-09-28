@@ -1,6 +1,7 @@
 package ast;
 
 import coco.Token;
+import types.Type;
 
 public class Multiplication extends AST {
     public Token op;
@@ -17,6 +18,11 @@ public class Multiplication extends AST {
     @Override
     public String type() {
         return null;
+    }
+
+    @Override
+    public Type typeClass() {
+        return this.type;
     }
 
     @Override

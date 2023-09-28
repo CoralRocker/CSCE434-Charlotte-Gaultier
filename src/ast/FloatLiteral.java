@@ -1,6 +1,8 @@
 package ast;
 
 import coco.Token;
+import types.FloatType;
+import types.Type;
 
 public class FloatLiteral extends AST {
     private float literal;
@@ -12,6 +14,11 @@ public class FloatLiteral extends AST {
     @Override
     public String type() {
         return null;
+    }
+
+    @Override
+    public Type typeClass() {
+        return new FloatType();
     }
 
     @Override

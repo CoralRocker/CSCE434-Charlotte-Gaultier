@@ -2,6 +2,7 @@ package ast;
 
 import coco.Symbol;
 import coco.Token;
+import types.Type;
 
 public class FuncCall extends AST {
 
@@ -19,6 +20,11 @@ public class FuncCall extends AST {
 
     @Override
     public String type() {
+        return null;
+    }
+
+    @Override
+    public Type typeClass() {
         return null;
     }
 

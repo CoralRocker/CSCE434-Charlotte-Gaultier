@@ -2,6 +2,7 @@ package ast;
 
 
 import coco.Token;
+import types.Type;
 
 public abstract class AST implements Visitable {
 
@@ -11,8 +12,15 @@ public abstract class AST implements Visitable {
         this.tkn = tkn;
     }
 
+    Type type;
+
+    public void setType(Type t){
+        this.type = t;
+    };
 
     public abstract String type();
+
+    public abstract Type typeClass();
 
     public abstract String printPreOrder();
 

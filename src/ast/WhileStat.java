@@ -1,6 +1,7 @@
 package ast;
 
 import coco.Token;
+import types.Type;
 
 public class WhileStat extends AST {
     private AST relation;
@@ -13,6 +14,11 @@ public class WhileStat extends AST {
 
     @Override
     public String type() {
+        return null;
+    }
+
+    @Override
+    public Type typeClass() {
         return null;
     }
 

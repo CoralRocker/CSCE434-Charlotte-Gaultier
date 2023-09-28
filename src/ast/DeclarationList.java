@@ -1,6 +1,8 @@
 package ast;
 
 import coco.Token;
+import types.AryType;
+import types.Type;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +34,12 @@ public class DeclarationList extends AST {
     @Override
     public String type() {
         return "DeclList";
+    }
+
+    @Override
+    public Type typeClass() {
+        return new AryType();
+        // TODO verify if this is correct. unsure
     }
 
     @Override

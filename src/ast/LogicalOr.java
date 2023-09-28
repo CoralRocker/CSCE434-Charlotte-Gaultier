@@ -1,6 +1,7 @@
 package ast;
 
 import coco.Token;
+import types.Type;
 
 public class LogicalOr extends AST {
     private AST rvalue;
@@ -14,6 +15,11 @@ public class LogicalOr extends AST {
     @Override
     public String type() {
         return null;
+    }
+
+    @Override
+    public Type typeClass() {
+        return this.type;
     }
 
     @Override

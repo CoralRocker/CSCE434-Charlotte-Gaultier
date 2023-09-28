@@ -1,6 +1,7 @@
 package ast;
 
 import coco.Token;
+import types.Type;
 
 import java.util.ArrayList;
 
@@ -19,6 +20,11 @@ public class ArgList extends AST implements Visitable {
 
     @Override
     public String type() {
+        return null;
+    }
+
+    @Override
+    public Type typeClass() {
         return null;
     }
 

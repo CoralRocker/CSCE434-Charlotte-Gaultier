@@ -1,6 +1,8 @@
 package ast;
 
 import coco.Token;
+import types.BoolType;
+import types.Type;
 
 public class BoolLiteral extends AST {
 
@@ -15,6 +17,11 @@ public class BoolLiteral extends AST {
     @Override
     public String type() {
         return "BoolLiteral";
+    }
+
+    @Override
+    public Type typeClass() {
+        return new BoolType();
     }
 
     @Override

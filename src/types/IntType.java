@@ -1,4 +1,6 @@
 package types;
 
-public class IntType {
+public class IntType extends Type {
+
+
 }

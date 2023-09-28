@@ -2,6 +2,7 @@ package ast;
 
 import coco.Symbol;
 import coco.Token;
+import types.Type;
 
 public class VariableDeclaration extends AST {
 
@@ -19,6 +20,11 @@ public class VariableDeclaration extends AST {
     @Override
     public String type() {
         return "VarDecl";
+    }
+
+    @Override
+    public Type typeClass() {
+        return null;
     }
 
     @Override

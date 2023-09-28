@@ -1,6 +1,7 @@
 package ast;
 
 import coco.Token;
+import types.Type;
 
 public class Relation extends AST {
 
@@ -18,6 +19,11 @@ public class Relation extends AST {
     @Override
     public String type() {
         return null;
+    }
+
+    @Override
+    public Type typeClass() {
+        return this.type;
     }
 
     @Override

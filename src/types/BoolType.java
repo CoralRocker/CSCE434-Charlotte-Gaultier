@@ -1,4 +1,5 @@
 package types;
 
-public class BoolType {
+public class BoolType extends Type {
+
 }
