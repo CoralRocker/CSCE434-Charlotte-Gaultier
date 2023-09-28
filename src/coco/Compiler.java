@@ -215,7 +215,7 @@ public class Compiler {
 
     private String reportResolveSymbolError (String name, int lineNum, int charPos) {
         if( errorBuffer.isEmpty() ) {
-            errorBuffer.append("Error parsing file.\n");
+//            errorBuffer.append("Error parsing file.\n");
         }
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
         errorBuffer.append(message + "\n");
@@ -224,7 +224,7 @@ public class Compiler {
 
     private String reportDeclareSymbolError (String name, int lineNum, int charPos) {
         if( errorBuffer.isEmpty() ) {
-            errorBuffer.append("Error parsing file.\n");
+//            errorBuffer.append("Error parsing file.\n");
         }
         String message = "DeclareSymbolError(" + lineNum + "," + charPos + ")[" + name + " already exists.]";
         errorBuffer.append(message + "\n");
