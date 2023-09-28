@@ -205,7 +205,7 @@ public class Compiler {
 
     }
 
-    private Symbol tryDeclareVariable (String str, Symbol var) {
+    private Symbol tryDeclareVariableStr (String str, Symbol var) {
         try{
             return currentSymbolTable.insert(str, var);
         }
@@ -223,7 +223,7 @@ public class Compiler {
 //            errorBuffer.append("Error parsing file.\n");
         }
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
-        errorBuffer.append(message);
+        errorBuffer.append(message + "\n");
 //        throw new QuitParseException(message);
     }
 
@@ -232,7 +232,7 @@ public class Compiler {
         //    errorBuffer.append("Error parsing file.\n");
         }
         String message = "DeclareSymbolError(" + lineNum + "," + charPos + ")[" + name + " already exists.]";
-        errorBuffer.append(message);
+        errorBuffer.append(message + "\n");
 //        return
 //        throw new QuitParseException(message);
     }
@@ -492,12 +492,12 @@ public class Compiler {
         ArrayList<VariableDeclaration> vars = new ArrayList<>();
         VariableDeclaration decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
         vars.add( decl );
-        tryDeclareVariable(ident.lexeme(), decl.symbol());
+        tryDeclareVariable(ident, decl.symbol());
 
         while( accept(Token.Kind.COMMA ) ) {
             ident = expectRetrieve( Token.Kind.IDENT );
             decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
-            tryDeclareVariable(ident.lexeme(), decl.symbol());
+            tryDeclareVariable(ident, decl.symbol());
             vars.add( decl );
         }
 
@@ -721,7 +721,7 @@ public class Compiler {
         enterScope();
 
         for( Symbol sym : argSymbols ) {
-            tryDeclareVariable(sym.name(), sym);
+            tryDeclareVariableStr(sym.name(), sym);
         }
 
         FuncBody body = funcBody();

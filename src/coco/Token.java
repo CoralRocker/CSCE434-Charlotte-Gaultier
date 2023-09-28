@@ -248,7 +248,7 @@ public class Token {
         this.lexeme = "No Lexeme Given";
     }
 
-    private Token (String lexeme, int lineNum, int charPos) {
+    public Token (String lexeme, int lineNum, int charPos) {
         this.lineNum = lineNum;
         this.charPos = charPos;
 
