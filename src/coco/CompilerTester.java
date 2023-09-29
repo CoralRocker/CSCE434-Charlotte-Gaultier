@@ -5,7 +5,11 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ast.RootAST;
 import org.apache.commons.cli.*;
+import types.TypeChecker;
+
+import static java.lang.System.exit;
 
 public class CompilerTester {
 
@@ -31,7 +35,7 @@ public class CompilerTester {
             cmd = cmdParser.parse(options, args);
         } catch (ParseException e) {
             formatter.printHelp("All Options", options);
-            System.exit(-1);
+            exit(-1);
         }
 
         ArrayList<String> files = new ArrayList<>();
@@ -70,7 +74,7 @@ public class CompilerTester {
             } catch (IOException e) {
                 e.printStackTrace();
                 System.err.println("Error accessing the code file: \"" + sourceFile + "\"");
-                System.exit(-3);
+                exit(-3);
             }
 
             InputStream in = System.in;
@@ -80,7 +84,7 @@ public class CompilerTester {
                     in = new FileInputStream(inputFilename);
                 } catch (IOException e) {
                     System.err.println("Error accessing the data file: \"" + inputFilename + "\"");
-                    System.exit(-2);
+                    exit(-2);
                 }
             }
 
@@ -103,7 +107,14 @@ public class CompilerTester {
 
 
             Compiler c = new Compiler(s, numRegs);
-            ast.AST ast = c.genAST();
+            RootAST ast = (RootAST) c.genAST();
+            types.TypeChecker checker = new TypeChecker();
+
+            if( checker.check(ast) ) {
+                System.err.println("Error type-checking file.");
+                System.err.println(checker.errorReport());
+                System.exit(-4);
+            }
 
             String ast_text = ast.printPreOrder();
             if (cmd.hasOption("a") && !cmd.hasOption("run-all")) { // AST to Screen
@@ -237,7 +248,7 @@ public class CompilerTester {
                     out.println(ast.printPreOrder());
                 } catch (IOException e) {
                     System.err.println("Error accessing the ast file: \"" + astFile + "\"");
-                    System.exit(-7);
+                    exit(-7);
                 }
             }
 

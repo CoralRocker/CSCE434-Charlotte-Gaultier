@@ -39,6 +39,11 @@ public class TypeChecker implements NodeVisitor {
      * "Not all paths in function " + currentFunction.name() + " return."
      */
 
+    public boolean check(RootAST ast) {
+        visit(ast);
+        return hasError();
+    }
+
     private void reportError (int lineNum, int charPos, String message) {
         errorBuffer.append("TypeError(" + lineNum + "," + charPos + ")");
         errorBuffer.append("[" + message + "]" + "\n");
