@@ -4,6 +4,7 @@ package coco;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 import ast.*;
 import types.TypeChecker;
@@ -82,8 +83,20 @@ public class Compiler {
             computation();
         }
         catch( QuitParseException e ) {
+            return ast;
+        }
+        catch( Exception e ) {
             System.out.println("CAUGHT ERROR: " + e);
         }
+
+        UnresolvedFunctionVisitor visitor = new UnresolvedFunctionVisitor();
+        visitor.visit(ast);
+        if( !visitor.errors().isEmpty() ) {
+            for( Token err : visitor.errors() ) {
+                reportResolveSymbolError(err.lexeme(), err.lineNumber(), err.charPosition());
+            }
+        }
+
         return ast;
     }
     
@@ -111,40 +124,40 @@ public class Compiler {
                 new ArrayType( Token.Kind.INT ),
                 new ArrayList<>()
         );
-        currentSymbolTable.insert("readInt", new Symbol("readInt", readInt));
+        currentSymbolTable.insert("readInt", new FunctionSymbol("readInt", readInt));
 
         ArrayType readFloat = ArrayType.makeFunctionType(
                 Token.Kind.FLOAT
         );
-        currentSymbolTable.insert("readFloat", new Symbol("readFloat", readFloat));
+        currentSymbolTable.insert("readFloat", new FunctionSymbol("readFloat", readFloat));
 
         ArrayType readBool = ArrayType.makeFunctionType(
                 Token.Kind.BOOL
         );
-        currentSymbolTable.insert("readBool", new Symbol("readBool", readBool));
+        currentSymbolTable.insert("readBool", new FunctionSymbol("readBool", readBool));
 
         ArrayType printInt = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.INT}
         );
-        currentSymbolTable.insert("printInt", new Symbol("printInt", printInt));
+        currentSymbolTable.insert("printInt", new FunctionSymbol("printInt", printInt));
 
         ArrayType printFloat = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.FLOAT}
         );
-        currentSymbolTable.insert("printFloat", new Symbol("printFloat", printFloat));
+        currentSymbolTable.insert("printFloat", new FunctionSymbol("printFloat", printFloat));
 
         ArrayType printBool = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.BOOL}
         );
-        currentSymbolTable.insert("printBool", new Symbol("printBool", printBool));
+        currentSymbolTable.insert("printBool", new FunctionSymbol("printBool", printBool));
 
         ArrayType println = ArrayType.makeFunctionType(
                 Token.Kind.VOID
         );
-        currentSymbolTable.insert("println", new Symbol("println", println));
+        currentSymbolTable.insert("println", new FunctionSymbol("println", println));
 
     }
 
@@ -168,7 +181,7 @@ public class Compiler {
             }
         }
         //TODO: Try resolving variable, handle SymbolNotFoundError
-        return null;
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
     }
     private Symbol tryAssignVariable (Token ident, Symbol var) {
         try{
@@ -178,7 +191,8 @@ public class Compiler {
             reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
 
-        return null;
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
+
     }
 
     private Symbol tryDeclareVariable (Token ident) {
@@ -189,7 +203,8 @@ public class Compiler {
             reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return null;
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
+
     }
 
     private Symbol tryDeclareVariable (Token ident, Symbol var) {
@@ -200,36 +215,79 @@ public class Compiler {
             reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return null;
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
+
     }
 
-    private Symbol tryDeclareVariable (String str, Symbol var) {
+    private Symbol tryDeclareFunction(Token func, ArrayType type) {
+        Symbol sym = null;
+        if( currentSymbolTable.contains(func) ) {
+            sym = currentSymbolTable.lookup(func);
+
+            if( ! (sym instanceof FunctionSymbol) ) {
+                throw new RuntimeException(String.format("Function %s is not a function identifier!", func.lexeme()));
+            }
+        }
+        else {
+            sym = currentSymbolTable.insert(func, new FunctionSymbol(func) );
+        }
+
+        FunctionSymbol funcSym = (FunctionSymbol) sym;
+        if( funcSym.contains(type) ) {
+            reportDeclareSymbolError(func.lexeme(), func.lineNumber(), func.charPosition());
+        }
+        else {
+            funcSym.add(type);
+        }
+
+        return funcSym;
+    }
+
+    private FunctionSymbol tryResolveFunction(Token func) {
+        Symbol sym = null;
+        if( !currentSymbolTable.contains(func) ) {
+            SymbolTable global = currentSymbolTable.globalScope(0);
+            return (FunctionSymbol) global.insert(func, new FunctionSymbol(func));
+        }
+        sym = currentSymbolTable.lookup(func);
+        if( ! (sym instanceof FunctionSymbol) ) {
+            throw new RuntimeException(String.format("Function call %s is not a function! (%s)", func, sym));
+        }
+
+        return (FunctionSymbol) sym;
+    }
+
+    private Symbol tryDeclareVariableStr (String str, Symbol var) {
+
         try{
             return currentSymbolTable.insert(str, var);
         }
         catch(RedeclarationError e){
+            // TODO this is causing the line num errors. require this to take a token not a string and use the line num char pos of the token
             reportDeclareSymbolError(str, lineNumber(), charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return null;
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
+
     }
 
-    private String reportResolveSymbolError (String name, int lineNum, int charPos) {
-        if( errorBuffer.isEmpty() ) {
-            errorBuffer.append("Error parsing file.\n");
-        }
+    private void reportResolveSymbolError (String name, int lineNum, int charPos) {
+        //if( errorBuffer.isEmpty() ) {
+        //    errorBuffer.append("Error parsing file.\n");
+        //}
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
         errorBuffer.append(message + "\n");
-        throw new QuitParseException(message);
+//        throw new QuitParseException(message);
     }
 
-    private String reportDeclareSymbolError (String name, int lineNum, int charPos) {
-        if( errorBuffer.isEmpty() ) {
-            errorBuffer.append("Error parsing file.\n");
-        }
+    private void reportDeclareSymbolError (String name, int lineNum, int charPos) {
+        //if( errorBuffer.isEmpty() ) {
+        //    errorBuffer.append("Error parsing file.\n");
+        //}
         String message = "DeclareSymbolError(" + lineNum + "," + charPos + ")[" + name + " already exists.]";
         errorBuffer.append(message + "\n");
-        throw new QuitParseException(message);
+//        return
+//        throw new QuitParseException(message);
     }
 
 
@@ -451,7 +509,7 @@ public class Compiler {
         }
         else {
             String err = reportSyntaxError( NonTerminal.GROUP_EXPR );
-            throw new Interpreter.QuitParseException(err);
+            throw new QuitParseException(err);
         }
 
         return null;
@@ -485,13 +543,13 @@ public class Compiler {
         Token ident = expectRetrieve( Token.Kind.IDENT ); // Initial Identifier
 
         ArrayList<VariableDeclaration> vars = new ArrayList<>();
-        VariableDeclaration decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
+        VariableDeclaration decl = new VariableDeclaration(ident, new VariableSymbol(ident.lexeme(), arrtype) );
         vars.add( decl );
-        tryDeclareVariable(decl.token(), decl.symbol());
+        tryDeclareVariable(ident, decl.symbol());
 
         while( accept(Token.Kind.COMMA ) ) {
             ident = expectRetrieve( Token.Kind.IDENT );
-            decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
+            decl = new VariableDeclaration(ident, new VariableSymbol(ident.lexeme(), arrtype) );
             tryDeclareVariable(ident, decl.symbol());
             vars.add( decl );
         }
@@ -506,10 +564,10 @@ public class Compiler {
         Token func = expectRetrieve( Token.Kind.IDENT );
         expect( Token.Kind.OPEN_PAREN );
 
-        Symbol sym = tryResolveVariable(func);
+        FunctionSymbol sym = tryResolveFunction(func);
 
         ArrayList< AST > args = new ArrayList<>();
-        FuncCall function = new FuncCall(call, sym);
+        FuncCall function = new FuncCall(call, sym, func);
 
         ArrayList< AST > arguments = new ArrayList<>();
         ArgList list = new ArgList(currentToken);
@@ -546,7 +604,7 @@ public class Compiler {
                 }
                 default -> {
                     String err = reportSyntaxError(NonTerminal.UNARY_OP);
-                    throw new Interpreter.QuitParseException("Unable to parse unary op \"%s\": %s".formatted(op.lexeme(), err));
+                    throw new QuitParseException("Unable to parse unary op \"%s\": %s".formatted(op.lexeme(), err));
                 }
             }
 
@@ -597,7 +655,7 @@ public class Compiler {
 
     private AST ifStat( ) {
         Token tkn = expectRetrieve( Token.Kind.IF );
-        Relation bool = (Relation) relation();
+        AST bool = relation();
         expect( Token.Kind.THEN );
         StatSeq ifseq = statSeq();
         StatSeq elseseq = null;
@@ -646,7 +704,7 @@ public class Compiler {
     private StatSeq statSeq() {
         if( ! have( NonTerminal.STATEMENT) ) {
             String err = reportSyntaxError(NonTerminal.STATEMENT);
-            throw new Interpreter.QuitParseException(err);
+            throw new QuitParseException(err);
         }
 
         StatSeq seq = new StatSeq(currentToken);
@@ -709,18 +767,18 @@ public class Compiler {
         }
 
         ArrayType funcType = ArrayType.makeFunctionType(returnType, params );
-        Symbol funcSym = new Symbol(funcName.lexeme(), funcType);
+        // Symbol funcSym = new FunctionSymbol(funcName.lexeme(), funcType);
 
-        tryDeclareVariable(funcSym.name(), funcSym);
+        Symbol funcSym = tryDeclareFunction(funcName, funcType);
 
         enterScope();
 
         for( Symbol sym : argSymbols ) {
-            tryDeclareVariable(sym.name(), sym);
+            tryDeclareVariableStr(sym.name(), sym);
         }
 
         FuncBody body = funcBody();
-        FuncDecl decl = new FuncDecl(ftok, funcSym, body);
+        FuncDecl decl = new FuncDecl(funcName, funcType, body);
         decl.setArgs(argSymbols);
 
         exitScope();
@@ -746,7 +804,7 @@ public class Compiler {
     private Symbol paramDecl() {
         ArrayType type = paramType();
         Token param = expectRetrieve( Token.Kind.IDENT );
-        return new Symbol(param.lexeme(), type);
+        return new VariableSymbol(param.lexeme(), type);
     }
 
     private ArrayList< Symbol > formalParam() {

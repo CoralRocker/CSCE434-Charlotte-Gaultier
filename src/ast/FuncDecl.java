@@ -1,5 +1,6 @@
 package ast;
 
+import coco.ArrayType;
 import coco.Symbol;
 import coco.Token;
 import types.Type;
@@ -9,11 +10,12 @@ import java.util.ArrayList;
 public class FuncDecl extends AST {
 
     private Symbol sym;
+    private ArrayType declType;
     private ArrayList<Symbol> argList;
     private FuncBody body;
-    public FuncDecl(Token tkn, Symbol func, FuncBody body ) {
+    public FuncDecl(Token tkn, ArrayType declType, FuncBody body ) {
         super(tkn);
-        this.sym = func;
+        this.declType = declType;
         this.body = body;
         this.argList = new ArrayList<>();
     }
@@ -26,9 +28,9 @@ public class FuncDecl extends AST {
         getArgList().add( arg );
     }
 
-    public Symbol symbol() {
-        return getSym();
-    }
+    // public Symbol symbol() {
+    //     return getSym();
+    // }
 
     @Override
     public String type() {
@@ -61,7 +63,7 @@ public class FuncDecl extends AST {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("FunctionDeclaration[%s:%s]", getSym().name(), getSym().type()));
+        builder.append(String.format("FunctionDeclaration[%s:%s]", super.token().lexeme(), declType));
         // for( Symbol arg : argList ) {
         //     builder.append(String.format(", %s", arg));
         // }
@@ -69,9 +71,9 @@ public class FuncDecl extends AST {
         return builder.toString();
     }
 
-    public Symbol getSym() {
-        return sym;
-    }
+    // public Symbol getSym() {
+    //     return sym;
+    // }
 
     public ArrayList<Symbol> getArgList() {
         return argList;

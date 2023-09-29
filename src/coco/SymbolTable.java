@@ -7,21 +7,91 @@ import java.util.HashMap;
 public class SymbolTable {
 
     private final SymbolTable parent;
+    private ArrayList<SymbolTable> children;
     private HashMap<String, Symbol> map;
 
+    public SymbolTable globalScope(int index) {
+        ArrayList<SymbolTable> scope = getScope();
+
+        return scope.get(scope.size() - 1 - index );
+    }
     public SymbolTable (SymbolTable parent) {
         this.parent = parent;
         this.map = new HashMap<String, Symbol>();
+        this.children = new ArrayList<>();
     }
 
     public SymbolTable pushScope(){
         // add a new scope, enter it, with parent as this (current scope)
-        return new SymbolTable(this);
+        SymbolTable child = new SymbolTable(this);
+        children.add(child);
+        return child;
+    }
+
+    protected void removeChild(SymbolTable child) {
+        for( SymbolTable table : children) {
+            if( table == child ) {
+                children.remove(table);
+                break;
+            }
+        }
     }
 
     public SymbolTable popScope(){
-        // enter parent scope
+        // if( parent != null ) {
+        //     parent.removeChild(this);
+        // }
         return parent;
+    }
+
+    public FunctionSymbol hasUnresolvedFunction() {
+        for( Symbol sym : map.values() ) {
+            if( sym instanceof FunctionSymbol ) {
+                FunctionSymbol func = (FunctionSymbol) sym;
+                ArrayList<ArrayType> types = (ArrayList<ArrayType>) func.value();
+                if( types == null || types.isEmpty() ) {
+                    map.remove(func.name());
+                    return func;
+                }
+            }
+        }
+
+        for( SymbolTable child : children ) {
+            FunctionSymbol func = child.hasUnresolvedFunction();
+            if( func != null ) {
+                return func;
+            }
+        }
+
+        return null;
+    }
+
+    public ArrayList<SymbolTable> getScope() {
+        SymbolTable global = this;
+        ArrayList<SymbolTable> scope = new ArrayList<>();
+        while( global.parent != null ) {
+            scope.add(global);
+            global = global.parent;
+        }
+        scope.add(global);
+
+        return scope;
+    }
+
+    public boolean contains(Token name) {
+        return contains(name.lexeme());
+    }
+    public boolean contains(String name) {
+        boolean thismap =  map.containsKey(name);
+
+        if( thismap ) {
+            return true;
+        }
+        else if ( parent != null ) {
+            return parent.contains(name);
+        }
+
+        return false;
     }
 
     // lookup name in SymbolTable

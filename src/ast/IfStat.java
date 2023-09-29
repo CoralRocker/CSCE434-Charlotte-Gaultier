@@ -7,9 +7,9 @@ public class IfStat extends AST {
 
     private StatSeq ifseq;
     private StatSeq elseseq;
-    private Relation ifrel;
+    private AST ifrel;
 
-    public IfStat(Token tkn, Relation ifrel, StatSeq ifseq, StatSeq elseseq) {
+    public IfStat(Token tkn, AST ifrel, StatSeq ifseq, StatSeq elseseq) {
         super(tkn);
         this.ifrel = ifrel;
         this.ifseq = ifseq;
@@ -65,7 +65,7 @@ public class IfStat extends AST {
         return elseseq;
     }
 
-    public Relation getIfrel() {
+    public AST getIfrel() {
         return ifrel;
     }
 }

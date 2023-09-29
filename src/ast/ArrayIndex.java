@@ -34,9 +34,9 @@ public class ArrayIndex extends AST implements Visitable {
             builder.append(String.format("  %s\n", line) );
         }
 
-        for( String line : index.preOrderLines() ) {
-            builder.append(String.format("  %s\n", line) );
-        }
+        // for( String line : index.preOrderLines() ) {
+        //     builder.append(String.format("  %s\n", line) );
+        // }
 
         return builder.toString();
     }
