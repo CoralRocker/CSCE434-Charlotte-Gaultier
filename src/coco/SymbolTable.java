@@ -24,6 +24,13 @@ public class SymbolTable {
         return parent;
     }
 
+    public boolean contains(Token name) {
+        return map.containsKey(name.lexeme());
+    }
+    public boolean contains(String name) {
+        return map.containsKey(name);
+    }
+
     // lookup name in SymbolTable
     public Symbol lookup (Token name) throws SymbolNotFoundError {
         // look in current scope and then look in parents, call lookup on this.parent

@@ -275,6 +275,10 @@ public class Token {
         return charPos;
     }
 
+    public int endCharPos() {
+        return charPos + length();
+    }
+
     public String lexeme () {
         return lexeme;
     }

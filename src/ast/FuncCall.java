@@ -1,14 +1,15 @@
 package ast;
 
+import coco.FunctionSymbol;
 import coco.Symbol;
 import coco.Token;
 
 public class FuncCall extends AST {
 
-    private Symbol func;
+    private FunctionSymbol func;
     private ArgList args;
 
-    public FuncCall(Token tkn, Symbol func) {
+    public FuncCall(Token tkn, FunctionSymbol func) {
         super(tkn);
         this.func = func;
     }
@@ -39,7 +40,7 @@ public class FuncCall extends AST {
 
     @Override
     public String toString() {
-        return String.format("FunctionCall[%s:%s]", getFunc().name(), getFunc().type());
+        return String.format("FunctionCall[%s:%s]", getFunc().name(), func.typeSignatures());
     }
 
     @Override

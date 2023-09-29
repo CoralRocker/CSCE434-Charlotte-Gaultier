@@ -4,6 +4,7 @@ package coco;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 import ast.*;
 
@@ -110,40 +111,40 @@ public class Compiler {
                 new ArrayType( Token.Kind.INT ),
                 new ArrayList<>()
         );
-        currentSymbolTable.insert("readInt", new Symbol("readInt", readInt));
+        currentSymbolTable.insert("readInt", new FunctionSymbol("readInt", readInt));
 
         ArrayType readFloat = ArrayType.makeFunctionType(
                 Token.Kind.FLOAT
         );
-        currentSymbolTable.insert("readFloat", new Symbol("readFloat", readFloat));
+        currentSymbolTable.insert("readFloat", new FunctionSymbol("readFloat", readFloat));
 
         ArrayType readBool = ArrayType.makeFunctionType(
                 Token.Kind.BOOL
         );
-        currentSymbolTable.insert("readBool", new Symbol("readBool", readBool));
+        currentSymbolTable.insert("readBool", new FunctionSymbol("readBool", readBool));
 
         ArrayType printInt = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.INT}
         );
-        currentSymbolTable.insert("printInt", new Symbol("printInt", printInt));
+        currentSymbolTable.insert("printInt", new FunctionSymbol("printInt", printInt));
 
         ArrayType printFloat = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.FLOAT}
         );
-        currentSymbolTable.insert("printFloat", new Symbol("printFloat", printFloat));
+        currentSymbolTable.insert("printFloat", new FunctionSymbol("printFloat", printFloat));
 
         ArrayType printBool = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.BOOL}
         );
-        currentSymbolTable.insert("printBool", new Symbol("printBool", printBool));
+        currentSymbolTable.insert("printBool", new FunctionSymbol("printBool", printBool));
 
         ArrayType println = ArrayType.makeFunctionType(
                 Token.Kind.VOID
         );
-        currentSymbolTable.insert("println", new Symbol("println", println));
+        currentSymbolTable.insert("println", new FunctionSymbol("println", println));
 
     }
 
@@ -167,7 +168,7 @@ public class Compiler {
             }
         }
         //TODO: Try resolving variable, handle SymbolNotFoundError
-        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
     }
     private Symbol tryAssignVariable (Token ident, Symbol var) {
         try{
@@ -177,7 +178,7 @@ public class Compiler {
             reportResolveSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
 
-        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
 
     }
 
@@ -189,7 +190,7 @@ public class Compiler {
             reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
 
     }
 
@@ -201,11 +202,44 @@ public class Compiler {
             reportDeclareSymbolError(ident.lexeme(), ident.lineNumber(), ident.charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
 
     }
 
+    private Symbol tryDeclareFunction(Token func, ArrayType type) {
+        Symbol sym = null;
+        if( currentSymbolTable.contains(func) ) {
+            sym = currentSymbolTable.lookup(func);
+
+            if( ! (sym instanceof FunctionSymbol) ) {
+                throw new RuntimeException(String.format("Function %s is not a function identifier!", func.lexeme()));
+            }
+        }
+        else {
+            sym = currentSymbolTable.insert(func, new FunctionSymbol(func.lexeme()) );
+        }
+
+        FunctionSymbol funcSym = (FunctionSymbol) sym;
+        funcSym.add(type);
+
+        return funcSym;
+    }
+
+    private FunctionSymbol tryResolveFunction(Token func) {
+        Symbol sym = null;
+        if( !currentSymbolTable.contains(func) ) {
+            reportResolveSymbolError(func.lexeme(), func.lineNumber(), func.endCharPos());
+        }
+        sym = currentSymbolTable.lookup(func);
+        if( ! (sym instanceof FunctionSymbol) ) {
+            throw new RuntimeException(String.format("Function call %s is not a function! (%s)", func, sym));
+        }
+
+        return (FunctionSymbol) sym;
+    }
+
     private Symbol tryDeclareVariableStr (String str, Symbol var) {
+
         try{
             return currentSymbolTable.insert(str, var);
         }
@@ -214,7 +248,7 @@ public class Compiler {
             reportDeclareSymbolError(str, lineNumber(), charPosition());
         }
         //TODO: Try declaring variable, handle RedeclarationError
-        return new Symbol("ERROR", new ArrayType(Token.Kind.ERROR));
+        return new VariableSymbol("ERROR", new ArrayType(Token.Kind.ERROR));
 
     }
 
@@ -490,13 +524,13 @@ public class Compiler {
         Token ident = expectRetrieve( Token.Kind.IDENT ); // Initial Identifier
 
         ArrayList<VariableDeclaration> vars = new ArrayList<>();
-        VariableDeclaration decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
+        VariableDeclaration decl = new VariableDeclaration(ident, new VariableSymbol(ident.lexeme(), arrtype) );
         vars.add( decl );
         tryDeclareVariable(ident, decl.symbol());
 
         while( accept(Token.Kind.COMMA ) ) {
             ident = expectRetrieve( Token.Kind.IDENT );
-            decl = new VariableDeclaration(ident, new Symbol(ident.lexeme(), arrtype) );
+            decl = new VariableDeclaration(ident, new VariableSymbol(ident.lexeme(), arrtype) );
             tryDeclareVariable(ident, decl.symbol());
             vars.add( decl );
         }
@@ -511,7 +545,7 @@ public class Compiler {
         Token func = expectRetrieve( Token.Kind.IDENT );
         expect( Token.Kind.OPEN_PAREN );
 
-        Symbol sym = tryResolveVariable(func);
+        FunctionSymbol sym = tryResolveFunction(func);
 
         ArrayList< AST > args = new ArrayList<>();
         FuncCall function = new FuncCall(call, sym);
@@ -714,9 +748,9 @@ public class Compiler {
         }
 
         ArrayType funcType = ArrayType.makeFunctionType(returnType, params );
-        Symbol funcSym = new Symbol(funcName.lexeme(), funcType);
+        // Symbol funcSym = new FunctionSymbol(funcName.lexeme(), funcType);
 
-        tryDeclareVariable(funcName, funcSym);
+        Symbol funcSym = tryDeclareFunction(funcName, funcType);
 
         enterScope();
 
@@ -725,7 +759,7 @@ public class Compiler {
         }
 
         FuncBody body = funcBody();
-        FuncDecl decl = new FuncDecl(ftok, funcSym, body);
+        FuncDecl decl = new FuncDecl(funcName, funcType, body);
         decl.setArgs(argSymbols);
 
         exitScope();
@@ -751,7 +785,7 @@ public class Compiler {
     private Symbol paramDecl() {
         ArrayType type = paramType();
         Token param = expectRetrieve( Token.Kind.IDENT );
-        return new Symbol(param.lexeme(), type);
+        return new VariableSymbol(param.lexeme(), type);
     }
 
     private ArrayList< Symbol > formalParam() {
