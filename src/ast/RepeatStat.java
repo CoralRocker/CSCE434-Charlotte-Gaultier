@@ -20,12 +20,14 @@ public class RepeatStat extends AST {
     public String printPreOrder() {
         StringBuilder builder = new StringBuilder(this + "\n");
 
-        for( String line : getRelation().preOrderLines() ) {
-            builder.append(String.format("  %s\n", line));
-        }
 
         for( String line : getSeq().preOrderLines() ) {
             builder.append(String.format("  %s\n", line));
+        }
+
+        builder.append("  Until\n");
+        for( String line : getRelation().preOrderLines() ) {
+            builder.append(String.format("    %s\n", line));
         }
 
         return builder.toString();

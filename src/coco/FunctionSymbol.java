@@ -24,7 +24,17 @@ public class FunctionSymbol extends Symbol {
         this.types.add(type);
     }
 
+    public boolean contains( ArrayType type ) {
+        for( ArrayType ftype : types ) {
+            if(ftype.typeSignature().equals(type.typeSignature())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private ArrayList<ArrayType> types;
+
 
     @Override
     public Object value() {
@@ -48,9 +58,9 @@ public class FunctionSymbol extends Symbol {
             return builder.toString();
         }
         for( int i = 0; i < types.size(); i++ ) {
-            builder.append(types.get(i));
+            builder.append(String.format("%s:%s", super.name, types.get(i)));
             if( (i+1) != types.size() ) {
-                builder.append(',');
+                builder.append(", ");
             }
         }
 
@@ -61,8 +71,14 @@ public class FunctionSymbol extends Symbol {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("Symbol(%s:", super.name));
-        builder.append( typeSignatures() );
+        builder.append(String.format("Symbol("));
+        String typesig = typeSignatures();
+        if( typesig.isEmpty() ) {
+            builder.append(super.name);
+        }
+        else {
+            builder.append(typesig);
+        }
         builder.append(")");
 
         return builder.toString();

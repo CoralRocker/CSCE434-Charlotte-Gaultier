@@ -40,7 +40,12 @@ public class FuncCall extends AST {
 
     @Override
     public String toString() {
-        return String.format("FunctionCall[%s:%s]", getFunc().name(), func.typeSignatures());
+        if( func.typeSignatures().isEmpty() ) {
+            return String.format("FunctionCall[%s]", func.name());
+        }
+        else {
+            return String.format("FunctionCall[%s]", func.typeSignatures());
+        }
     }
 
     @Override

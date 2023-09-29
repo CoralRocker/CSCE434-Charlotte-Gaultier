@@ -7,28 +7,63 @@ import java.util.HashMap;
 public class SymbolTable {
 
     private final SymbolTable parent;
+    private ArrayList<SymbolTable> children;
     private HashMap<String, Symbol> map;
 
+    public SymbolTable globalScope(int index) {
+        SymbolTable global = this;
+        ArrayList<SymbolTable> scope = new ArrayList<>();
+        while( global.parent != null ) {
+            scope.add(global);
+            global = global.parent;
+        }
+        scope.add(global);
+
+        return scope.get(scope.size() - 1 - index );
+    }
     public SymbolTable (SymbolTable parent) {
         this.parent = parent;
         this.map = new HashMap<String, Symbol>();
+        this.children = new ArrayList<>();
     }
 
     public SymbolTable pushScope(){
         // add a new scope, enter it, with parent as this (current scope)
-        return new SymbolTable(this);
+        SymbolTable child = new SymbolTable(this);
+        children.add(child);
+        return child;
+    }
+
+    protected void removeChild(SymbolTable child) {
+        for( SymbolTable table : children) {
+            if( table == child ) {
+                children.remove(table);
+                break;
+            }
+        }
     }
 
     public SymbolTable popScope(){
-        // enter parent scope
+        if( parent != null ) {
+            parent.removeChild(this);
+        }
         return parent;
     }
 
     public boolean contains(Token name) {
-        return map.containsKey(name.lexeme());
+        return contains(name.lexeme());
     }
     public boolean contains(String name) {
-        return map.containsKey(name);
+        boolean thismap =  map.containsKey(name);
+
+        if( thismap ) {
+            return true;
+        }
+        else if ( parent != null ) {
+            return parent.contains(name);
+        }
+
+        return false;
     }
 
     // lookup name in SymbolTable

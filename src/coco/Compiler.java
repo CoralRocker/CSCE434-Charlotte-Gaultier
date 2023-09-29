@@ -81,9 +81,10 @@ public class Compiler {
             initSymbolTable();
             computation();
         }
-        catch( QuitParseException e ) {
+        catch( Exception e ) {
 //            System.out.println("CAUGHT ERROR: " + e);
         }
+
         return ast;
     }
     
@@ -220,7 +221,12 @@ public class Compiler {
         }
 
         FunctionSymbol funcSym = (FunctionSymbol) sym;
-        funcSym.add(type);
+        if( funcSym.contains(type) ) {
+            reportDeclareSymbolError(func.lexeme(), func.lineNumber(), func.charPosition());
+        }
+        else {
+            funcSym.add(type);
+        }
 
         return funcSym;
     }
@@ -228,7 +234,8 @@ public class Compiler {
     private FunctionSymbol tryResolveFunction(Token func) {
         Symbol sym = null;
         if( !currentSymbolTable.contains(func) ) {
-            reportResolveSymbolError(func.lexeme(), func.lineNumber(), func.endCharPos());
+            SymbolTable global = currentSymbolTable.globalScope(0);
+            return (FunctionSymbol) global.insert(func, new FunctionSymbol(func.lexeme()));
         }
         sym = currentSymbolTable.lookup(func);
         if( ! (sym instanceof FunctionSymbol) ) {
@@ -253,18 +260,18 @@ public class Compiler {
     }
 
     private void reportResolveSymbolError (String name, int lineNum, int charPos) {
-        if( errorBuffer.isEmpty() ) {
-//            errorBuffer.append("Error parsing file.\n");
-        }
+        //if( errorBuffer.isEmpty() ) {
+        //    errorBuffer.append("Error parsing file.\n");
+        //}
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
         errorBuffer.append(message + "\n");
 //        throw new QuitParseException(message);
     }
 
     private void reportDeclareSymbolError (String name, int lineNum, int charPos) {
-        if( errorBuffer.isEmpty() ) {
+        //if( errorBuffer.isEmpty() ) {
         //    errorBuffer.append("Error parsing file.\n");
-        }
+        //}
         String message = "DeclareSymbolError(" + lineNum + "," + charPos + ")[" + name + " already exists.]";
         errorBuffer.append(message + "\n");
 //        return

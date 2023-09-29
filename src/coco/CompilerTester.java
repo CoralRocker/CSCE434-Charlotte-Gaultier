@@ -1,10 +1,7 @@
 package coco;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,9 +62,7 @@ public class CompilerTester {
         SourceLoop:
         for (String sourceFile : files) {
 
-            if( files.size() > 1 ) {
-                System.out.printf("\n\nRunning: %s\n", sourceFile);
-            }
+            System.out.printf("\n\nRunning: %s\n", sourceFile);
 
             Scanner s = null;
             try {
@@ -173,7 +168,10 @@ public class CompilerTester {
                 }
 
                 testName = sourceFile.replace(".txt", ".out");
-                String[] userErr = c.errorReport().split(System.lineSeparator());
+                ArrayList<String> userErr = new ArrayList<>(List.of(c.errorReport().split(System.lineSeparator())));
+                if( !userErr.isEmpty() ) {
+                    userErr.add(0, "Error parsing file.");
+                }
                 ArrayList<String> testErr = new ArrayList<>();
                 try {
                     testFile = new BufferedReader(new FileReader(testName));
@@ -188,13 +186,13 @@ public class CompilerTester {
                 }
 
                 if (!testErr.isEmpty()) {
-                    for (int i = 0; i < userErr.length; i++) {
+                    for (int i = 0; i < userErr.size(); i++) {
                         if (i >= testErr.size()) {
                             System.err.printf("Line %d: Test ERR EOF\n", i + 1);
                             continue SourceLoop;
-                        } else if (!Objects.equals(userErr[i], testErr.get(i))) {
+                        } else if (!Objects.equals(userErr.get(i), testErr.get(i))) {
                             System.err.printf("Line %d: Test ERR != User ERR\n", i + 1);
-                            System.err.printf("\"%s\" != \"%s\"\n", testErr.get(i), userErr[i]);
+                            System.err.printf("\"%s\" != \"%s\"\n", testErr.get(i), userErr.get(i));
                             System.err.println("Full User ERR:");
                             int idx = 1;
                             for( String line : userErr ) {
@@ -210,9 +208,9 @@ public class CompilerTester {
                         }
                     }
 
-                    if (testErr.size() > userErr.length) {
-                        System.err.printf("Line %d: Test ERR has more lines than User ERR\n", userErr.length + 1);
-                        for (int i = userErr.length; i < testErr.size(); i++) {
+                    if (testErr.size() > userErr.size()) {
+                        System.err.printf("Line %d: Test ERR has more lines than User ERR\n", userErr.size() + 1);
+                        for (int i = userErr.size(); i < testErr.size(); i++) {
                             System.err.printf("\t%d: \"%s\"\n", i + 1, testErr.get(i));
                         }
                         continue SourceLoop;
