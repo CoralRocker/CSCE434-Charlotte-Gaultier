@@ -1,40 +1,21 @@
 package coco;
 
-import java.util.ArrayList;
+public abstract class Symbol {
 
-public class Symbol {
+    protected String name;
 
-    private String name;
-
-    private ArrayType type;
-
-    private Object value;
-    // TODO: Add other parameters like type
-
-    public Symbol (String name, ArrayType type) {
+    public Symbol (String name) {
         this.name = name;
-        this.type = type;
-        this.value = null;
     }
 
-    public Symbol (String name, ArrayType type, Object value) {
-        this.name = name;
-        this.type = type;
-        this.value = value;
-    }
-    public String name () {
+    public String name() {
         return name;
     }
 
-    public Object value () { return value; }
+    public abstract Object value();
 
-    public ArrayType type() {
-        return type;
-    }
+    public abstract ArrayType type();
 
-    @Override
-    public String toString() {
-        return String.format("Symbol(%s:%s)=%s", name, type, value);
-    }
-
+    public abstract boolean hasType();
 }
+

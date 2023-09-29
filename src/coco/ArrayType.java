@@ -282,4 +282,109 @@ public class ArrayType {
 
         return ret.toString();
     }
+
+    public String typeSignature() {
+
+        StringBuilder ret = new StringBuilder();
+        ret.append(type.lexeme());
+
+        if (dims != null) {
+            for (int dim : dims) {
+                ret.append("[");
+                if( dim != -1 )
+                    ret.append(dim);
+                ret.append("]");
+            }
+
+            return ret.toString();
+        }
+        else if( paramdims > 0 ) {
+            for( int i = 0; i < paramdims; i++ ) {
+                ret.append("[]");
+            }
+
+            return ret.toString();
+        }
+        else if( function ) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("(");
+            for( int i = 0; i < arglist.size(); i++ ) {
+                builder.append(arglist.get(i));
+                if( (i + 1) < arglist.size() ) {
+                    builder.append(",");
+                }
+            }
+            builder.append(")");
+
+            return builder.toString();
+        }
+        else {
+            return ret.toString();
+        }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if( !(other instanceof ArrayType) ) {
+            return false;
+        }
+
+        ArrayType arr = (ArrayType) other;
+
+        if( this.function ) {
+            if( !arr.function ) {
+                return false;
+            }
+
+            if( this.type != arr.type ) {
+                return false;
+            }
+
+            if( this.dims.size() != arr.dims.size() ) {
+                return false;
+            }
+
+            for( int i = 0; i < dims.size(); i++ ) {
+                if( this.dims.get(i) != arr.dims.get(i) ) {
+                    return false;
+                }
+            }
+
+            if( this.arglist.size() != arr.arglist.size() ) {
+                return false;
+            }
+
+            for( int i = 0; i < arglist.size(); i++ ) {
+                if( !arglist.get(i).equals(arr.arglist.get(i)) ) {
+                    return false;
+                }
+            }
+        }
+        else {
+            if( this.type != arr.type ) {
+                return true;
+            }
+
+            if( this.dims != null ) {
+                if( arr.dims == null ){
+                    return false;
+                }
+
+                if( this.dims.size() != arr.dims.size() ) {
+                    return false;
+                }
+
+                for( int i = 0; i < dims.size(); i++ ) {
+                    if( dims.get(i) != arr.dims.get(i) ) {
+                        return false;
+                    }
+                }
+            }
+            else if( arr.dims != null ) {
+                return false;
+            }
+        }
+
+        return  true;
+    }
 }
