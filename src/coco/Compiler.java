@@ -81,8 +81,19 @@ public class Compiler {
             initSymbolTable();
             computation();
         }
+        catch( QuitParseException e ) {
+            return ast;
+        }
         catch( Exception e ) {
-//            System.out.println("CAUGHT ERROR: " + e);
+            System.out.println("CAUGHT ERROR: " + e);
+        }
+
+        UnresolvedFunctionVisitor visitor = new UnresolvedFunctionVisitor();
+        visitor.visit(ast);
+        if( !visitor.errors().isEmpty() ) {
+            for( Token err : visitor.errors() ) {
+                reportResolveSymbolError(err.lexeme(), err.lineNumber(), err.charPosition());
+            }
         }
 
         return ast;
@@ -217,7 +228,7 @@ public class Compiler {
             }
         }
         else {
-            sym = currentSymbolTable.insert(func, new FunctionSymbol(func.lexeme()) );
+            sym = currentSymbolTable.insert(func, new FunctionSymbol(func) );
         }
 
         FunctionSymbol funcSym = (FunctionSymbol) sym;
@@ -235,7 +246,7 @@ public class Compiler {
         Symbol sym = null;
         if( !currentSymbolTable.contains(func) ) {
             SymbolTable global = currentSymbolTable.globalScope(0);
-            return (FunctionSymbol) global.insert(func, new FunctionSymbol(func.lexeme()));
+            return (FunctionSymbol) global.insert(func, new FunctionSymbol(func));
         }
         sym = currentSymbolTable.lookup(func);
         if( ! (sym instanceof FunctionSymbol) ) {
@@ -497,7 +508,7 @@ public class Compiler {
         }
         else {
             String err = reportSyntaxError( NonTerminal.GROUP_EXPR );
-            throw new Interpreter.QuitParseException(err);
+            throw new QuitParseException(err);
         }
 
         return null;
@@ -555,7 +566,7 @@ public class Compiler {
         FunctionSymbol sym = tryResolveFunction(func);
 
         ArrayList< AST > args = new ArrayList<>();
-        FuncCall function = new FuncCall(call, sym);
+        FuncCall function = new FuncCall(call, sym, func);
 
         ArrayList< AST > arguments = new ArrayList<>();
         ArgList list = new ArgList(currentToken);
@@ -592,7 +603,7 @@ public class Compiler {
                 }
                 default -> {
                     String err = reportSyntaxError(NonTerminal.UNARY_OP);
-                    throw new Interpreter.QuitParseException("Unable to parse unary op \"%s\": %s".formatted(op.lexeme(), err));
+                    throw new QuitParseException("Unable to parse unary op \"%s\": %s".formatted(op.lexeme(), err));
                 }
             }
 
@@ -643,7 +654,7 @@ public class Compiler {
 
     private AST ifStat( ) {
         Token tkn = expectRetrieve( Token.Kind.IF );
-        Relation bool = (Relation) relation();
+        AST bool = relation();
         expect( Token.Kind.THEN );
         StatSeq ifseq = statSeq();
         StatSeq elseseq = null;
@@ -692,7 +703,7 @@ public class Compiler {
     private StatSeq statSeq() {
         if( ! have( NonTerminal.STATEMENT) ) {
             String err = reportSyntaxError(NonTerminal.STATEMENT);
-            throw new Interpreter.QuitParseException(err);
+            throw new QuitParseException(err);
         }
 
         StatSeq seq = new StatSeq(currentToken);

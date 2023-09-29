@@ -4,9 +4,14 @@ import java.util.ArrayList;
 
 public class FunctionSymbol extends Symbol {
 
-    public FunctionSymbol(String name) {
-        super(name);
+    protected Token declTok;
+
+    public Token getDeclarationToken() { return declTok; }
+
+    public FunctionSymbol(Token name) {
+        super(name.lexeme());
         this.types = new ArrayList<>();
+        this.declTok = name;
     }
 
     public FunctionSymbol(String name, ArrayList<ArrayType> types) {

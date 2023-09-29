@@ -11,13 +11,7 @@ public class SymbolTable {
     private HashMap<String, Symbol> map;
 
     public SymbolTable globalScope(int index) {
-        SymbolTable global = this;
-        ArrayList<SymbolTable> scope = new ArrayList<>();
-        while( global.parent != null ) {
-            scope.add(global);
-            global = global.parent;
-        }
-        scope.add(global);
+        ArrayList<SymbolTable> scope = getScope();
 
         return scope.get(scope.size() - 1 - index );
     }
@@ -44,10 +38,44 @@ public class SymbolTable {
     }
 
     public SymbolTable popScope(){
-        if( parent != null ) {
-            parent.removeChild(this);
-        }
+        // if( parent != null ) {
+        //     parent.removeChild(this);
+        // }
         return parent;
+    }
+
+    public FunctionSymbol hasUnresolvedFunction() {
+        for( Symbol sym : map.values() ) {
+            if( sym instanceof FunctionSymbol ) {
+                FunctionSymbol func = (FunctionSymbol) sym;
+                ArrayList<ArrayType> types = (ArrayList<ArrayType>) func.value();
+                if( types == null || types.isEmpty() ) {
+                    map.remove(func.name());
+                    return func;
+                }
+            }
+        }
+
+        for( SymbolTable child : children ) {
+            FunctionSymbol func = child.hasUnresolvedFunction();
+            if( func != null ) {
+                return func;
+            }
+        }
+
+        return null;
+    }
+
+    public ArrayList<SymbolTable> getScope() {
+        SymbolTable global = this;
+        ArrayList<SymbolTable> scope = new ArrayList<>();
+        while( global.parent != null ) {
+            scope.add(global);
+            global = global.parent;
+        }
+        scope.add(global);
+
+        return scope;
     }
 
     public boolean contains(Token name) {

@@ -106,7 +106,7 @@ public class CompilerTester {
             ast.AST ast = c.genAST();
 
             String ast_text = ast.printPreOrder();
-            if (cmd.hasOption("a")) { // AST to Screen
+            if (cmd.hasOption("a") && !cmd.hasOption("run-all")) { // AST to Screen
                 System.out.println(ast_text);
             }
 
@@ -241,7 +241,7 @@ public class CompilerTester {
                 }
             }
 
-            if (c.hasError()) {
+            if (c.hasError() && !cmd.hasOption("run-all")) {
                 System.out.println("Error parsing file.");
                 System.out.println(c.errorReport());
                 continue SourceLoop;

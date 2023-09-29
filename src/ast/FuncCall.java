@@ -6,12 +6,15 @@ import coco.Token;
 
 public class FuncCall extends AST {
 
-    private FunctionSymbol func;
+    protected FunctionSymbol func;
     private ArgList args;
 
-    public FuncCall(Token tkn, FunctionSymbol func) {
+    protected Token funcTok;
+
+    public FuncCall(Token tkn, FunctionSymbol func, Token funcTok) {
         super(tkn);
         this.func = func;
+        this.funcTok = funcTok;
     }
 
     public void setArgs( ArgList args ) {

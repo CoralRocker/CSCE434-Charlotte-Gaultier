@@ -25,7 +25,7 @@ public class RepeatStat extends AST {
             builder.append(String.format("  %s\n", line));
         }
 
-        builder.append("  Until\n");
+        // builder.append("  Until\n");
         for( String line : getRelation().preOrderLines() ) {
             builder.append(String.format("    %s\n", line));
         }
