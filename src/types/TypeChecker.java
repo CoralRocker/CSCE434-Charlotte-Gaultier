@@ -36,7 +36,7 @@ public class TypeChecker implements NodeVisitor {
 
     public boolean check(AST ast) {
         visit((RootAST) ast);
-        return hasError();
+        return !hasError();
     }
 
     private void reportError (int lineNum, int charPos, String message) {
