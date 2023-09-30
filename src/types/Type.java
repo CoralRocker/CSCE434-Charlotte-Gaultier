@@ -27,7 +27,7 @@ public abstract class Type {
                 return new IntType();
             }
         }
-        return new ErrorType("Cannot mod " + this + " by " + that + ".");
+        return new ErrorType("Cannot modulo " + this + " by " + that + ".");
     }
 
     public Type pwr (Type that) {
@@ -37,7 +37,7 @@ public abstract class Type {
         }else if (this instanceof FloatType && that instanceof FloatType){
             return new FloatType();
         }
-        return new ErrorType("Cannot pow " + this + " with " + that + ".");
+        return new ErrorType("Cannot raise " + this + " to " + that + ".");
     }
 
     public Type add (Type that) {

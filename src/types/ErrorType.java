@@ -7,4 +7,9 @@ public class ErrorType extends Type {
         message = msg;
     }
 
+    @Override
+    public String toString(){
+        return "ErrorType(" + message + ")";
+    }
+
 }

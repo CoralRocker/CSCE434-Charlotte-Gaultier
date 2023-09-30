@@ -1,10 +1,5 @@
 package types;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import ast.*;
 import coco.Symbol;
 
@@ -39,8 +34,8 @@ public class TypeChecker implements NodeVisitor {
      * "Not all paths in function " + currentFunction.name() + " return."
      */
 
-    public boolean check(RootAST ast) {
-        visit(ast);
+    public boolean check(AST ast) {
+        visit((RootAST) ast);
         return hasError();
     }
 

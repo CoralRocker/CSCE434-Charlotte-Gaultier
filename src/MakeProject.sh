@@ -3,4 +3,4 @@
 ZIPFILE=project.zip
 
 rm -f $ZIPFILE
-zip $ZIPFILE ast/* coco/*
+zip $ZIPFILE ast/* coco/* types/*
