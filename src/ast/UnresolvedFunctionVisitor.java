@@ -18,23 +18,13 @@ public class UnresolvedFunctionVisitor extends VisitorBase {
 
     @Override
     public void exprAction(AST expr) {
-        if( expr instanceof FuncCall ) {
+        if (expr instanceof FuncCall) {
             FuncCall call = (FuncCall) expr;
-            if( !call.func.hasType() ) {
+            if (!call.func.hasType()) {
                 unresolvedTokens.add(call.funcTok);
             }
 
         }
-
-    }
-
-    @Override
-    public void statAction(AST stat) {
-
-    }
-
-    @Override
-    public void compAction(RootAST comp) {
 
     }
 

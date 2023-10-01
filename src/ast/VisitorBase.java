@@ -9,10 +9,10 @@ public abstract class VisitorBase implements NodeVisitor {
     public VisitorBase() {
     }
 
-    public abstract void exprAction(AST expr);
-    public abstract void statAction(AST stat);
+    public void exprAction(AST expr) {}
+    public void statAction(AST stat) {}
 
-    public abstract void compAction(RootAST comp);
+    public void compAction(RootAST comp) {}
 
     @Override
     public void visit(Addition add) {
