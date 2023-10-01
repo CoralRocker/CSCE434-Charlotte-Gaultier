@@ -4,6 +4,12 @@ public abstract class Type {
 
     // arithmetic
     public Type mul (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().mul(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         if(this instanceof IntType && that instanceof IntType){
             return new IntType();
         }else if (this instanceof FloatType && that instanceof FloatType){
@@ -13,6 +19,12 @@ public abstract class Type {
     }
 
     public Type div (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().div(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         if(this instanceof IntType && that instanceof IntType){
             return new IntType();
         }else if (this instanceof FloatType && that instanceof FloatType){
@@ -22,6 +34,12 @@ public abstract class Type {
     }
 
     public Type mod (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().mod(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         if(this instanceof IntType || this instanceof FloatType) {
             if(that instanceof IntType){
                 return new IntType();
@@ -31,6 +49,12 @@ public abstract class Type {
     }
 
     public Type pwr (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().pwr(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         // TODO check actual type rules for power. not sure if this is correct
         if(this instanceof IntType && that instanceof IntType){
             return new IntType();
@@ -41,6 +65,12 @@ public abstract class Type {
     }
 
     public Type add (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().add(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         if(this instanceof IntType && that instanceof IntType){
             return new IntType();
         }else if (this instanceof FloatType && that instanceof FloatType){
@@ -50,6 +80,12 @@ public abstract class Type {
     }
 
     public Type sub (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().sub(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         if(this instanceof IntType && that instanceof IntType){
             return new IntType();
         }else if (this instanceof FloatType && that instanceof FloatType){
@@ -60,6 +96,12 @@ public abstract class Type {
 
     // boolean
     public Type and (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().and(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         if(this instanceof BoolType && that instanceof BoolType){
             return new BoolType();
         }
@@ -67,6 +109,12 @@ public abstract class Type {
     }
 
     public Type or (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().or(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         if(this instanceof BoolType && that instanceof BoolType){
             return new BoolType();
         }
@@ -74,6 +122,9 @@ public abstract class Type {
     }
 
     public Type not () {
+        if (this instanceof PtrType){
+            return this.deref().not();
+        }
         if(this instanceof BoolType){
             return new BoolType();
         }
@@ -82,6 +133,12 @@ public abstract class Type {
 
     // relational
     public Type compare (Type that) {
+        if (this instanceof PtrType){
+            return this.deref().compare(that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
         if(this instanceof IntType && that instanceof IntType){
             return new BoolType();
         }else if (this instanceof FloatType && that instanceof FloatType){
@@ -94,7 +151,9 @@ public abstract class Type {
 
     // designator
     public Type deref () {
-        // TODO: implement
+        if (this instanceof PtrType){
+            return ((PtrType) this).getType();
+        }
         return new ErrorType("Cannot dereference " + this);
     }
 
@@ -105,11 +164,19 @@ public abstract class Type {
 
     // statements
     public Type assign (Type source) {
-        if(this instanceof IntType && source instanceof IntType){
+        if (this instanceof PtrType){
+            //
+        }else{
+            return new ErrorType("Cannot assign " + source + " to " + this + ".");
+        }
+        if (source instanceof PtrType){
+            source = source.deref();
+        }
+        if(this.deref() instanceof IntType && source instanceof IntType){
             return new IntType();
-        }else if (this instanceof FloatType && source instanceof FloatType){
+        }else if (this.deref() instanceof FloatType && source instanceof FloatType){
             return new FloatType();
-        }else if (this instanceof BoolType && source instanceof BoolType) {
+        }else if (this.deref() instanceof BoolType && source instanceof BoolType) {
             return new BoolType();
         }
         return new ErrorType("Cannot assign " + source + " to " + this + ".");

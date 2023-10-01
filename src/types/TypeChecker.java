@@ -108,7 +108,10 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(Designator des) {
-
+        des.setType(des.typeClass().deref());
+        if(des.typeClass() instanceof ErrorType){
+            reportError(des.lineNumber(), des.charPosition(), ((ErrorType) des.typeClass()).message);
+        }
     }
 
     @Override
