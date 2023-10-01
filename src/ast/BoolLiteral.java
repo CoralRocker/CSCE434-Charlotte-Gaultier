@@ -7,7 +7,18 @@ import types.Type;
 public class BoolLiteral extends AST {
 
     private boolean literal;
-    public boolean getLiteral() { return literal; }
+
+    public BoolLiteral(Token token, boolean b) {
+        super(token);
+        literal = b;
+    }
+
+    public double getLiteral() { if( literal) return 1.; else return 0.; }
+
+    @Override
+    public boolean getBoolLiteral() {
+        return literal;
+    }
 
     public BoolLiteral(Token tkn) {
         super(tkn);
@@ -32,6 +43,16 @@ public class BoolLiteral extends AST {
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public boolean isConstEvaluable() {
+        return true;
+    }
+
+    @Override
+    public AST constEvaluate() {
+        return this;
     }
 
     @Override

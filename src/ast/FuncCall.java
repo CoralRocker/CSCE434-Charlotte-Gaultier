@@ -72,6 +72,16 @@ public class FuncCall extends AST {
         visitor.visit(this);
     }
 
+    @Override
+    public boolean isConstEvaluable() {
+        return false;
+    }
+
+    @Override
+    public AST constEvaluate() {
+        return null;
+    }
+
     public Symbol getFunc() {
         return func;
     }

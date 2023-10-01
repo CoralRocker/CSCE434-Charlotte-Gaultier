@@ -61,6 +61,16 @@ public class FuncDecl extends AST {
     }
 
     @Override
+    public boolean isConstEvaluable() {
+        return false;
+    }
+
+    @Override
+    public AST constEvaluate() {
+        return null;
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format("FunctionDeclaration[%s:%s]", super.token().lexeme(), declType));

@@ -50,4 +50,14 @@ public class ArrayIndex extends AST implements Visitable {
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public boolean isConstEvaluable() {
+        return false;
+    }
+
+    @Override
+    public AST constEvaluate() {
+        return null;
+    }
 }

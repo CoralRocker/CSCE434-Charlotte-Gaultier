@@ -45,6 +45,19 @@ public class LogicalAnd extends AST {
     }
 
     @Override
+    public boolean isConstEvaluable() {
+        return lvalue.isConstEvaluable() && rvalue.isConstEvaluable();
+    }
+
+    @Override
+    public AST constEvaluate() {
+        BoolLiteral left = (BoolLiteral) lvalue.constEvaluate();
+        BoolLiteral right = (BoolLiteral) rvalue.constEvaluate();
+
+        return new BoolLiteral(super.token(), left.getBoolLiteral() && right.getBoolLiteral());
+    }
+
+    @Override
     public String toString() {
         return "LogicalAnd";
     }

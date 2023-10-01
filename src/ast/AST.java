@@ -4,7 +4,7 @@ package ast;
 import coco.Token;
 import types.Type;
 
-public abstract class AST implements Visitable {
+public abstract class AST implements Visitable, IsLiteral{
 
     private Token tkn;
 
@@ -34,5 +34,8 @@ public abstract class AST implements Visitable {
     public Token token() { return tkn; }
 
     public abstract void accept(NodeVisitor visitor);
+
+    public abstract boolean isConstEvaluable();
+    public abstract AST constEvaluate();
 }
 

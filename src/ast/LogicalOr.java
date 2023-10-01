@@ -56,4 +56,17 @@ public class LogicalOr extends AST {
     public AST getLvalue() {
         return lvalue;
     }
+
+    @Override
+    public boolean isConstEvaluable() {
+        return lvalue.isConstEvaluable() && rvalue.isConstEvaluable();
+    }
+
+    @Override
+    public AST constEvaluate() {
+        BoolLiteral left = (BoolLiteral) lvalue.constEvaluate();
+        BoolLiteral right = (BoolLiteral) rvalue.constEvaluate();
+
+        return new BoolLiteral(super.token(), left.getBoolLiteral() || right.getBoolLiteral());
+    }
 }

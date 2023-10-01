@@ -13,6 +13,11 @@ public class IntegerLiteral extends AST {
         literal = Integer.parseInt(tkn.lexeme());
     }
 
+    public IntegerLiteral(Token token, int i) {
+        super(token);
+        literal = i;
+    }
+
     @Override
     public String type() {
         return "IntegerLiteral";
@@ -34,11 +39,23 @@ public class IntegerLiteral extends AST {
     }
 
     @Override
+    public boolean isConstEvaluable() {
+        return true;
+    }
+
+    @Override
+    public AST constEvaluate() {
+        return this;
+    }
+
+    @Override
     public String toString() {
         return String.format("IntegerLiteral[%d]", getLiteral());
     }
 
-    public int getLiteral() {
+    public int getIntLiteral() {
         return literal;
     }
+
+    public double getLiteral() { return literal; }
 }

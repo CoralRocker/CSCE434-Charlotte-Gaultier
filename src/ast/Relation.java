@@ -60,4 +60,42 @@ public class Relation extends AST {
     public AST getLvalue() {
         return lvalue;
     }
+
+
+    @Override
+    public boolean isConstEvaluable() {
+        return lvalue.isConstEvaluable() && rvalue.isConstEvaluable();
+    }
+
+    @Override
+    public AST constEvaluate() {
+        AST left = lvalue.constEvaluate();
+        AST right = rvalue.constEvaluate();
+
+        switch( op.kind() ) {
+            case EQUAL_TO -> {
+                return new BoolLiteral(super.token(), left.getLiteral() == right.getLiteral());
+
+            }
+            case NOT_EQUAL -> {
+                return new BoolLiteral(super.token(), left.getLiteral() != right.getLiteral());
+            }
+
+            case GREATER_EQUAL -> {
+                return new BoolLiteral(super.token(), left.getLiteral() >= right.getLiteral());
+            }
+            case GREATER_THAN -> {
+                return new BoolLiteral(super.token(), left.getLiteral() > right.getLiteral());
+            }
+            case LESS_EQUAL -> {
+                return new BoolLiteral(super.token(), left.getLiteral() <= right.getLiteral());
+            }
+
+            case LESS_THAN -> {
+                return new BoolLiteral(super.token(), left.getLiteral() < right.getLiteral());
+            }
+        }
+
+        return null;
+    }
 }

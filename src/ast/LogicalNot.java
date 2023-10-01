@@ -39,6 +39,18 @@ public class LogicalNot extends AST {
     }
 
     @Override
+    public boolean isConstEvaluable() {
+        return rvalue.isConstEvaluable();
+    }
+
+    @Override
+    public AST constEvaluate() {
+        BoolLiteral right = (BoolLiteral) rvalue.constEvaluate();
+
+        return new BoolLiteral(super.token(), ! right.getBoolLiteral());
+    }
+
+    @Override
     public String toString() {
         return "LogicalNot";
     }

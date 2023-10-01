@@ -11,6 +11,11 @@ public class FloatLiteral extends AST {
         literal = Float.parseFloat(lit.lexeme());
     }
 
+    public FloatLiteral(Token lit, float val) {
+        super(lit);
+        literal = val;
+    }
+
     @Override
     public String type() {
         return null;
@@ -32,11 +37,23 @@ public class FloatLiteral extends AST {
     }
 
     @Override
+    public boolean isConstEvaluable() {
+        return true;
+    }
+
+    @Override
+    public AST constEvaluate() {
+        return this;
+    }
+
+    @Override
     public String toString() {
         return String.format("FloatLiteral[%f]", getLiteral());
     }
 
-    public float getLiteral() {
+    public double getLiteral() {
         return literal;
     }
+
+    public float getFloatLiteral() { return literal; }
 }

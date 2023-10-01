@@ -38,6 +38,16 @@ public class VariableDeclaration extends AST {
     }
 
     @Override
+    public boolean isConstEvaluable() {
+        return false;
+    }
+
+    @Override
+    public AST constEvaluate() {
+        return null;
+    }
+
+    @Override
     public String toString() {
         return String.format("VariableDeclaration[%s:%s]", sym.name(), sym.type());
     }

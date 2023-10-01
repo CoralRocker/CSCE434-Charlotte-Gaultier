@@ -58,4 +58,39 @@ public class Subtraction extends AST {
     public AST getLvalue() {
         return lvalue;
     }
+
+
+    @Override
+    public boolean isConstEvaluable() {
+        return lvalue.isConstEvaluable() && rvalue.isConstEvaluable();
+    }
+
+    @Override
+    public AST constEvaluate() {
+        if( !isConstEvaluable() )
+            return null;
+
+        AST left = lvalue.constEvaluate();
+        AST right = rvalue.constEvaluate();
+
+        if( left instanceof FloatLiteral ) {
+            FloatLiteral lval = (FloatLiteral) left;
+            if( right instanceof IntegerLiteral ) {
+                return new FloatLiteral(super.token(), (float) (lval.getLiteral() - ((IntegerLiteral)right).getLiteral()));
+            }
+            else {
+                return new FloatLiteral(super.token(), (float) (lval.getLiteral() - ((FloatLiteral)right).getLiteral()));
+            }
+        }
+        else {
+            IntegerLiteral lval = (IntegerLiteral) left;
+            if( right instanceof IntegerLiteral ) {
+                return new IntegerLiteral(super.token(), (int) (lval.getLiteral() - ((IntegerLiteral)right).getLiteral()));
+            }
+            else {
+                return new FloatLiteral(super.token(), (float) (lval.getLiteral() - ((FloatLiteral)right).getLiteral()));
+
+            }
+        }
+    }
 }
