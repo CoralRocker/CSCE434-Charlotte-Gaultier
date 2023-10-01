@@ -3,6 +3,7 @@ package ast;
 import coco.ArrayType;
 import coco.Symbol;
 import coco.Token;
+import types.FuncType;
 import types.Type;
 
 import java.util.ArrayList;
