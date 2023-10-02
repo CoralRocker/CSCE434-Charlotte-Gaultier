@@ -34,18 +34,19 @@ public class Designator extends AST {
 
     @Override
     public Type typeClass() {
-        switch (sym.type().getType()){
-            case INT:
-                return new PtrType(new IntType());
-            case FLOAT:
-                return new PtrType(new FloatType());
-            case BOOL:
-                return new PtrType(new BoolType());
-            case FUNC:
-                return new PtrType(new FuncType());
-            default:
-                return new ErrorType("Could not resolve designator type");
-        }
+        return new PtrType(sym.type().getFormalType());
+        // switch (sym.type().getType()){
+        //     case INT:
+        //         return new PtrType(new IntType());
+        //     case FLOAT:
+        //         return new PtrType(new FloatType());
+        //     case BOOL:
+        //         return new PtrType(new BoolType());
+        //     case FUNC:
+        //         return new PtrType(new FuncType());
+        //     default:
+        //         return new ErrorType("Could not resolve designator type");
+        // }
 
     }
 

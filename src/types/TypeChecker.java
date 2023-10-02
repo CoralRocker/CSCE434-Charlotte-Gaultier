@@ -3,6 +3,7 @@ package types;
 import ast.*;
 import coco.FunctionSymbol;
 import coco.Symbol;
+import coco.Token;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -41,6 +42,10 @@ public class TypeChecker implements NodeVisitor {
     public boolean check(AST ast) {
         visit((RootAST) ast);
         return !hasError();
+    }
+
+    private void reportError(Token tkn, String message ) {
+        reportError(tkn.lineNumber(), tkn.charPosition(), message);
     }
 
     private void reportError (int lineNum, int charPos, String message) {
@@ -82,8 +87,50 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(ArrayIndex idx) {
-        idx.getArray().accept(this);
-        idx.getIndex().accept(this);
+        AST arr = idx.getArray();
+        AST index = idx.getIndex();
+        arr.accept(this);
+        index.accept(this);
+        Type arrType = arr.typeClass();
+        Type idxType = index.typeClass();
+
+        boolean err = false;
+
+        if( !idxType.tryDeref().equals(new IntType()) ) {
+            String msg = String.format("Cannot index %s with %s.", arrType.tryDeref(), idxType);
+            reportError(index.token(), msg );
+            idx.setType(new ErrorType(msg));
+
+            err = true;
+        }
+
+        if( !(arrType.tryDeref() instanceof AryType) ) {
+            String msg = String.format("Cannot index %s.", arrType);
+            reportError(arr.token(), msg);
+            idx.setType(new ErrorType(msg));
+
+            err = true;
+        }
+
+        if( arrType instanceof ErrorType ) {
+            String msg = String.format("Cannot dereference %s", arrType);
+            reportError(arr.token(), msg);
+            idx.setType(new ErrorType(msg));
+
+            err = true;
+        }
+        else if( idx.typeClass() instanceof ErrorType ) {
+            String msg = String.format("Cannot dereference %s", idx.typeClass());
+            reportError(arr.token(), msg);
+            idx.setType(new ErrorType(msg));
+
+            err = true;
+
+        }
+
+        if( !err ) {
+            idx.setType(new PtrType(((AryType) arrType.tryDeref()).popDimension()));
+        }
     }
 
     @Override

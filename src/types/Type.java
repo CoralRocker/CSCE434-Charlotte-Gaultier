@@ -159,6 +159,13 @@ public abstract class Type {
         return new ErrorType("Cannot dereference " + this);
     }
 
+    public Type tryDeref() {
+        if( this instanceof PtrType) {
+            return ((PtrType) this).getType();
+        }
+        return this;
+    }
+
     public Type index (Type that) {
         // TODO: implement array type checking (and maybe bounds?)
         return new ErrorType("Cannot index " + this + " with " + that + ".");

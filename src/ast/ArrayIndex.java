@@ -24,7 +24,7 @@ public class ArrayIndex extends AST implements Visitable {
 
     @Override
     public Type typeClass() {
-        return null;
+        return type;
     }
 
     @Override

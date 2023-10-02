@@ -25,6 +25,7 @@ public class AryType extends Type {
                 throw new IllegalArgumentException(String.format("Dimension cannot be <= 0!: (%d)", i));
             }
         }
+        this.dimensions = dims;
     }
 
     public boolean isArgType() {
@@ -35,6 +36,31 @@ public class AryType extends Type {
         }
 
         return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder(type.toString());
+        for( Integer dim : dimensions ) {
+            if( dim == -1 ) {
+                builder.append("[]");
+            }
+            else {
+                builder.append(String.format("[%d]", dim));
+            }
+        }
+
+        return builder.toString();
+    }
+
+    public Type popDimension() {
+        if( this.dimensions.size() == 1 ) {
+            return type;
+        }
+
+        ArrayList<Integer> ndims = new ArrayList<>(dimensions);
+        ndims.remove(ndims.size()-1);
+        return new AryType(type, ndims);
     }
 
 }

@@ -31,7 +31,8 @@ public class TypeList extends Type implements Iterable<Type> {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder("TypeList(");
+        //StringBuilder builder = new StringBuilder("TypeList(");
+        StringBuilder builder = new StringBuilder("(");
         for( int i = 0; i < list.size(); i++ ) {
             Type type = list.get(i);
             if( type instanceof PtrType ) {
