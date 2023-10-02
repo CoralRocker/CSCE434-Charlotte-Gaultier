@@ -182,6 +182,9 @@ public abstract class Type {
         return new ErrorType("Cannot assign " + source + " to " + this + ".");
     }
 
+    public boolean equals(Type type){
+        return(this.getClass() == type.getClass());
+    }
     public Type call (Type args) {
         // TODO: implement arg checking
         return new ErrorType("Cannot call " + this + " using " + args + ".");

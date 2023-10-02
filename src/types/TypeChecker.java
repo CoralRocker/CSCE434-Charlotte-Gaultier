@@ -147,7 +147,7 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(FuncDecl fd) {
         fd.getBody().accept(this);
-        if(!(Objects.equals(fd.typeClass().toString(), fd.getBody().typeClass().toString()))){
+        if(!(fd.typeClass().equals(fd.getBody().typeClass()))){
             reportError(fd.lineNumber(), fd.charPosition(), "Function " + fd.funcName() + " returns " + fd.getBody().typeClass() + " instead of " + fd.typeClass() + ".");
         }
     }
@@ -157,8 +157,10 @@ public class TypeChecker implements NodeVisitor {
         is.getIfrel().accept(this);
         // TODO verify Ifrel type
         is.getIfseq().accept(this);
+        is.setType(is.getIfseq().typeClass());
         if( is.getElseseq() != null ) {
             is.getElseseq().accept(this);
+            is.setType(is.getElseseq().typeClass());
         }
     }
 
@@ -250,6 +252,10 @@ public class TypeChecker implements NodeVisitor {
     public void visit(Return ret) {
         if( ret.getReturn() != null ) {
             ret.getReturn().accept(this);
+            ret.setType(ret.getReturn().typeClass());
+            if(ret.typeClass() instanceof ErrorType) {
+                ret.setType(ret.getReturn().typeClass());
+            }
         }
     }
 
@@ -266,6 +272,9 @@ public class TypeChecker implements NodeVisitor {
     public void visit(StatSeq seq) {
         for( AST ast : seq.getSequence() ) {
             ast.accept(this);
+            if(ast.typeClass() != null){
+                seq.setReturnType(ast.typeClass());
+            }
         }
     }
 

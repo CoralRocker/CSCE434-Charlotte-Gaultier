@@ -189,9 +189,8 @@ public abstract class VisitorBase implements NodeVisitor {
     public void visit(Return ret) {
         statAction(ret);
         if( ret.getReturn() != null ) {
-            
             ret.getReturn().accept(this);
-            
+
         }
     }
 
