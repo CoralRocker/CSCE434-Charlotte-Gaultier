@@ -11,7 +11,15 @@ public class WhileStat extends AST {
         this.relation = rel;
         this.seq = seq;
     }
+    private Token returnToken;
 
+    public void setReturnToken(Token tk){
+        returnToken = tk;
+    }
+
+    public Token getReturnToken(){
+        return returnToken;
+    }
     @Override
     public String type() {
         return null;
@@ -19,7 +27,7 @@ public class WhileStat extends AST {
 
     @Override
     public Type typeClass() {
-        return null;
+        return type;
     }
 
     @Override

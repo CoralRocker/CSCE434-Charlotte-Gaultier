@@ -11,7 +11,15 @@ public class RepeatStat extends AST {
         this.relation = rel;
         this.seq = seq;
     }
+    private Token returnToken;
 
+    public void setReturnToken(Token tk){
+        returnToken = tk;
+    }
+
+    public Token getReturnToken(){
+        return returnToken;
+    }
     @Override
     public String type() {
         return null;

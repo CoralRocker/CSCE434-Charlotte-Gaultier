@@ -15,7 +15,14 @@ public class IfStat extends AST {
         this.ifseq = ifseq;
         this.elseseq = elseseq;
     }
+    private Token returnToken;
+    public void setReturnToken(Token tk){
+        returnToken = tk;
+    }
 
+    public Token getReturnToken(){
+        return returnToken;
+    }
     @Override
     public String type() {
         return null;
@@ -23,7 +30,7 @@ public class IfStat extends AST {
 
     @Override
     public Type typeClass() {
-        return null;
+        return type;
     }
 
     @Override

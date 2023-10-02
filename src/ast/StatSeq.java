@@ -11,10 +11,18 @@ public class StatSeq extends AST {
     private ArrayList< AST > seq;
     private Type returnType = new VoidType();
 
+    private Token returnToken;
     public ArrayList< AST > getSequence() { return seq; }
 
     public void add( AST ast ) {
         seq.add( ast );
+    }
+    public Token getReturnToken(){
+        return returnToken;
+    }
+
+    public void setReturnToken(Token tk){
+        returnToken = tk;
     }
 
     public StatSeq(Token tkn) {

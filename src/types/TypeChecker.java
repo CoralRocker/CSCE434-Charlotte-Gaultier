@@ -137,6 +137,7 @@ public class TypeChecker implements NodeVisitor {
         if( fb.getVarList() != null )
             fb.getVarList().accept(this);
         fb.getSeq().accept(this);
+        fb.setReturnToken(fb.getSeq().getReturnToken());
     }
 
     @Override
@@ -148,18 +149,32 @@ public class TypeChecker implements NodeVisitor {
     public void visit(FuncDecl fd) {
         fd.getBody().accept(this);
         if(!(fd.typeClass().equals(fd.getBody().typeClass()))){
-            reportError(fd.lineNumber(), fd.charPosition(), "Function " + fd.funcName() + " returns " + fd.getBody().typeClass() + " instead of " + fd.typeClass() + ".");
+            reportError(fd.getBody().getReturnToken().lineNumber(), fd.getBody().getReturnToken().charPosition(), "Function " + fd.funcName() + " returns " + fd.getBody().typeClass() + " instead of " + fd.typeClass() + ".");
         }
     }
 
     @Override
     public void visit(IfStat is) {
         is.getIfrel().accept(this);
-        // TODO verify Ifrel type
+        if(!(is.getIfrel().typeClass() instanceof BoolType)) {
+            if (is.getIfrel().typeClass() instanceof PtrType) {
+                reportError(is.lineNumber(), is.charPosition(), "IfStat requires bool condition not " + is.getIfrel().typeClass().deref() + ".");
+            } else {
+                reportError(is.lineNumber(), is.charPosition(), "IfStat requires bool condition not " + is.getIfrel().typeClass() + ".");
+            }
+        }
         is.getIfseq().accept(this);
+        is.setReturnToken(is.getIfseq().getReturnToken());
         is.setType(is.getIfseq().typeClass());
+        if(is.getIfseq().typeClass() != null){
+            is.setType(is.getIfseq().typeClass());
+        }
         if( is.getElseseq() != null ) {
             is.getElseseq().accept(this);
+            if(is.getElseseq().typeClass() != null){
+                is.setType(is.getElseseq().typeClass());
+            }
+            is.setReturnToken(is.getElseseq().getReturnToken());
             is.setType(is.getElseseq().typeClass());
         }
     }
@@ -184,7 +199,9 @@ public class TypeChecker implements NodeVisitor {
     public void visit(LogicalNot ln) {
         ln.getRvalue().accept(this);
         ln.setType(ln.getRvalue().typeClass().not());
-
+        if(ln.typeClass() instanceof ErrorType){
+            reportError(ln.lineNumber(), ln.charPosition(), ((ErrorType) ln.typeClass()).message);
+        }
     }
 
     @Override
@@ -245,6 +262,13 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(RepeatStat rep) {
         rep.getRelation().accept(this);
+        if(!(rep.getRelation().typeClass() instanceof BoolType)) {
+            if (rep.getRelation().typeClass() instanceof PtrType) {
+                reportError(rep.lineNumber(), rep.charPosition(), "RepeatStat requires bool condition not " + rep.getRelation().typeClass().deref() + ".");
+            } else {
+                reportError(rep.lineNumber(), rep.charPosition(), "RepeatStat requires bool condition not " +   rep.getRelation().typeClass() + ".");
+            }
+        }
         rep.getSeq().accept(this);
     }
 
@@ -273,6 +297,11 @@ public class TypeChecker implements NodeVisitor {
         for( AST ast : seq.getSequence() ) {
             ast.accept(this);
             if(ast.typeClass() != null){
+                if(ast instanceof Return){
+                    seq.setReturnToken(ast.token());
+                }else{
+                    seq.setReturnToken(ast.getReturnToken());
+                }
                 seq.setReturnType(ast.typeClass());
             }
         }
@@ -297,6 +326,19 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(WhileStat wstat) {
         wstat.getRelation().accept(this);
+        if(!(wstat.getRelation().typeClass() instanceof BoolType)) {
+            if(wstat.getRelation().typeClass() instanceof PtrType){
+                reportError(wstat.lineNumber(), wstat.charPosition(), "WhileStat requires bool condition not " + wstat.getRelation().typeClass().deref() + ".");
+            }else {
+                reportError(wstat.lineNumber(), wstat.charPosition(), "WhileStat requires bool condition not " + wstat.getRelation().typeClass() + ".");
+            }
+        }
         wstat.getSeq().accept(this);
+        if(wstat.getSeq().typeClass() != null){
+            wstat.setType(wstat.getSeq().typeClass());
+        }
+        if(wstat.getSeq().getReturnToken() != null){
+            wstat.setReturnToken(wstat.getSeq().getReturnToken());
+        }
     }
 }

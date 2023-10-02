@@ -9,6 +9,7 @@ public class FuncBody extends AST {
 
     private ArrayList<Token> unresolvedSymbols;
     private StatSeq seq;
+    private Token returnToken;
     private DeclarationList varList;
     public FuncBody(Token tkn, DeclarationList vars, StatSeq seq) {
         super(tkn);
@@ -17,7 +18,13 @@ public class FuncBody extends AST {
         this.varList = vars;
         unresolvedSymbols = new ArrayList<>();
     }
+    public void setReturnToken(Token tk){
+        returnToken = tk;
+    }
 
+    public Token getReturnToken(){
+        return returnToken;
+    }
     public void addUnresolved( Token sym ) {
         getUnresolvedSymbols().add(sym);
     }
