@@ -18,9 +18,7 @@ public class FunctionSymbol extends Symbol {
         ArrayList<TypeList> lists = new ArrayList<>();
 
         for(ArrayType type : types ) {
-            TypeList list = new TypeList();
-            list.add(type.getFormalType());
-            lists.add(list);
+            lists.add( type.typeList() );
         }
 
         return lists;

@@ -204,9 +204,19 @@ public abstract class Type {
             }
 
             for( int i = 0; i < me.list.size(); i++ ) {
-                if( !me.list.get(i).equals(other.list.get(i)) ) {
+                Type metype = me.list.get(i);
+                if( metype instanceof PtrType ) {
+                    metype = ((PtrType) metype).getType();
+                }
+                Type othertype = other.list.get(i);
+                if( othertype instanceof PtrType ) {
+                    othertype = ((PtrType) othertype).getType();
+                }
+                if( !metype.equals(othertype)  ) {
                     return false;
                 }
+
+                return true;
             }
         }
         else if( this instanceof AryType ) {
@@ -229,7 +239,7 @@ public abstract class Type {
             return true;
         }
 
-        return this.getClass() == type.getClass();
+        return true;
     }
     public Type call (Type args) {
         // TODO: implement arg checking

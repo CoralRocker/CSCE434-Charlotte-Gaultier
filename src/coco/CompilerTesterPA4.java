@@ -109,8 +109,9 @@ public class CompilerTesterPA4 {
             Compiler c = new Compiler(s, numRegs);
             RootAST ast = (RootAST) c.genAST();
             types.TypeChecker checker = new TypeChecker();
+            checker.check(ast);
 
-            if( checker.check(ast) ) {
+            if( checker.hasError() ) {
                 System.err.println("Error type-checking file.");
                 System.err.println(checker.errorReport());
             }
