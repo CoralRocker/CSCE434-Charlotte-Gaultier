@@ -164,7 +164,7 @@ public class TypeChecker implements NodeVisitor {
         }
 
         if( good == null ) {
-            reportError(fc.lineNumber(), fc.charPosition(), String.format("Call with args %s matches no function signature.", params));
+            reportError(fc.token().lineNumber(), fc.token().charPosition(), String.format("Call with args %s matches no function signature.", params));
         }
 
     }

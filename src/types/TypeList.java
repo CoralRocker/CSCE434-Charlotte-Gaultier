@@ -38,6 +38,7 @@ public class TypeList extends Type implements Iterable<Type> {
                 builder.append(",");
             }
         }
+        builder.append(")");
         return builder.toString();
     }
 

@@ -182,13 +182,17 @@ public class CompilerTesterPA4 {
                 if( userErr.get(userErr.size()-1).isEmpty() ) {
                     userErr.remove(userErr.size()-1);
                 }
-                userErr.addAll(List.of(checker.errorReport().split(System.lineSeparator())));
-
-
-
                 if( !userErr.isEmpty() ) {
                     userErr.add(0, "Error parsing file.");
                 }
+
+                userErr.addAll(List.of(checker.errorReport().split(System.lineSeparator())));
+                if( !userErr.isEmpty() ) {
+                    userErr.add(0, "Error type-checking file.");
+                }
+
+
+
                 ArrayList<String> testErr = new ArrayList<>();
                 try {
                     testFile = new BufferedReader(new FileReader(testName));
