@@ -14,6 +14,7 @@ public class TypeChecker implements NodeVisitor {
 
     private StringBuilder errorBuffer;
     private FunctionSymbol currentFunction = null;
+    private FuncCall currentFuncCall = null;
 
     public TypeChecker(){
         errorBuffer = new StringBuilder();
@@ -99,7 +100,12 @@ public class TypeChecker implements NodeVisitor {
 
         if( !idxType.tryDeref().equals(new IntType()) ) {
             String msg = String.format("Cannot index %s with %s.", arrType.tryDeref(), idxType);
-            reportError(index.token(), msg );
+            if( currentFuncCall != null ) {
+                reportError(currentFuncCall.getEndParen(), msg);
+            }
+            else {
+                reportError(index.token(), msg);
+            }
             idx.setType(new ErrorType(msg));
 
             err = true;
@@ -200,6 +206,9 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(FuncCall fc) {
 
+        FuncCall oldFc = currentFuncCall;
+        currentFuncCall = fc;
+
         fc.getArgs().accept(this);
 
         ArrayList<AST> args = fc.getArgs().getArgs();
@@ -207,6 +216,8 @@ public class TypeChecker implements NodeVisitor {
         for( AST ast : args ) {
             params.append(ast.typeClass());
         }
+
+        currentFuncCall = oldFc;
 
         FunctionSymbol func = (FunctionSymbol) fc.getFunc();
         TypeList good = null;
@@ -351,9 +362,11 @@ public class TypeChecker implements NodeVisitor {
             ret.getReturn().accept(this);
             ret.setType(ret.getReturn().typeClass());
         }
-        ret.setType(ret.typeClass().funcRet(currentFunction, currentFunction.getReturnType()));
-        currentFunction.setRealReturnType(ret.typeClass().funcRet(currentFunction, currentFunction.getReturnType()));
-        if(ret.typeClass() instanceof ErrorType){
+        Type correct = ret.typeClass().funcRet(currentFunction, currentFunction.getReturnType());
+        ret.setType(correct);
+        if( !(correct instanceof ErrorType) )
+            currentFunction.setRealReturnType(correct);
+        if(correct instanceof ErrorType){
             reportError(ret.token().lineNumber(), ret.token().charPosition(), ((ErrorType) ret.typeClass()).message);
         }
     }

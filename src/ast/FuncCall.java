@@ -11,6 +11,15 @@ public class FuncCall extends AST {
     private ArgList args;
 
     protected Token funcTok;
+    protected Token endParen;
+
+    public void setEndParen(Token ep) {
+        endParen = ep;
+    }
+
+    public Token getEndParen() {
+        return endParen;
+    }
 
     public FuncCall(Token tkn, FunctionSymbol func, Token funcTok) {
         super(tkn);

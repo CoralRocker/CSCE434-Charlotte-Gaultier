@@ -578,7 +578,7 @@ public class Compiler {
                 list.add(relExpr());
             }
         }
-        expect( Token.Kind.CLOSE_PAREN );
+        function.setEndParen(expectRetrieve(Token.Kind.CLOSE_PAREN));
 
         return function;
     }
