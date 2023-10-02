@@ -3,6 +3,8 @@ package coco;
 import types.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class FunctionSymbol extends Symbol {
 
@@ -10,6 +12,19 @@ public class FunctionSymbol extends Symbol {
     protected Token.Kind returnType;
 
     protected Type realReturnType;
+    private ArrayList<ArrayType> types;
+
+    public List<TypeList> getTypeLists() {
+        ArrayList<TypeList> lists = new ArrayList<>();
+
+        for(ArrayType type : types ) {
+            TypeList list = new TypeList();
+            list.add(type.getFormalType());
+            lists.add(list);
+        }
+
+        return lists;
+    }
 
     public Token getDeclarationToken() { return declTok; }
     public Type getReturnType() { switch(returnType){
@@ -87,7 +102,6 @@ public class FunctionSymbol extends Symbol {
         return false;
     }
 
-    private ArrayList<ArrayType> types;
 
 
     @Override

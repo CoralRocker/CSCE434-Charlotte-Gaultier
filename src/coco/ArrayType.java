@@ -1,5 +1,7 @@
 package coco;
 
+import types.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -386,5 +388,37 @@ public class ArrayType {
         }
 
         return  true;
+    }
+
+    public Type getFormalType() {
+
+        if( function ) {
+            TypeList types = typeList();
+            Type ret;
+            if( dims != null && !dims.isEmpty() ) {
+                ret = new AryType(type.getFormalType(), dims);
+
+            }
+            else {
+                ret = type.getFormalType();
+            }
+
+            return new FuncType(ret, types);
+        }
+        else if( dims != null && !dims.isEmpty() ) {
+            return new AryType(type.getFormalType(), dims);
+        }
+        else {
+            return type.getFormalType();
+        }
+    }
+
+    public TypeList typeList() {
+        TypeList list = new TypeList();
+        for( ArrayType type : arglist ) {
+            list.append( type.getFormalType() );
+        }
+
+        return list;
     }
 }

@@ -38,8 +38,7 @@ public class DeclarationList extends AST {
 
     @Override
     public Type typeClass() {
-        return new AryType();
-        // TODO verify if this is correct. unsure
+        return null;
     }
 
     @Override

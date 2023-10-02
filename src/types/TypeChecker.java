@@ -1,8 +1,10 @@
 package types;
 
 import ast.*;
+import coco.FunctionSymbol;
 import coco.Symbol;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class TypeChecker implements NodeVisitor {
@@ -73,7 +75,6 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(ArgList list) {
-        // TODO add processing logic
         for( AST ast : list.getArgs() ) {
             ast.accept(this);
         }
@@ -142,7 +143,30 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(FuncCall fc) {
+
         fc.getArgs().accept(this);
+
+        ArrayList<AST> args = fc.getArgs().getArgs();
+        TypeList params = new TypeList();
+        for( AST ast : args ) {
+            params.append(ast.typeClass());
+        }
+
+        FunctionSymbol func = (FunctionSymbol) fc.getFunc();
+        TypeList good = null;
+        for( TypeList list : func.getTypeLists() ) {
+            if( list.equals(params) ) {
+                if( good != null ) {
+                    throw new RuntimeException("Already found good type list!");
+                }
+                good = list;
+            }
+        }
+
+        if( good == null ) {
+            reportError(fc.lineNumber(), fc.charPosition(), String.format("Call with args %s matches no function signature.", params));
+        }
+
     }
 
     @Override

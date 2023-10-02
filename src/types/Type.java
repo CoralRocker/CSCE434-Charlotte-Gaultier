@@ -1,5 +1,7 @@
 package types;
 
+import java.util.Objects;
+
 public abstract class Type {
 
     // arithmetic
@@ -183,7 +185,51 @@ public abstract class Type {
     }
 
     public boolean equals(Type type){
-        return(this.getClass() == type.getClass());
+        if( this.getClass() != type.getClass()) {
+            return false;
+        }
+
+        if( this instanceof FuncType ) {
+            FuncType me = (FuncType) this,
+                    other = (FuncType) type;
+
+            return me.params.equals(other.params) && me.returnType.equals(other.returnType);
+        }
+        else if( this instanceof TypeList ) {
+            TypeList me = (TypeList) this,
+                    other = (TypeList) type;
+
+            if( me.list.size() != other.list.size() ) {
+                return false;
+            }
+
+            for( int i = 0; i < me.list.size(); i++ ) {
+                if( !me.list.get(i).equals(other.list.get(i)) ) {
+                    return false;
+                }
+            }
+        }
+        else if( this instanceof AryType ) {
+            AryType me = (AryType) this,
+                    other = (AryType) type;
+
+            if( !me.type.equals(other.type) ) {
+                return false;
+            }
+
+            if( me.dimensions.size() != other.dimensions.size() ) {
+                return false;
+            }
+
+            for( int i = 0; i < me.dimensions.size(); i++ ) {
+                if( (me.dimensions.get(i) != -1 && other.dimensions.get(i) != -1) && (!Objects.equals(me.dimensions.get(i), other.dimensions.get(i))) ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return this.getClass() == type.getClass();
     }
     public Type call (Type args) {
         // TODO: implement arg checking

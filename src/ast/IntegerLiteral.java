@@ -50,7 +50,7 @@ public class IntegerLiteral extends AST {
 
     @Override
     public String toString() {
-        return String.format("IntegerLiteral[%d]", getLiteral());
+        return String.format("IntegerLiteral[%d]", getIntLiteral());
     }
 
     public int getIntLiteral() {

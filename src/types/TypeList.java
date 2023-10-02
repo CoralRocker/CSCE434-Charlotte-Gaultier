@@ -6,10 +6,14 @@ import java.util.List;
 
 public class TypeList extends Type implements Iterable<Type> {
 
-    private List<Type> list;
+    protected List<Type> list;
 
     public TypeList () {
         list = new ArrayList<>();
+    }
+
+    public TypeList (List<Type> list) {
+        this.list = list;
     }
 
     public void append (Type type) {
@@ -23,6 +27,18 @@ public class TypeList extends Type implements Iterable<Type> {
     @Override
     public Iterator<Type> iterator () {
         return list.iterator();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("TypeList(");
+        for( int i = 0; i < list.size(); i++ ) {
+            builder.append(list.get(i));
+            if( (i+1) < list.size() ) {
+                builder.append(",");
+            }
+        }
+        return builder.toString();
     }
 
     //TODO more helper here

@@ -1,5 +1,7 @@
 package coco;
 
+import types.*;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -285,6 +287,24 @@ public class Token {
 
     public Kind kind () {
         return kind;
+    }
+
+    public Type getFormalType() {
+        switch( kind ) {
+            case VOID -> {
+                return new VoidType();
+            }
+            case BOOL -> {
+                return new BoolType();
+            }
+            case INT -> {
+                return new IntType();
+            }
+            case FLOAT -> {
+                return new FloatType();
+            }
+        }
+        return null;
     }
 
     // TODO: function to query a token about its kind - boolean is (Token.Kind kind)

@@ -113,7 +113,6 @@ public class CompilerTesterPA4 {
             if( checker.check(ast) ) {
                 System.err.println("Error type-checking file.");
                 System.err.println(checker.errorReport());
-                System.exit(-4);
             }
 
             String ast_text = ast.printPreOrder();
@@ -180,6 +179,13 @@ public class CompilerTesterPA4 {
 
                 testName = sourceFile.replace(".txt", ".out");
                 ArrayList<String> userErr = new ArrayList<>(List.of(c.errorReport().split(System.lineSeparator())));
+                if( userErr.get(userErr.size()-1).isEmpty() ) {
+                    userErr.remove(userErr.size()-1);
+                }
+                userErr.addAll(List.of(checker.errorReport().split(System.lineSeparator())));
+
+
+
                 if( !userErr.isEmpty() ) {
                     userErr.add(0, "Error parsing file.");
                 }
