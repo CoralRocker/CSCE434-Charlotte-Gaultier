@@ -193,20 +193,30 @@ public abstract class Type {
     }
     // statements
     public Type assign (Type source) {
+        Type thistype = this;
+
         if (this instanceof PtrType){
-            //
-        }else{
+            thistype = this.deref();
+        }
+        else {
             return new ErrorType("Cannot assign " + source + " to " + this + ".");
         }
+
         if (source instanceof PtrType){
             source = source.deref();
         }
-        if(this.deref() instanceof IntType && source instanceof IntType){
+
+        if(thistype instanceof IntType && source instanceof IntType){
             return new IntType();
-        }else if (this.deref() instanceof FloatType && source instanceof FloatType){
+        }else if (thistype instanceof FloatType && source instanceof FloatType){
             return new FloatType();
-        }else if (this.deref() instanceof BoolType && source instanceof BoolType) {
+        }else if (thistype instanceof BoolType && source instanceof BoolType) {
             return new BoolType();
+        }
+        else if (thistype instanceof AryType && source instanceof AryType ) {
+            if( ((AryType) thistype).equals(((AryType) source)) ) {
+                return ((AryType) thistype).type;
+            }
         }
         return new ErrorType("Cannot assign " + source + " to " + this + ".");
     }

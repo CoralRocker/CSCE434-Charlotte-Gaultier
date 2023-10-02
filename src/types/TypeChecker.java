@@ -95,6 +95,7 @@ public class TypeChecker implements NodeVisitor {
         Type idxType = index.typeClass();
 
         boolean err = false;
+        Integer constIdx = null;
 
         if( !idxType.tryDeref().equals(new IntType()) ) {
             String msg = String.format("Cannot index %s with %s.", arrType.tryDeref(), idxType);
@@ -103,13 +104,22 @@ public class TypeChecker implements NodeVisitor {
 
             err = true;
         }
+        else {
+            AST cval = index.constEvaluate();
+            if( cval instanceof IntegerLiteral ) {
+                if( cval.getIntLiteral() < 0) {
+                   System.err.println("Negative Array Index Here");
+                }
+            }
+        }
 
         if( !(arrType.tryDeref() instanceof AryType) ) {
-            String msg = String.format("Cannot index %s.", arrType);
+            String msg = String.format("Cannot index %s with %s.", arrType, idxType);
             reportError(arr.token(), msg);
             idx.setType(new ErrorType(msg));
 
             err = true;
+            return;
         }
 
         if( arrType instanceof ErrorType ) {
@@ -229,12 +239,8 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(IfStat is) {
         is.getIfrel().accept(this);
-        if(!(is.getIfrel().typeClass() instanceof BoolType)) {
-            if (is.getIfrel().typeClass() instanceof PtrType) {
-                reportError(is.lineNumber(), is.charPosition(), "IfStat requires bool condition not " + is.getIfrel().typeClass().deref() + ".");
-            } else {
-                reportError(is.lineNumber(), is.charPosition(), "IfStat requires bool condition not " + is.getIfrel().typeClass() + ".");
-            }
+        if(!(is.getIfrel().typeClass().tryDeref() instanceof BoolType)) {
+            reportError(is.lineNumber(), is.charPosition(), "IfStat requires bool condition not " + is.getIfrel().typeClass() + ".");
         }
         is.getIfseq().accept(this);
         if( is.getElseseq() != null ) {
