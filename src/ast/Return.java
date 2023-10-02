@@ -22,23 +22,10 @@ public class Return extends AST {
 
     @Override
     public Type typeClass() {
-        if(retval != null){
-            if (retval.typeClass() instanceof PtrType){
-                return retval.typeClass().deref();
-            }
-            if(retval.typeClass() instanceof IntType){
-                return new IntType();
-            }else if(retval.typeClass() instanceof FloatType){
-                return new FloatType();
-            }else if(retval.typeClass() instanceof BoolType){
-                return new BoolType();
-            }else if(retval.typeClass() instanceof ErrorType){
-                return retval.typeClass();
-            }else{
-                return retval.typeClass();
-            }
+        if (retval == null){
+            return new VoidType();
         }
-        return new VoidType();
+        return type;
     }
 
     @Override

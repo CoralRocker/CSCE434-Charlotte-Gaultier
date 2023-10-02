@@ -1,6 +1,7 @@
 package types;
 
 import ast.*;
+import coco.ArrayType;
 import coco.FunctionSymbol;
 import coco.Symbol;
 import coco.Token;
@@ -12,11 +13,10 @@ public class TypeChecker implements NodeVisitor {
 
 
     private StringBuilder errorBuffer;
-    private Symbol currentFunction;
+    private FunctionSymbol currentFunction = null;
 
     public TypeChecker(){
         errorBuffer = new StringBuilder();
-
     }
     /*
      * Useful error strings:
@@ -185,7 +185,6 @@ public class TypeChecker implements NodeVisitor {
         if( fb.getVarList() != null )
             fb.getVarList().accept(this);
         fb.getSeq().accept(this);
-        fb.setReturnToken(fb.getSeq().getReturnToken());
     }
 
     @Override
@@ -213,15 +212,18 @@ public class TypeChecker implements NodeVisitor {
         if( good == null ) {
             reportError(fc.token().lineNumber(), fc.token().charPosition(), String.format("Call with args %s matches no function signature.", params));
         }
-
     }
 
     @Override
     public void visit(FuncDecl fd) {
+        FunctionSymbol parent = currentFunction;
+        currentFunction = fd.getSymbol();
+        // fd.typeClass is epected return type
+        // save current func (parent) and reset current back to parent when we leave
+        // need to set current function to this
         fd.getBody().accept(this);
-        if(!(fd.typeClass().equals(fd.getBody().typeClass()))){
-            reportError(fd.getBody().getReturnToken().lineNumber(), fd.getBody().getReturnToken().charPosition(), "Function " + fd.funcName() + " returns " + fd.getBody().typeClass() + " instead of " + fd.typeClass() + ".");
-        }
+        // old implementation
+        currentFunction = parent;
     }
 
     @Override
@@ -235,18 +237,8 @@ public class TypeChecker implements NodeVisitor {
             }
         }
         is.getIfseq().accept(this);
-        is.setReturnToken(is.getIfseq().getReturnToken());
-        is.setType(is.getIfseq().typeClass());
-        if(is.getIfseq().typeClass() != null){
-            is.setType(is.getIfseq().typeClass());
-        }
         if( is.getElseseq() != null ) {
             is.getElseseq().accept(this);
-            if(is.getElseseq().typeClass() != null){
-                is.setType(is.getElseseq().typeClass());
-            }
-            is.setReturnToken(is.getElseseq().getReturnToken());
-            is.setType(is.getElseseq().typeClass());
         }
     }
 
@@ -345,12 +337,18 @@ public class TypeChecker implements NodeVisitor {
 
     @Override
     public void visit(Return ret) {
+        if(currentFunction == null){
+            currentFunction = new FunctionSymbol("main", new ArrayType(Token.Kind.VOID), new ArrayType(Token.Kind.VOID));
+        }
+        // handling returns in main
         if( ret.getReturn() != null ) {
             ret.getReturn().accept(this);
             ret.setType(ret.getReturn().typeClass());
-            if(ret.typeClass() instanceof ErrorType) {
-                ret.setType(ret.getReturn().typeClass());
-            }
+        }
+        ret.setType(ret.typeClass().funcRet(currentFunction, currentFunction.getReturnType()));
+        currentFunction.setRealReturnType(ret.typeClass().funcRet(currentFunction, currentFunction.getReturnType()));
+        if(ret.typeClass() instanceof ErrorType){
+            reportError(ret.token().lineNumber(), ret.token().charPosition(), ((ErrorType) ret.typeClass()).message);
         }
     }
 
@@ -367,14 +365,6 @@ public class TypeChecker implements NodeVisitor {
     public void visit(StatSeq seq) {
         for( AST ast : seq.getSequence() ) {
             ast.accept(this);
-            if(ast.typeClass() != null){
-                if(ast instanceof Return){
-                    seq.setReturnToken(ast.token());
-                }else{
-                    seq.setReturnToken(ast.getReturnToken());
-                }
-                seq.setReturnType(ast.typeClass());
-            }
         }
     }
 
@@ -405,11 +395,5 @@ public class TypeChecker implements NodeVisitor {
             }
         }
         wstat.getSeq().accept(this);
-        if(wstat.getSeq().typeClass() != null){
-            wstat.setType(wstat.getSeq().typeClass());
-        }
-        if(wstat.getSeq().getReturnToken() != null){
-            wstat.setReturnToken(wstat.getSeq().getReturnToken());
-        }
     }
 }

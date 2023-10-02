@@ -1,5 +1,7 @@
 package types;
 
+import coco.FunctionSymbol;
+
 import java.util.Objects;
 
 public abstract class Type {
@@ -171,6 +173,24 @@ public abstract class Type {
         return new ErrorType("Cannot index " + this + " with " + that + ".");
     }
 
+    public Type funcRet (FunctionSymbol func, Type that) {
+        if (this instanceof PtrType){
+            return this.deref().funcRet(func, that);
+        }
+        if (that instanceof PtrType){
+            that = that.deref();
+        }
+        if(this instanceof IntType && that instanceof IntType){
+            return new IntType();
+        }else if (this instanceof FloatType && that instanceof FloatType){
+            return new FloatType();
+        }else if (this instanceof BoolType && that instanceof BoolType){
+            return new BoolType();
+        }else if(this instanceof VoidType && that instanceof VoidType){
+            return new VoidType();
+        }
+        return new ErrorType("Function " + func.name() + " returns " + this + " instead of " + that);
+    }
     // statements
     public Type assign (Type source) {
         if (this instanceof PtrType){

@@ -1,6 +1,7 @@
 package ast;
 
 import coco.ArrayType;
+import coco.FunctionSymbol;
 import coco.Symbol;
 import coco.Token;
 import types.*;
@@ -9,15 +10,16 @@ import java.util.ArrayList;
 
 public class FuncDecl extends AST {
 
-    private Symbol sym;
+    private FunctionSymbol sym;
     private ArrayType declType;
     private ArrayList<Symbol> argList;
     private FuncBody body;
-    public FuncDecl(Token tkn, ArrayType declType, FuncBody body ) {
+    public FuncDecl(Token tkn, ArrayType declType, FuncBody body, FunctionSymbol symbol ) {
         super(tkn);
         this.declType = declType;
         this.body = body;
         this.argList = new ArrayList<>();
+        this.sym = symbol;
     }
 
     public String funcName(){
@@ -41,21 +43,12 @@ public class FuncDecl extends AST {
         return null;
     }
 
-    @Override
-    public Type typeClass() {
-        switch (declType.getType()){
-            case INT:
-                return new IntType();
-            case FLOAT:
-                return new FloatType();
-            case BOOL:
-                return new BoolType();
-            case VOID:
-                return new VoidType();
-            default:
-                return new ErrorType("Could not resolve function declaration type");
-        }
+    public FunctionSymbol getSymbol(){
+        return (FunctionSymbol) sym;
     }
+
+    @Override
+    public Type typeClass() { return sym.getReturnType(); }
 
     @Override
     public String printPreOrder() {

@@ -782,7 +782,7 @@ public class Compiler {
         }
 
         FuncBody body = funcBody();
-        FuncDecl decl = new FuncDecl(funcName, funcType, body);
+        FuncDecl decl = new FuncDecl(funcName, funcType, body, funcSym);
         decl.setArgs(argSymbols);
 
         exitScope();
