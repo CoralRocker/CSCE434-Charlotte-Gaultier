@@ -303,8 +303,10 @@ public class Token {
             case FLOAT -> {
                 return new FloatType();
             }
+            default -> {
+                return new ErrorType("Cannot derive type of Token " + kind.toString());
+            }
         }
-        return null;
     }
 
     // TODO: function to query a token about its kind - boolean is (Token.Kind kind)
