@@ -2,12 +2,14 @@ package ast;
 
 import coco.Token;
 import types.Type;
+import types.VoidType;
 
 import java.util.ArrayList;
 
 public class StatSeq extends AST {
 
     private ArrayList< AST > seq;
+    private Type returnType = new VoidType();
 
     public ArrayList< AST > getSequence() { return seq; }
 
@@ -25,9 +27,12 @@ public class StatSeq extends AST {
         return null;
     }
 
+    public void setReturnType(Type type){
+        this.returnType = type;
+    }
     @Override
     public Type typeClass() {
-        return null;
+        return returnType;
     }
 
     @Override

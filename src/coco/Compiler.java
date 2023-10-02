@@ -124,40 +124,40 @@ public class Compiler {
                 new ArrayType( Token.Kind.INT ),
                 new ArrayList<>()
         );
-        currentSymbolTable.insert("readInt", new FunctionSymbol("readInt", readInt));
+        currentSymbolTable.insert("readInt", new FunctionSymbol("readInt", readInt, new ArrayType(Token.Kind.INT)));
 
         ArrayType readFloat = ArrayType.makeFunctionType(
                 Token.Kind.FLOAT
         );
-        currentSymbolTable.insert("readFloat", new FunctionSymbol("readFloat", readFloat));
+        currentSymbolTable.insert("readFloat", new FunctionSymbol("readFloat", readFloat, new ArrayType(Token.Kind.FLOAT)));
 
         ArrayType readBool = ArrayType.makeFunctionType(
                 Token.Kind.BOOL
         );
-        currentSymbolTable.insert("readBool", new FunctionSymbol("readBool", readBool));
+        currentSymbolTable.insert("readBool", new FunctionSymbol("readBool", readBool, new ArrayType(Token.Kind.BOOL)));
 
         ArrayType printInt = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.INT}
         );
-        currentSymbolTable.insert("printInt", new FunctionSymbol("printInt", printInt));
+        currentSymbolTable.insert("printInt", new FunctionSymbol("printInt", printInt, new ArrayType(Token.Kind.VOID)));
 
         ArrayType printFloat = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.FLOAT}
         );
-        currentSymbolTable.insert("printFloat", new FunctionSymbol("printFloat", printFloat));
+        currentSymbolTable.insert("printFloat", new FunctionSymbol("printFloat", printFloat, new ArrayType(Token.Kind.VOID)));
 
         ArrayType printBool = ArrayType.makeFunctionType(
                 Token.Kind.VOID,
                 new Token.Kind[]{Token.Kind.BOOL}
         );
-        currentSymbolTable.insert("printBool", new FunctionSymbol("printBool", printBool));
+        currentSymbolTable.insert("printBool", new FunctionSymbol("printBool", printBool, new ArrayType(Token.Kind.VOID)));
 
         ArrayType println = ArrayType.makeFunctionType(
                 Token.Kind.VOID
         );
-        currentSymbolTable.insert("println", new FunctionSymbol("println", println));
+        currentSymbolTable.insert("println", new FunctionSymbol("println", println, new ArrayType(Token.Kind.VOID)));
 
     }
 
@@ -219,7 +219,7 @@ public class Compiler {
 
     }
 
-    private Symbol tryDeclareFunction(Token func, ArrayType type) {
+    private FunctionSymbol tryDeclareFunction(Token func, ArrayType type) {
         Symbol sym = null;
         if( currentSymbolTable.contains(func) ) {
             sym = currentSymbolTable.lookup(func);
@@ -229,7 +229,7 @@ public class Compiler {
             }
         }
         else {
-            sym = currentSymbolTable.insert(func, new FunctionSymbol(func) );
+            sym = currentSymbolTable.insert(func, new FunctionSymbol(func, type) );
         }
 
         FunctionSymbol funcSym = (FunctionSymbol) sym;
@@ -709,14 +709,18 @@ public class Compiler {
 
         StatSeq seq = new StatSeq(currentToken);
 
-        seq.add( statement() );
+        AST stat = statement();
+        seq.add( stat );
         expect(Token.Kind.SEMICOLON);
 
         while( have( NonTerminal.STATEMENT ) ) {
-            seq.add( statement() );
+            stat = statement();
+            seq.add( stat );
+            if(stat instanceof Return){
+                seq.setReturnType(stat.typeClass());
+            }
             expect(Token.Kind.SEMICOLON);
         }
-
         return seq;
     }
 
@@ -769,7 +773,7 @@ public class Compiler {
         ArrayType funcType = ArrayType.makeFunctionType(returnType, params );
         // Symbol funcSym = new FunctionSymbol(funcName.lexeme(), funcType);
 
-        Symbol funcSym = tryDeclareFunction(funcName, funcType);
+        FunctionSymbol funcSym = tryDeclareFunction(funcName, funcType);
 
         enterScope();
 

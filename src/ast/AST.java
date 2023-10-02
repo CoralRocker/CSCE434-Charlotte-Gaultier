@@ -6,7 +6,7 @@ import types.Type;
 
 public abstract class AST implements Visitable, IsLiteral{
 
-    private Token tkn;
+    Token tkn;
 
     public AST( Token tkn ) {
         this.tkn = tkn;

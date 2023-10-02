@@ -1,7 +1,7 @@
 package ast;
 
 import coco.Token;
-import types.Type;
+import types.*;
 
 public class Return extends AST {
     private AST retval = null;
@@ -22,7 +22,23 @@ public class Return extends AST {
 
     @Override
     public Type typeClass() {
-        return null;
+        if(retval != null){
+            if (retval.typeClass() instanceof PtrType){
+                return retval.typeClass().deref();
+            }
+            if(retval.typeClass() instanceof IntType){
+                return new IntType();
+            }else if(retval.typeClass() instanceof FloatType){
+                return new FloatType();
+            }else if(retval.typeClass() instanceof BoolType){
+                return new BoolType();
+            }else if(retval.typeClass() instanceof ErrorType){
+                return retval.typeClass();
+            }else{
+                return retval.typeClass();
+            }
+        }
+        return new VoidType();
     }
 
     @Override

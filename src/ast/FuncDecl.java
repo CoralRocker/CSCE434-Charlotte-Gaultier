@@ -3,8 +3,7 @@ package ast;
 import coco.ArrayType;
 import coco.Symbol;
 import coco.Token;
-import types.FuncType;
-import types.Type;
+import types.*;
 
 import java.util.ArrayList;
 
@@ -19,6 +18,10 @@ public class FuncDecl extends AST {
         this.declType = declType;
         this.body = body;
         this.argList = new ArrayList<>();
+    }
+
+    public String funcName(){
+        return tkn.lexeme();
     }
 
     public void setArgs( ArrayList<Symbol> list) {
@@ -40,7 +43,18 @@ public class FuncDecl extends AST {
 
     @Override
     public Type typeClass() {
-        return null;
+        switch (declType.getType()){
+            case INT:
+                return new IntType();
+            case FLOAT:
+                return new FloatType();
+            case BOOL:
+                return new BoolType();
+            case VOID:
+                return new VoidType();
+            default:
+                return new ErrorType("Could not resolve function declaration type");
+        }
     }
 
     @Override

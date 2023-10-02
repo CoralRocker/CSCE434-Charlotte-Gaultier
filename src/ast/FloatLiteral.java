@@ -18,7 +18,7 @@ public class FloatLiteral extends AST {
 
     @Override
     public String type() {
-        return null;
+        return "FloatLiteral";
     }
 
     @Override

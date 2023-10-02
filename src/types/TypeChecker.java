@@ -3,6 +3,8 @@ package types;
 import ast.*;
 import coco.Symbol;
 
+import java.util.Objects;
+
 public class TypeChecker implements NodeVisitor {
 
 
@@ -23,7 +25,7 @@ public class TypeChecker implements NodeVisitor {
      * "WhileStat requires relation condition not " + cond.getClass() + "."
      * "RepeatStat requires relation condition not " + cond.getClass() + "."
      *
-     * "Function " + currentFunction.name() + " returns " + statRetType + " instead of " + funcRetType + "."
+     * "Function " + currentFunction.name() + " returns " + statRetType + " 3instead of " + funcRetType + "."
      *
      * "Variable " + var.name() + " has invalid type " + var.type() + "."
      * "Array " + var.name() + " has invalid base type " + baseType + "."
@@ -145,6 +147,9 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public void visit(FuncDecl fd) {
         fd.getBody().accept(this);
+        if(!(Objects.equals(fd.typeClass().toString(), fd.getBody().typeClass().toString()))){
+            reportError(fd.lineNumber(), fd.charPosition(), "Function " + fd.funcName() + " returns " + fd.getBody().typeClass() + " instead of " + fd.typeClass() + ".");
+        }
     }
 
     @Override

@@ -3,8 +3,7 @@ package ast;
 import coco.FunctionSymbol;
 import coco.Symbol;
 import coco.Token;
-import types.FuncType;
-import types.Type;
+import types.*;
 
 public class FuncCall extends AST {
 
@@ -30,7 +29,7 @@ public class FuncCall extends AST {
 
     @Override
     public Type typeClass() {
-        return new FuncType();
+        return func.getRealReturnType();
     }
 
     @Override

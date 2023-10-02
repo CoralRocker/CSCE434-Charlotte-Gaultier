@@ -1,19 +1,61 @@
 package coco;
 
+import types.*;
+
 import java.util.ArrayList;
 
 public class FunctionSymbol extends Symbol {
 
     protected Token declTok;
+    protected Token.Kind returnType;
+
+    protected Type realReturnType;
 
     public Token getDeclarationToken() { return declTok; }
+    public Type getReturnType() { switch(returnType){
+        case INT:
+            return new IntType();
+        case FLOAT:
+            return new FloatType();
+        case BOOL:
+            return new BoolType();
+        case VOID:
+            return new VoidType();
+        default:
+            return new ErrorType("Could not resolve function return type"); }}
+
+    public Type getRealReturnType() {
+        if(realReturnType != null){
+            return realReturnType;
+        }
+        switch(returnType){
+            case INT:
+                return new IntType();
+            case FLOAT:
+                return new FloatType();
+            case BOOL:
+                return new BoolType();
+            case VOID:
+                return new VoidType();
+            default:
+                return new ErrorType("Could not resolve function return type");
+        }
+    }
+    public void setRealReturnType(Type type){
+        this.realReturnType = type;
+    }
 
     public FunctionSymbol(Token name) {
         super(name.lexeme());
         this.types = new ArrayList<>();
         this.declTok = name;
     }
-
+    public FunctionSymbol(Token name, ArrayType retType) {
+        super(name.lexeme());
+        this.types = new ArrayList<>();
+        this.declTok = name;
+        this.returnType = retType.getType();
+    }
     public FunctionSymbol(String name, ArrayList<ArrayType> types) {
         super(name);
         this.types = types;
@@ -23,6 +65,13 @@ public class FunctionSymbol extends Symbol {
         super(name);
         this.types = new ArrayList<>();
         add(type);
+    }
+    public FunctionSymbol(String name, ArrayType type , ArrayType retType) {
+        super(name);
+        this.types = new ArrayList<>();
+        add(type);
+        this.returnType = retType.getType();
+
     }
 
     public void add(ArrayType type) {

@@ -29,7 +29,7 @@ public class FuncBody extends AST {
 
     @Override
     public Type typeClass() {
-        return null;
+        return seq.typeClass();
     }
 
     @Override
