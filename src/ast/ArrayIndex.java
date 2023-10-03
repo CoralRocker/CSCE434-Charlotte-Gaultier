@@ -11,10 +11,21 @@ public class ArrayIndex extends AST implements Visitable {
     private AST array;
     public AST getArray() { return array; }
 
-    public ArrayIndex(Token tkn, AST arr, AST idx) {
+    public final Token endBrace;
+
+
+    public ArrayIndex(Token tkn, Token endBrace, AST arr, AST idx) {
         super(tkn);
         this.array = arr;
         this.index = idx;
+        this.endBrace = endBrace;
+    }
+
+    public Token getIdentToken() {
+        if( array instanceof ArrayIndex ) {
+            return ((ArrayIndex) array).getIdentToken();
+        }
+        return array.token();
     }
 
     @Override

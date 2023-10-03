@@ -189,7 +189,7 @@ public abstract class Type {
         }else if(this instanceof VoidType && that instanceof VoidType){
             return new VoidType();
         }
-        return new ErrorType("Function " + func.name() + " returns " + this + " instead of " + that);
+        return new ErrorType("Function " + func.name() + " returns " + this + " instead of " + that + ".");
     }
     // statements
     public Type assign (Type source) {
@@ -218,7 +218,7 @@ public abstract class Type {
                 return ((AryType) thistype).type;
             }
         }
-        return new ErrorType("Cannot assign " + source + " to " + this + ".");
+        return new ErrorType("Cannot assign " + source + " to " + this.tryDeref() + ".");
     }
 
     public boolean equals(Type type){
@@ -264,14 +264,15 @@ public abstract class Type {
                 return false;
             }
 
-            if( me.dimensions.size() != other.dimensions.size() ) {
+            if( me.nDimensions() != other.nDimensions() ) {
                 return false;
             }
 
-            for( int i = 0; i < me.dimensions.size(); i++ ) {
-                if( (me.dimensions.get(i) != -1 && other.dimensions.get(i) != -1) && (!Objects.equals(me.dimensions.get(i), other.dimensions.get(i))) ) {
-                    return false;
-                }
+            for( int i = 0; i < me.nDimensions(); i++ ) {
+                if( !me.compareDimension(other, i));
+                // if( (me.dimensions.get(i) != -1 && other.dimensions.get(i) != -1) && (!Objects.equals(me.dimensions.get(i), other.dimensions.get(i))) ) {
+                //     return false;
+                // }
             }
             return true;
         }

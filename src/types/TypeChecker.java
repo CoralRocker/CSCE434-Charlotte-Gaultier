@@ -104,7 +104,7 @@ public class TypeChecker implements NodeVisitor {
                 reportError(currentFuncCall.getEndParen(), msg);
             }
             else {
-                reportError(index.token(), msg);
+                reportError(idx.endBrace, msg);
             }
             idx.setType(new ErrorType(msg));
 
@@ -121,7 +121,7 @@ public class TypeChecker implements NodeVisitor {
 
         if( !(arrType.tryDeref() instanceof AryType) ) {
             String msg = String.format("Cannot index %s with %s.", arrType, idxType);
-            reportError(arr.token(), msg);
+            reportError(idx.endBrace.lineNumber(), idx.endBrace.endCharPos(), msg);
             idx.setType(new ErrorType(msg));
 
             err = true;
@@ -156,7 +156,12 @@ public class TypeChecker implements NodeVisitor {
 
         asn.setType(asn.getTarget().typeClass().assign(asn.getRvalue().typeClass()));
         if(asn.typeClass() instanceof ErrorType){
-            reportError(asn.lineNumber(), asn.charPosition(), ((ErrorType) asn.typeClass()).message);
+            if( asn.getTarget() instanceof ArrayIndex ) {
+                reportError(((ArrayIndex) asn.getTarget()).getIdentToken(), ((ErrorType) asn.typeClass()).message);
+            }
+            else {
+                reportError(asn.token(), ((ErrorType) asn.typeClass()).message);
+            }
         }
     }
 
@@ -229,6 +234,8 @@ public class TypeChecker implements NodeVisitor {
                 good = list;
             }
         }
+
+        fc.setType( func.getReturnType() );
 
         if( good == null ) {
             reportError(fc.token().lineNumber(), fc.token().charPosition(), String.format("Call with args %s matches no function signature.", params));

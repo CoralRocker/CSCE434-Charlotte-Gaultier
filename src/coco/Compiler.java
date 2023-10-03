@@ -4,6 +4,7 @@ package coco;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Stack;
 import java.util.function.Function;
 
 import ast.*;
@@ -400,16 +401,24 @@ public class Compiler {
         AST symbol = new Designator(ident, tryResolveVariable(ident));
 
         ArrayList<AST> indexes = new ArrayList<>();
-        while( accept( Token.Kind.OPEN_BRACKET ) ) {
+        Stack<Token> startBrackets = new Stack<>();
+        while( have( Token.Kind.OPEN_BRACKET ) ) {
+            Token sb = expectRetrieve(Token.Kind.OPEN_BRACKET);
             AST dim = relExpr();
-            expect( Token.Kind.CLOSE_BRACKET );
+            Token eb = expectRetrieve( Token.Kind.CLOSE_BRACKET );
+
+            startBrackets.push(eb);
 
             indexes.add( dim );
         }
 
-        for( int i = indexes.size()-1; i >= 0; i-- ) {
-            symbol = new ArrayIndex(indexes.get(i).token(), symbol, indexes.get(i));
+        for( int i = 0; i < indexes.size(); i++ ) {
+            symbol = new ArrayIndex(indexes.get(i).token(), startBrackets.firstElement(), symbol, indexes.get(i));
+            startBrackets.remove(0);
         }
+        // for( int i = indexes.size()-1; i >= 0; i-- ) {
+        //     symbol = new ArrayIndex(indexes.get(i).token(), startBrackets.pop(), symbol, indexes.get(i));
+        // }
 
         return symbol;
     }

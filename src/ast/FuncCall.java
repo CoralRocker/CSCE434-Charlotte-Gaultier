@@ -39,6 +39,11 @@ public class FuncCall extends AST {
     @Override
     public Type typeClass() {
         return func.getRealReturnType();
+
+    }
+
+    public Type realReturnType() {
+        return func.getRealReturnType();
     }
 
     @Override

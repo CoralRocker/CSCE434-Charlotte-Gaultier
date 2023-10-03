@@ -406,7 +406,12 @@ public class ArrayType {
             return new FuncType(ret, types);
         }
         else if( dims != null && !dims.isEmpty() ) {
-            return new AryType(type.getFormalType(), dims);
+            if( paramdims == 0 ) {
+                return new AryType(type.getFormalType(), dims);
+            }
+            else {
+                return new AryType(type.getFormalType(), paramdims);
+            }
         }
         else {
             return type.getFormalType();

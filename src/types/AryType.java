@@ -9,13 +9,11 @@ public class AryType extends Type {
 
     protected List<Integer> dimensions;
     protected Type type;
+    protected int isParamType = 0;
 
     public AryType( Type type, int ndim ) {
         this.type = type;
-        dimensions = new ArrayList<>();
-        for( int i = 0; i < ndim; i++ ) {
-            dimensions.add(-1);
-        }
+        this.isParamType = ndim;
     }
 
     public AryType( Type type, ArrayList<Integer> dims) {
@@ -29,23 +27,19 @@ public class AryType extends Type {
     }
 
     public boolean isArgType() {
-        for( Integer dim : dimensions ) {
-            if( dim != -1 ) {
-                return false;
-            }
-        }
-
-        return false;
+        return isParamType == 0;
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder(type.toString());
-        for( Integer dim : dimensions ) {
-            if( dim == -1 ) {
+        if( isParamType > 0 ) {
+            for( int i = 0; i < isParamType; i++ ) {
                 builder.append("[]");
             }
-            else {
+        }
+        else {
+            for (Integer dim : dimensions) {
                 builder.append(String.format("[%d]", dim));
             }
         }
@@ -54,13 +48,48 @@ public class AryType extends Type {
     }
 
     public Type popDimension() {
+        if( isParamType > 0 ) {
+            if( isParamType == 1 ) {
+                return type;
+            }
+            return new AryType(type, isParamType-1);
+        }
+
         if( this.dimensions.size() == 1 ) {
             return type;
         }
 
         ArrayList<Integer> ndims = new ArrayList<>(dimensions);
+
+
         ndims.remove(ndims.size()-1);
         return new AryType(type, ndims);
     }
 
+    public int nDimensions() {
+        if( isParamType > 0 ) {
+            return isParamType;
+        }
+        else {
+            return dimensions.size();
+        }
+    }
+
+    public boolean compareDimension( AryType other, int idx ) {
+        if( isParamType > 0 ) {
+            if( idx < isParamType && idx >= 0 ) {
+                return true;
+            }
+            return false;
+        }
+
+        if( other.isParamType > 0 ) {
+           if( idx < other.isParamType && idx >= 0 ) {
+               return true;
+           }
+           return false;
+        }
+
+        return idx >= 0 && idx < nDimensions() && dimensions.get(idx) == other.dimensions.get(idx);
+    }
 }
