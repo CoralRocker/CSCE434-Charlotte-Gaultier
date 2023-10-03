@@ -121,7 +121,7 @@ public class TypeChecker implements NodeVisitor {
 
         if( !(arrType.tryDeref() instanceof AryType) ) {
             String msg = String.format("Cannot index %s with %s.", arrType, idxType);
-            reportError(idx.endBrace.lineNumber(), idx.endBrace.endCharPos(), msg);
+            reportError(idx.endBrace.lineNumber(), idx.endBrace.endCharPos()+1, msg);
             idx.setType(new ErrorType(msg));
 
             err = true;
