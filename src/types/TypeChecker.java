@@ -99,7 +99,7 @@ public class TypeChecker implements NodeVisitor {
         boolean err = false;
 
         if( !idxType.tryDeref().equals(new IntType()) ) {
-            String msg = String.format("Cannot index %s with %s.", arrType.tryDeref(), idxType);
+            String msg = String.format("Cannot index %s with %s.", arrType.tryDeref(), idxType.tryDeref());
             if( currentFuncCall != null ) {
                 reportError(currentFuncCall.getEndParen(), msg);
             }
@@ -120,7 +120,7 @@ public class TypeChecker implements NodeVisitor {
         }
 
         if( !(arrType.tryDeref() instanceof AryType) ) {
-            String msg = String.format("Cannot index %s with %s.", arrType, idxType);
+            String msg = String.format("Cannot index %s with %s.", arrType.tryDeref(), idxType.tryDeref());
             reportError(idx.endBrace.lineNumber(), idx.endBrace.endCharPos()+1, msg);
             idx.setType(new ErrorType(msg));
 
