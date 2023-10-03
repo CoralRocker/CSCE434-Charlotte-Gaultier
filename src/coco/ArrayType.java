@@ -426,4 +426,12 @@ public class ArrayType {
 
         return list;
     }
+
+    public Type getReturnType() {
+        if( !function ) {
+            return null;
+        }
+
+        return type.getFormalType();
+    }
 }

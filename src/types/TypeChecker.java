@@ -14,6 +14,7 @@ public class TypeChecker implements NodeVisitor {
 
     private StringBuilder errorBuffer;
     private FunctionSymbol currentFunction = null;
+    private FuncType currentFuncSig = null;
     private FuncCall currentFuncCall = null;
 
     public TypeChecker(){
@@ -245,11 +246,13 @@ public class TypeChecker implements NodeVisitor {
     public void visit(FuncDecl fd) {
         FunctionSymbol parent = currentFunction;
         currentFunction = fd.getSymbol();
+        currentFuncSig = (FuncType) fd.getDeclType().getFormalType();
         // fd.typeClass is epected return type
         // save current func (parent) and reset current back to parent when we leave
         // need to set current function to this
         fd.getBody().accept(this);
         // old implementation
+        currentFuncSig = null;
         currentFunction = parent;
     }
 
@@ -333,7 +336,24 @@ public class TypeChecker implements NodeVisitor {
             reportError(pwr.lineNumber(), pwr.charPosition(), ((ErrorType) pwr.typeClass()).message);
         }
         else {
-            AST cval = pwr.getRvalue().constEvaluate();
+            AST cval = pwr.getLvalue().constEvaluate();
+            if( cval != null ) {
+                if( cval instanceof IntegerLiteral ) {
+                    if( cval.getIntLiteral() < 0 ) {
+                        String msg = String.format("Power cannot have a negative base of %d.", cval.getIntLiteral());
+                        pwr.setType(new ErrorType(msg));
+                        reportError(pwr.token(), msg);
+                    }
+                }
+                else {
+                    if( cval.getFloatLiteral() < 0 ) {
+                        String msg = String.format("Power cannot have a negative base of %f.", cval.getFloatLiteral());
+                        pwr.setType(new ErrorType(msg));
+                        reportError(pwr.token(), msg);
+                    }
+                }
+            }
+            cval = pwr.getRvalue().constEvaluate();
             if( cval != null ) {
                 if( cval instanceof IntegerLiteral ) {
                     if( cval.getIntLiteral() < 0 ) {
@@ -387,7 +407,11 @@ public class TypeChecker implements NodeVisitor {
             ret.getReturn().accept(this);
             ret.setType(ret.getReturn().typeClass());
         }
-        Type correct = ret.typeClass().funcRet(currentFunction, currentFunction.getReturnType());
+        Type correct;
+        if( currentFuncSig != null )
+            correct = ret.typeClass().funcRet(currentFunction, currentFuncSig.returnType);
+        else
+            correct = ret.typeClass().funcRet(currentFunction, currentFunction.getReturnType());
         ret.setType(correct);
         if( !(correct instanceof ErrorType) )
             currentFunction.setRealReturnType(correct);

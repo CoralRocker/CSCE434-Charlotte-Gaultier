@@ -12,6 +12,8 @@ public class FuncDecl extends AST {
 
     private FunctionSymbol sym;
     private ArrayType declType;
+
+    public ArrayType getDeclType() { return declType; }
     private ArrayList<Symbol> argList;
     private FuncBody body;
     public FuncDecl(Token tkn, ArrayType declType, FuncBody body, FunctionSymbol symbol ) {
