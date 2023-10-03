@@ -218,7 +218,7 @@ public abstract class Type {
                 return ((AryType) thistype).type;
             }
         }
-        return new ErrorType("Cannot assign " + source + " to " + this.tryDeref() + ".");
+        return new ErrorType("Cannot assign " + source + " to " + this + ".");
     }
 
     public boolean equals(Type type){

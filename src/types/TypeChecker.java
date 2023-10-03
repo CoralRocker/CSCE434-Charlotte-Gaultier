@@ -96,7 +96,6 @@ public class TypeChecker implements NodeVisitor {
         Type idxType = index.typeClass();
 
         boolean err = false;
-        Integer constIdx = null;
 
         if( !idxType.tryDeref().equals(new IntType()) ) {
             String msg = String.format("Cannot index %s with %s.", arrType.tryDeref(), idxType);
@@ -332,6 +331,25 @@ public class TypeChecker implements NodeVisitor {
         pwr.setType(pwr.getLvalue().typeClass().pwr(pwr.getRvalue().typeClass()));
         if(pwr.typeClass() instanceof ErrorType){
             reportError(pwr.lineNumber(), pwr.charPosition(), ((ErrorType) pwr.typeClass()).message);
+        }
+        else {
+            AST cval = pwr.getRvalue().constEvaluate();
+            if( cval != null ) {
+                if( cval instanceof IntegerLiteral ) {
+                    if( cval.getIntLiteral() < 0 ) {
+                        String msg = String.format("Power cannot have a negative exponent of %d.", cval.getIntLiteral());
+                        pwr.setType(new ErrorType(msg));
+                        reportError(pwr.token(), msg);
+                    }
+                }
+                else {
+                    if( cval.getFloatLiteral() < 0 ) {
+                        String msg = String.format("Power cannot have a negative exponent of %f.", cval.getFloatLiteral());
+                        pwr.setType(new ErrorType(msg));
+                        reportError(pwr.token(), msg);
+                    }
+                }
+            }
         }
     }
 
