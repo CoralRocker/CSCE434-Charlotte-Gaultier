@@ -3,6 +3,7 @@ package ir;
 import ast.*;
 import ast.Return;
 import coco.Symbol;
+import coco.Token;
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.tac.*;
@@ -133,12 +134,24 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(IfStat is) {
 
-        Value rel = is.getIfrel().accept(this);
+        Value val = is.getIfrel().accept(this);
 
-        BasicBlock ifblock, elseblock = null;
+        Branch bra = new Branch(instr++, is.getIfrel().token().lexeme());
+        if( val instanceof Variable ) {
+            Cmp cmp = new Cmp(instr++, val, new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))));
+            curBlock.add(cmp);
+            bra.setRel("==");
+        }
+
+
+        curBlock.add(bra);
+
+        BasicBlock ifblock, elseblock = null, entryBlock = curBlock;
         ifblock = new BasicBlock(blockNo++);
         ifblock.addPredecessor(curBlock);
         curBlock.addSuccessor(ifblock);
+
+        bra.setDestination(ifblock);
 
         if( is.getElseseq() != null ) {
             elseblock = new BasicBlock(blockNo++);
@@ -162,6 +175,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             elseblock.addSuccessor(nextBlock);
             nextBlock.addPredecessor(elseblock);
         }
+        else {
+            entryBlock.addSuccessor(nextBlock);
+        }
+
+
 
         curBlock = nextBlock;
 
@@ -224,6 +242,22 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Relation rel) {
+
+        Value lval = rel.getLvalue().accept(this);
+        Value rval = rel.getRvalue().accept(this);
+
+        Cmp cmp = new Cmp(instr++, lval, rval );
+        curBlock.add(cmp);
+
+        switch( rel.token().kind() ) {
+            case GREATER_EQUAL -> {}
+            case GREATER_THAN -> {}
+            case LESS_EQUAL -> {}
+            case LESS_THAN -> {}
+            case EQUAL_TO -> {}
+            case NOT_EQUAL -> {}
+        }
+
 
         return null;
     }
