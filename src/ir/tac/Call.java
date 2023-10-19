@@ -7,13 +7,14 @@ public class Call extends TAC{
     private Symbol function;
     // private ValueList args;
 
-    protected Call(int id) {
+    public Call(int id, Symbol func) {
         super(id);
+        function = func;
     }
 
     @Override
     public String genDot() {
-        return null;
+        return String.format("call %s", function.name());
     }
 
     @Override

@@ -23,6 +23,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     private int tempNum = 0;
     private int instr = 0;
 
+    private int blockNo = 1;
+
     public IRGenerator() {
         funcs = new ArrayList<>();
     }
@@ -117,6 +119,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(FuncCall fc) {
 
+        Call tac = new Call(instr++, fc.getFunc());
+        curBlock.add(tac);
+
         return null;
     }
 
@@ -127,6 +132,39 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(IfStat is) {
+
+        Value rel = is.getIfrel().accept(this);
+
+        BasicBlock ifblock, elseblock = null;
+        ifblock = new BasicBlock(blockNo++);
+        ifblock.addPredecessor(curBlock);
+        curBlock.addSuccessor(ifblock);
+
+        if( is.getElseseq() != null ) {
+            elseblock = new BasicBlock(blockNo++);
+            elseblock.addPredecessor(curBlock);
+            curBlock.addSuccessor(elseblock);
+        }
+
+
+        curBlock = ifblock;
+        is.getIfseq().accept(this);
+        if( is.getElseseq() != null ) {
+            curBlock = elseblock;
+            is.getElseseq().accept(this);
+        }
+
+        BasicBlock nextBlock = new BasicBlock(blockNo++);
+
+        ifblock.addSuccessor(nextBlock);
+        nextBlock.addPredecessor(ifblock);
+        if( elseblock != null ) {
+            elseblock.addSuccessor(nextBlock);
+            nextBlock.addPredecessor(elseblock);
+        }
+
+        curBlock = nextBlock;
+
         return null;
 
     }
@@ -209,7 +247,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         // TODO Vars
 
-        curBlock = new BasicBlock("main");
+        curBlock = new BasicBlock(blockNo++);
         curCFG = new CFG(curBlock);
 
         root.getSeq().accept(this);

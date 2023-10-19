@@ -37,11 +37,16 @@ public class CFGPrinter extends CFGVisitor {
 
         queue.add(cfg.getHead());
 
-        int num = 1;
         while( !queue.isEmpty() ) {
             BasicBlock blk = queue.remove();
 
-            addLnf("bb%d [shape=record, label=\"<b>BB%d | {", num, num++);
+            if( blk.visited() ) {
+                continue;
+            }
+
+            blk.markVisited();
+
+            addLnf("bb%d [shape=record, label=\"<b>BB%d | {", blk.getNum(), blk.getNum());
 
             Iterator<TAC> instructions = blk.getInstructions().listIterator();
 
@@ -52,11 +57,19 @@ public class CFGPrinter extends CFGVisitor {
                 if( instructions.hasNext() ) {
                     builder.append('|');
                 }
+
+
+
             }
 
             addLn("}\"];");
-            addLn("}");
+
+            for( BasicBlock block : blk.getSuccessors()) {
+                queue.add(block);
+                addLnf("bb%d -> bb%d", blk.getNum(), block.getNum());
+            }
         }
+        addLn("}");
 
 
         return builder.toString();

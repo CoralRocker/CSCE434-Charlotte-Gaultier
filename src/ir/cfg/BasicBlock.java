@@ -19,17 +19,22 @@ public class BasicBlock extends Block implements Iterable<TAC> {
 
     private List<BasicBlock> predecessors;
     private List<BasicBlock> successors;
-    
 
-    public BasicBlock(String name) {
-        num = -1;
-        label = name;
-        this.successors = new ArrayList<>();
-        this.predecessors = new ArrayList<>();
-        this.instructions = new ArrayList<>();
+
+    public List<BasicBlock> getSuccessors() {
+        return successors;
     }
 
-    public BasicBlock() {
+    // public BasicBlock(String name) {
+    //     num = -1;
+    //     label = name;
+    //     this.successors = new ArrayList<>();
+    //     this.predecessors = new ArrayList<>();
+    //     this.instructions = new ArrayList<>();
+    // }
+
+    public BasicBlock(int id) {
+        num = id;
         label = "";
         this.successors = new ArrayList<>();
         this.predecessors = new ArrayList<>();
@@ -48,12 +53,8 @@ public class BasicBlock extends Block implements Iterable<TAC> {
         successors.add(block);
     }
 
-    public BasicBlock createSuccessor() {
-        return createSuccessor("");
-    }
-
-    public BasicBlock createSuccessor(String name) {
-        BasicBlock blck = new BasicBlock(name);
+    public BasicBlock createSuccessor(int id) {
+        BasicBlock blck = new BasicBlock(id);
         successors.add(blck);
         blck.addPredecessor(this);
         return blck;
@@ -66,7 +67,7 @@ public class BasicBlock extends Block implements Iterable<TAC> {
 
     @Override
     public void resetVisited() {
-
+        visited = false;
     }
 
     @Override
