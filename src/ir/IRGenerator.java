@@ -103,7 +103,19 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(Division div) {
 
-        return null;
+        Assignable tmpdest = asnDest;
+
+        asnDest = null;
+        Value lval = div.getLvalue().accept(this);
+        Value rval = div.getRvalue().accept(this);
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+
+        Div tac = new Div(instr++, target, lval, rval);
+        curBlock.add(tac);
+
+        return target;
     }
 
     @Override
@@ -212,8 +224,19 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Modulo mod) {
+        Assignable tmpdest = asnDest;
 
-        return null;
+        asnDest = null;
+        Value lval = mod.getLvalue().accept(this);
+        Value rval = mod.getRvalue().accept(this);
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+
+        Mod tac = new Mod(instr++, target, lval, rval);
+        curBlock.add(tac);
+
+        return target;
     }
 
     @Override
@@ -236,8 +259,19 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Power pwr) {
+        Assignable tmpdest = asnDest;
 
-        return null;
+        asnDest = null;
+        Value lval = pwr.getLvalue().accept(this);
+        Value rval = pwr.getRvalue().accept(this);
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+
+        Pow tac = new Pow(instr++, target, lval, rval);
+        curBlock.add(tac);
+
+        return target;
     }
 
     @Override
@@ -300,8 +334,19 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Subtraction sub) {
+        Assignable tmpdest = asnDest;
 
-        return null;
+        asnDest = null;
+        Value lval = sub.getLvalue().accept(this);
+        Value rval = sub.getRvalue().accept(this);
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+
+        Sub tac = new Sub(instr++, target, lval, rval);
+        curBlock.add(tac);
+
+        return target;
     }
 
     @Override

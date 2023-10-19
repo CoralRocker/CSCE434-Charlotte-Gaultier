@@ -1,7 +1,7 @@
 package ir.tac;
 
 public class Mod extends Assign {
-    protected Mod(int id, Variable dest, Value left, Value right) {
+    public Mod(int id, Assignable dest, Value left, Value right) {
         super(id, dest, left, right);
     }
 
