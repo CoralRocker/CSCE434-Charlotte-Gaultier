@@ -8,6 +8,7 @@ import java.util.Stack;
 import java.util.function.Function;
 
 import ast.*;
+import ir.IRGenerator;
 import ir.cfg.CFG;
 import org.apache.commons.cli.CommandLine;
 import types.TypeChecker;
@@ -108,7 +109,11 @@ public class Compiler {
     }
 
     public CFG genSSA(AST root) {
-        return null;
+        IRGenerator gen = new IRGenerator();
+
+        gen.visit((RootAST) root);
+
+        return gen.iterator().next();
     }
 
     public int[] compile () {
