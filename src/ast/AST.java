@@ -39,5 +39,7 @@ public abstract class AST implements Visitable, IsLiteral{
     public abstract AST constEvaluate();
 
     public Token getReturnToken(){return null;};
+
+    public String asDotGraph() { return ""; };
 }
 

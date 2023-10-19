@@ -8,6 +8,8 @@ import java.util.Stack;
 import java.util.function.Function;
 
 import ast.*;
+import ir.cfg.CFG;
+import org.apache.commons.cli.CommandLine;
 import types.TypeChecker;
 
 public class Compiler {
@@ -33,6 +35,10 @@ public class Compiler {
 
     public boolean hasError () {
         return errorBuffer.length() != 0;
+    }
+
+    public String optimization(List<String> optArguments, CommandLine cmd) {
+        return null;
     }
 
     private class QuitParseException extends RuntimeException {
@@ -100,7 +106,11 @@ public class Compiler {
 
         return ast;
     }
-    
+
+    public CFG genSSA(AST root) {
+        return null;
+    }
+
     public int[] compile () {
         initSymbolTable();
         try {
