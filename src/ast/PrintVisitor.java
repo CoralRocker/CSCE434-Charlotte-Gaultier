@@ -1,6 +1,6 @@
 package ast;
 
-public class PrintVisitor implements NodeVisitor {
+public class PrintVisitor implements NodeVisitor<Void> {
 
     private StringBuilder builder = new StringBuilder();
     private int depth = 0;
@@ -21,59 +21,69 @@ public class PrintVisitor implements NodeVisitor {
         return tabs.toString();
     }
 
-    private void printf(AST ast) {
+    private Void printf(AST ast) {
         printf(ast.toString());
+        return null;
+
     }
-    private void printf(String format, Object ... args ) {
+    private Void printf(String format, Object ... args ) {
         builder.append(getTabs());
         builder.append(format.formatted(args));
         builder.append('\n');
+
+        return null;
     }
 
     @Override
-    public void visit(Addition add) {
+    public Void visit(Addition add) {
         printf(add);
         depth++;
         add.getLvalue().accept(this);
         add.getRvalue().accept(this);
         depth--;
+
+        return null;
     }
 
     @Override
-    public void visit(ArgList list) {
+    public Void visit(ArgList list) {
         printf(list);
         depth++;
         for( AST ast : list.getArgs() ) {
             ast.accept(this);
         }
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(ArrayIndex idx) {
+    public Void visit(ArrayIndex idx) {
         printf(idx);
         depth++;
         idx.getArray().accept(this);
         idx.getIndex().accept(this);
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(Assignment asn) {
+    public Void visit(Assignment asn) {
         printf(asn);
         depth++;
         asn.getTarget().accept(this);
         asn.getRvalue().accept(this);
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(BoolLiteral bool) {
+    public Void visit(BoolLiteral bool) {
         printf(bool);
+        return null;
     }
 
     @Override
-    public void visit(DeclarationList list) {
+    public Void visit(DeclarationList list) {
         printf(list);
         depth++;
         for( AST decl : list.getContained() ) {
@@ -81,55 +91,63 @@ public class PrintVisitor implements NodeVisitor {
         }
         depth--;
 
+        return null;
     }
 
     @Override
-    public void visit(Designator des) {
+    public Void visit(Designator des) {
         printf(des);
+        return null;
     }
 
     @Override
-    public void visit(Division div) {
+    public Void visit(Division div) {
         printf(div);
         depth++;
         div.getLvalue().accept(this);
         div.getRvalue().accept(this);
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(FloatLiteral flt) {
+    public Void visit(FloatLiteral flt) {
         printf(flt);
+        return null;
     }
 
     @Override
-    public void visit(FuncBody fb) {
+    public Void visit(FuncBody fb) {
         printf(fb);
         depth++;
         if( fb.getVarList() != null )
             fb.getVarList().accept(this);
         fb.getSeq().accept(this);
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(FuncCall fc) {
+    public Void visit(FuncCall fc) {
         printf(fc);
         depth++;
         fc.getArgs().accept(this);
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(FuncDecl fd) {
+    public Void visit(FuncDecl fd) {
         printf(fd);
         depth++;
         fd.getBody().accept(this);
         depth--;
+
+        return null;
     }
 
     @Override
-    public void visit(IfStat is) {
+    public Void visit(IfStat is) {
         printf(is);
         depth++;
         is.getIfrel().accept(this);
@@ -138,99 +156,116 @@ public class PrintVisitor implements NodeVisitor {
             is.getElseseq().accept(this);
         }
         depth--;
+
+        return null;
     }
 
     @Override
-    public void visit(IntegerLiteral il) {
+    public Void visit(IntegerLiteral il) {
         printf(il);
+        return null;
     }
 
     @Override
-    public void visit(LogicalAnd la) {
+    public Void visit(LogicalAnd la) {
         printf(la);
         depth++;
         la.getLvalue().accept(this);
         la.getRvalue().accept(this);
         depth--;
+
+        return null;
     }
 
     @Override
-    public void visit(LogicalNot ln) {
+    public Void visit(LogicalNot ln) {
         printf(ln);
         depth++;
         ln.getRvalue().accept(this);
         depth--;
+
+        return null;
     }
 
     @Override
-    public void visit(LogicalOr lo) {
+    public Void visit(LogicalOr lo) {
         printf(lo);
         depth++;
         lo.getLvalue().accept(this);
         lo.getRvalue().accept(this);
         depth--;
+
+        return null;
     }
 
     @Override
-    public void visit(Modulo mod) {
+    public Void visit(Modulo mod) {
         printf(mod);
         depth++;
         mod.getLvalue().accept(this);
         mod.getRvalue().accept(this);
         depth--;
+
+        return null;
     }
 
     @Override
-    public void visit(Multiplication mul) {
+    public Void visit(Multiplication mul) {
         printf(mul);
         depth++;
         mul.getLvalue().accept(this);
         mul.getRvalue().accept(this);
         depth--;
+
+        return null;
     }
 
     @Override
-    public void visit(Power pwr) {
+    public Void visit(Power pwr) {
         printf(pwr);
         depth++;
         pwr.getLvalue().accept(this);
         pwr.getRvalue().accept(this);
         depth--;
 
+        return null;
     }
 
     @Override
-    public void visit(Relation rel) {
+    public Void visit(Relation rel) {
         printf(rel);
         depth++;
         rel.getLvalue().accept(this);
         rel.getRvalue().accept(this);
         depth--;
 
+        return null;
     }
 
 
     @Override
-    public void visit(RepeatStat rep) {
+    public Void visit(RepeatStat rep) {
         printf(rep);
         depth++;
         rep.getRelation().accept(this);
         rep.getSeq().accept(this);
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(Return ret) {
+    public Void visit(Return ret) {
         printf(ret);
         if( ret.getReturn() != null ) {
             depth++;
             ret.getReturn().accept(this);
             depth--;
         }
+        return null;
     }
 
     @Override
-    public void visit(RootAST root) {
+    public Void visit(RootAST root) {
         printf(root);
         depth++;
         if( root.getVars() != null )
@@ -239,39 +274,44 @@ public class PrintVisitor implements NodeVisitor {
             root.getFuncs().accept(this);
         root.getSeq().accept(this);
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(StatSeq seq) {
+    public Void visit(StatSeq seq) {
         printf(seq);
         depth++;
         for( AST ast : seq.getSequence() ) {
             ast.accept(this);
         }
         depth--;
+        return null;
     }
 
     @Override
-    public void visit(Subtraction sub) {
+    public Void visit(Subtraction sub) {
         printf(sub);
         depth++;
         sub.getLvalue().accept(this);
         sub.getRvalue().accept(this);
         depth--;
 
+        return null;
     }
 
     @Override
-    public void visit(VariableDeclaration var) {
+    public Void visit(VariableDeclaration var) {
         printf(var);
+        return null;
     }
 
     @Override
-    public void visit(WhileStat wstat) {
+    public Void visit(WhileStat wstat) {
         printf(wstat);
         depth++;
         wstat.getRelation().accept(this);
         wstat.getSeq().accept(this);
         depth--;
+        return null;
     }
 }

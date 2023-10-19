@@ -32,8 +32,8 @@ public class FloatLiteral extends AST {
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public <E> E accept(NodeVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 
     @Override

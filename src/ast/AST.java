@@ -33,7 +33,7 @@ public abstract class AST implements Visitable, IsLiteral{
 
     public Token token() { return tkn; }
 
-    public abstract void accept(NodeVisitor visitor);
+    public abstract <E> E accept(NodeVisitor<E> visitor);
 
     public abstract boolean isConstEvaluable();
     public abstract AST constEvaluate();

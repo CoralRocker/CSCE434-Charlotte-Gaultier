@@ -9,7 +9,7 @@ import coco.Token;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class TypeChecker implements NodeVisitor {
+public class TypeChecker implements NodeVisitor<Void> {
 
 
     private StringBuilder errorBuffer;
@@ -65,12 +65,12 @@ public class TypeChecker implements NodeVisitor {
     }
 
 //    @Override
-//    public void visit (Computation node) {
+//    public Void visit (Computation node) {
 //        throw new RuntimeException("implement visit (Computation)");
 //    }
 
     @Override
-    public void visit(Addition add) {
+    public Void visit(Addition add) {
         add.getLvalue().accept(this);
         add.getRvalue().accept(this);
 
@@ -78,17 +78,19 @@ public class TypeChecker implements NodeVisitor {
         if(add.typeClass() instanceof ErrorType){
             reportError(add.lineNumber(), add.charPosition(), ((ErrorType) add.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(ArgList list) {
+    public Void visit(ArgList list) {
         for( AST ast : list.getArgs() ) {
             ast.accept(this);
         }
+        return null;
     }
 
     @Override
-    public void visit(ArrayIndex idx) {
+    public Void visit(ArrayIndex idx) {
         AST arr = idx.getArray();
         AST index = idx.getIndex();
         arr.accept(this);
@@ -125,7 +127,7 @@ public class TypeChecker implements NodeVisitor {
             idx.setType(new ErrorType(msg));
 
             err = true;
-            return;
+            return null;
         }
 
         if( arrType instanceof ErrorType ) {
@@ -147,10 +149,11 @@ public class TypeChecker implements NodeVisitor {
         if( !err ) {
             idx.setType(new PtrType(((AryType) arrType.tryDeref()).popDimension()));
         }
+        return null;
     }
 
     @Override
-    public void visit(Assignment asn) {
+    public Void visit(Assignment asn) {
         asn.getTarget().accept(this);
         asn.getRvalue().accept(this);
 
@@ -163,30 +166,34 @@ public class TypeChecker implements NodeVisitor {
                 reportError(asn.token(), ((ErrorType) asn.typeClass()).message);
             }
         }
+        return null;
     }
 
     @Override
-    public void visit(BoolLiteral bool) {
+    public Void visit(BoolLiteral bool) {
 
+        return null;
     }
 
     @Override
-    public void visit(DeclarationList list) {
+    public Void visit(DeclarationList list) {
         for( AST decl : list.getContained() ) {
             decl.accept(this);
         }
+        return null;
     }
 
     @Override
-    public void visit(Designator des) {
+    public Void visit(Designator des) {
         des.setType(des.typeClass().deref());
         if(des.typeClass() instanceof ErrorType){
             reportError(des.lineNumber(), des.charPosition(), ((ErrorType) des.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(Division div) {
+    public Void visit(Division div) {
         div.getLvalue().accept(this);
         div.getRvalue().accept(this);
 
@@ -194,22 +201,25 @@ public class TypeChecker implements NodeVisitor {
         if(div.typeClass() instanceof ErrorType){
             reportError(div.lineNumber(), div.charPosition(), ((ErrorType) div.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(FloatLiteral flt) {
+    public Void visit(FloatLiteral flt) {
 
+        return null;
     }
 
     @Override
-    public void visit(FuncBody fb) {
+    public Void visit(FuncBody fb) {
         if( fb.getVarList() != null )
             fb.getVarList().accept(this);
         fb.getSeq().accept(this);
+        return null;
     }
 
     @Override
-    public void visit(FuncCall fc) {
+    public Void visit(FuncCall fc) {
 
         FuncCall oldFc = currentFuncCall;
         currentFuncCall = fc;
@@ -240,10 +250,11 @@ public class TypeChecker implements NodeVisitor {
         if( good == null ) {
             reportError(fc.token().lineNumber(), fc.token().charPosition(), String.format("Call with args %s matches no function signature.", params));
         }
+        return null;
     }
 
     @Override
-    public void visit(FuncDecl fd) {
+    public Void visit(FuncDecl fd) {
         FunctionSymbol parent = currentFunction;
         currentFunction = fd.getSymbol();
         currentFuncSig = (FuncType) fd.getDeclType().getFormalType();
@@ -254,10 +265,11 @@ public class TypeChecker implements NodeVisitor {
         // old implementation
         currentFuncSig = null;
         currentFunction = parent;
+        return null;
     }
 
     @Override
-    public void visit(IfStat is) {
+    public Void visit(IfStat is) {
         is.getIfrel().accept(this);
         if(!(is.getIfrel().typeClass().tryDeref() instanceof BoolType)) {
             reportError(is.lineNumber(), is.charPosition(), "IfStat requires bool condition not " + is.getIfrel().typeClass() + ".");
@@ -266,15 +278,17 @@ public class TypeChecker implements NodeVisitor {
         if( is.getElseseq() != null ) {
             is.getElseseq().accept(this);
         }
+        return null;
     }
 
     @Override
-    public void visit(IntegerLiteral il) {
+    public Void visit(IntegerLiteral il) {
 
+        return null;
     }
 
     @Override
-    public void visit(LogicalAnd la) {
+    public Void visit(LogicalAnd la) {
         la.getLvalue().accept(this);
         la.getRvalue().accept(this);
 
@@ -282,19 +296,21 @@ public class TypeChecker implements NodeVisitor {
         if(la.typeClass() instanceof ErrorType){
             reportError(la.lineNumber(), la.charPosition(), ((ErrorType) la.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(LogicalNot ln) {
+    public Void visit(LogicalNot ln) {
         ln.getRvalue().accept(this);
         ln.setType(ln.getRvalue().typeClass().not());
         if(ln.typeClass() instanceof ErrorType){
             reportError(ln.lineNumber(), ln.charPosition(), ((ErrorType) ln.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(LogicalOr lo) {
+    public Void visit(LogicalOr lo) {
         lo.getLvalue().accept(this);
         lo.getRvalue().accept(this);
 
@@ -302,10 +318,11 @@ public class TypeChecker implements NodeVisitor {
         if(lo.typeClass() instanceof ErrorType){
             reportError(lo.lineNumber(), lo.charPosition(), ((ErrorType) lo.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(Modulo mod) {
+    public Void visit(Modulo mod) {
         mod.getLvalue().accept(this);
         mod.getRvalue().accept(this);
 
@@ -313,10 +330,11 @@ public class TypeChecker implements NodeVisitor {
         if(mod.typeClass() instanceof ErrorType){
             reportError(mod.lineNumber(), mod.charPosition(), ((ErrorType) mod.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(Multiplication mul) {
+    public Void visit(Multiplication mul) {
         mul.getLvalue().accept(this);
         mul.getRvalue().accept(this);
 
@@ -324,10 +342,11 @@ public class TypeChecker implements NodeVisitor {
         if(mul.typeClass() instanceof ErrorType){
             reportError(mul.lineNumber(), mul.charPosition(), ((ErrorType) mul.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(Power pwr) {
+    public Void visit(Power pwr) {
         pwr.getLvalue().accept(this);
         pwr.getRvalue().accept(this);
 
@@ -371,10 +390,11 @@ public class TypeChecker implements NodeVisitor {
                 }
             }
         }
+        return null;
     }
 
     @Override
-    public void visit(Relation rel) {
+    public Void visit(Relation rel) {
         rel.getLvalue().accept(this);
         rel.getRvalue().accept(this);
 
@@ -382,10 +402,11 @@ public class TypeChecker implements NodeVisitor {
         if(rel.typeClass() instanceof ErrorType){
             reportError(rel.lineNumber(), rel.charPosition(), ((ErrorType) rel.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(RepeatStat rep) {
+    public Void visit(RepeatStat rep) {
         rep.getRelation().accept(this);
         if(!(rep.getRelation().typeClass() instanceof BoolType)) {
             if (rep.getRelation().typeClass() instanceof PtrType) {
@@ -395,10 +416,11 @@ public class TypeChecker implements NodeVisitor {
             }
         }
         rep.getSeq().accept(this);
+        return null;
     }
 
     @Override
-    public void visit(Return ret) {
+    public Void visit(Return ret) {
         if(currentFunction == null){
             currentFunction = new FunctionSymbol("main", new ArrayType(Token.Kind.VOID), new ArrayType(Token.Kind.VOID));
         }
@@ -418,26 +440,29 @@ public class TypeChecker implements NodeVisitor {
         if(correct instanceof ErrorType){
             reportError(ret.token().lineNumber(), ret.token().charPosition(), ((ErrorType) ret.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(RootAST root) {
+    public Void visit(RootAST root) {
         if( root.getVars() != null )
             root.getVars().accept(this);
         if( root.getFuncs() != null )
             root.getFuncs().accept(this);
         root.getSeq().accept(this);
+        return null;
     }
 
     @Override
-    public void visit(StatSeq seq) {
+    public Void visit(StatSeq seq) {
         for( AST ast : seq.getSequence() ) {
             ast.accept(this);
         }
+        return null;
     }
 
     @Override
-    public void visit(Subtraction sub) {
+    public Void visit(Subtraction sub) {
         sub.getLvalue().accept(this);
         sub.getRvalue().accept(this);
 
@@ -445,15 +470,17 @@ public class TypeChecker implements NodeVisitor {
         if(sub.typeClass() instanceof ErrorType){
             reportError(sub.lineNumber(), sub.charPosition(), ((ErrorType) sub.typeClass()).message);
         }
+        return null;
     }
 
     @Override
-    public void visit(VariableDeclaration var) {
+    public Void visit(VariableDeclaration var) {
 
+        return null;
     }
 
     @Override
-    public void visit(WhileStat wstat) {
+    public Void visit(WhileStat wstat) {
         wstat.getRelation().accept(this);
         if(!(wstat.getRelation().typeClass() instanceof BoolType)) {
             if(wstat.getRelation().typeClass() instanceof PtrType){
@@ -463,5 +490,6 @@ public class TypeChecker implements NodeVisitor {
             }
         }
         wstat.getSeq().accept(this);
+        return null;
     }
 }

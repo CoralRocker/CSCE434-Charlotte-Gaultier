@@ -113,7 +113,7 @@ public class Compiler {
 
         gen.visit((RootAST) root);
 
-        return gen.iterator().next();
+        return gen.getCurCFG();
     }
 
     public int[] compile () {

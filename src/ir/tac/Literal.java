@@ -4,6 +4,10 @@ import ast.AST;
 
 public class Literal implements Value{
 
+    public Literal(AST val) {
+        this.val = val;
+    }
+
     @Override
     public boolean isConst() {
         return true;

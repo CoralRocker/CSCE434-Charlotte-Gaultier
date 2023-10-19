@@ -11,5 +11,9 @@ public abstract class TAC implements Visitable{
         this.eliminated = false;
 
         // saving code position will be helpful in debugging
-    } 
+    }
+
+    public abstract String genDot();
+
+    public int getId() { return id; }
 }

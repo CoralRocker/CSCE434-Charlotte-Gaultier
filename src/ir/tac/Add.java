@@ -9,5 +9,10 @@ public class Add extends Assign{
     public void accept(TACVisitor visitor) {
 
     }
+
+    @Override
+    public String genDot() {
+        return null;
+    }
     // either do this way or blend the operator's meaning into Assign
 }

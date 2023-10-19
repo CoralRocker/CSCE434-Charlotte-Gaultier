@@ -9,4 +9,9 @@ public class Div extends Assign {
     public void accept(TACVisitor visitor) {
 
     }
+
+    @Override
+    public String genDot() {
+        return null;
+    }
 }

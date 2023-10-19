@@ -1,161 +1,252 @@
 package ir;
 
 import ast.*;
+import coco.Symbol;
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
+import ir.tac.Literal;
+import ir.tac.Store;
+import ir.tac.Value;
+import ir.tac.Variable;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 //Traverse the AST - generate a CFG for each function
-public class IRGenerator implements ast.NodeVisitor, Iterable<ir.cfg.CFG>{
- 
+public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG> {
+
     private CFG curCFG;
     private BasicBlock curBlock;
     private List<CFG> funcs;
 
+    private Variable asnDest;
+
+    private int tempNum = 0;
+    private int instr = 0;
+
+    public IRGenerator() {
+        funcs = new ArrayList<>();
+    }
+
+
     @Override
-    public void visit(Addition add) {
+    public Value visit(Addition add) {
+        AST lval = add.getLvalue();
+        AST rval = add.getRvalue();
+
+
+        return null;
+    }
+
+    @Override
+    public Value visit(ArgList list) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(ArrayIndex idx) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Assignment asn) {
+
+        Designator dest = (Designator) asn.getTarget();
+        Symbol destSym = dest.getSymbol();
+        Variable dst = new Variable(destSym);
+
+        AST astSource = asn.getRvalue();
+        Value src = null;
+
+        if( astSource instanceof ast.BoolLiteral ) {
+            src = new Literal(astSource);
+        }
+        else if( astSource instanceof ast.IntegerLiteral ) {
+            src = new Literal(astSource);
+        }
+        else if( astSource instanceof ast.FloatLiteral ) {
+            src = new Literal(astSource);
+        }
+        else if( astSource instanceof ast.Designator ) {
+            src = new Variable( ((Designator) astSource).getSymbol() );
+        }
+        else {
+            asnDest = dst;
+            astSource.accept(this);
+            asnDest = null;
+            return null;
+        }
+
+
+        Store tac = new Store(++instr, dst, src);
+        curBlock.add(tac);
+
+        return null;
+    }
+
+    @Override
+    public Value visit(BoolLiteral bool) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(DeclarationList list) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Designator des) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Division div) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(FloatLiteral flt) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(FuncBody fb) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(FuncCall fc) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(FuncDecl fd) {
+        return null;
+    }
+
+    @Override
+    public Value visit(IfStat is) {
+        return null;
 
     }
 
     @Override
-    public void visit(ArgList list) {
+    public Value visit(IntegerLiteral il) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(LogicalAnd la) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(LogicalNot ln) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(LogicalOr lo) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Modulo mod) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Multiplication mul) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Power pwr) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Relation rel) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(RepeatStat rep) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Return ret) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(RootAST root) {
+
+        // TODO Functions
+
+        // TODO Vars
+
+        curBlock = new BasicBlock("main");
+        curCFG = new CFG(curBlock);
+
+        root.getSeq().accept(this);
+
+        return null;
+    }
+
+    @Override
+    public Value visit(StatSeq seq) {
+        for( AST ast : seq.getSequence() ) {
+            ast.accept(this);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Value visit(Subtraction sub) {
+
+        return null;
+    }
+
+    @Override
+    public Value visit(VariableDeclaration var) {
+        return null;
 
     }
 
     @Override
-    public void visit(ArrayIndex idx) {
-
-    }
-
-    @Override
-    public void visit(Assignment asn) {
-
-    }
-
-    @Override
-    public void visit(BoolLiteral bool) {
-
-    }
-
-    @Override
-    public void visit(DeclarationList list) {
-
-    }
-
-    @Override
-    public void visit(Designator des) {
-
-    }
-
-    @Override
-    public void visit(Division div) {
-
-    }
-
-    @Override
-    public void visit(FloatLiteral flt) {
-
-    }
-
-    @Override
-    public void visit(FuncBody fb) {
-
-    }
-
-    @Override
-    public void visit(FuncCall fc) {
-
-    }
-
-    @Override
-    public void visit(FuncDecl fd) {
-
-    }
-
-    @Override
-    public void visit(IfStat is) {
-
-    }
-
-    @Override
-    public void visit(IntegerLiteral il) {
-
-    }
-
-    @Override
-    public void visit(LogicalAnd la) {
-
-    }
-
-    @Override
-    public void visit(LogicalNot ln) {
-
-    }
-
-    @Override
-    public void visit(LogicalOr lo) {
-
-    }
-
-    @Override
-    public void visit(Modulo mod) {
-
-    }
-
-    @Override
-    public void visit(Multiplication mul) {
-
-    }
-
-    @Override
-    public void visit(Power pwr) {
-
-    }
-
-    @Override
-    public void visit(Relation rel) {
-
-    }
-
-    @Override
-    public void visit(RepeatStat rep) {
-
-    }
-
-    @Override
-    public void visit(Return ret) {
-
-    }
-
-    @Override
-    public void visit(RootAST root) {
-
-    }
-
-    @Override
-    public void visit(StatSeq seq) {
-
-    }
-
-    @Override
-    public void visit(Subtraction sub) {
-
-    }
-
-    @Override
-    public void visit(VariableDeclaration var) {
-
-    }
-
-    @Override
-    public void visit(WhileStat wstat) {
-
+    public Value visit(WhileStat wstat) {
+        return null;
     }
 
     @Override
     public Iterator<ir.cfg.CFG> iterator() {
         return null;
+    }
+
+    public CFG getCurCFG() {
+        return curCFG;
     }
 }

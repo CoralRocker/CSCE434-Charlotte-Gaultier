@@ -9,4 +9,9 @@ public class Mod extends Assign {
     public void accept(TACVisitor visitor) {
 
     }
+
+    @Override
+    public String genDot() {
+        return null;
+    }
 }

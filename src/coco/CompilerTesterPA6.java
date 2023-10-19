@@ -76,8 +76,15 @@ public class CompilerTesterPA6 {
 
         Compiler c = new Compiler(s, numRegs);
         ast.AST ast = c.genAST();
+
+        if( cmd.hasOption('a') ) {
+            System.out.println(ast.printPreOrder());
+        }
+
         types.TypeChecker tc = new types.TypeChecker();
         tc.check(ast);
+
+
 
         if (tc.hasError()) {
             System.out.println("Error type-checking file.");
@@ -86,7 +93,7 @@ public class CompilerTesterPA6 {
         }
 
         CFG ssa = c.genSSA(ast);
-        System.out.println(ssa);
+        System.out.println(ssa.asDotGraph());
 
     }
 }
