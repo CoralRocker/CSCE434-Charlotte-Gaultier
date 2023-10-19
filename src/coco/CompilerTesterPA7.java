@@ -7,7 +7,7 @@ import java.util.*;
 import org.apache.commons.cli.*;
 
 //PA 7 generates 2 digraphs, one un-optimized, one optimized.
-public class CompilerTester {
+public class CompilerTesterPA7 {
 
     public static void main(String[] args) {
         Options options = new Options();
