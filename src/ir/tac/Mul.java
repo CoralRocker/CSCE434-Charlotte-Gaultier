@@ -1,7 +1,7 @@
 package ir.tac;
 
 public class Mul extends Assign {
-    protected Mul(int id, Variable dest, Value left, Value right) {
+    public Mul(int id, Assignable dest, Value left, Value right) {
         super(id, dest, left, right);
     }
 
@@ -12,6 +12,6 @@ public class Mul extends Assign {
 
     @Override
     public String genDot() {
-        return null;
+        return String.format("mul %s %s %s", super.dest, super.left, super.right);
     }
 }

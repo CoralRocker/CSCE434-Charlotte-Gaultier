@@ -1,4 +1,4 @@
 package ir.tac;
 
-public interface Assignable {
+public interface Assignable extends Value {
 }

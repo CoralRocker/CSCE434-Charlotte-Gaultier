@@ -1,13 +1,11 @@
 package ir;
 
 import ast.*;
+import ast.Return;
 import coco.Symbol;
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
-import ir.tac.Literal;
-import ir.tac.Store;
-import ir.tac.Value;
-import ir.tac.Variable;
+import ir.tac.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,7 +18,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     private BasicBlock curBlock;
     private List<CFG> funcs;
 
-    private Variable asnDest;
+    private Assignable asnDest;
 
     private int tempNum = 0;
     private int instr = 0;
@@ -32,11 +30,20 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Addition add) {
-        AST lval = add.getLvalue();
-        AST rval = add.getRvalue();
 
+        Assignable tmpdest = asnDest;
 
-        return null;
+        asnDest = null;
+        Value lval = add.getLvalue().accept(this);
+        Value rval = add.getRvalue().accept(this);
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+
+        Add tac = new Add(instr++, target, lval, rval);
+        curBlock.add(tac);
+
+        return target;
     }
 
     @Override
@@ -61,28 +68,14 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         AST astSource = asn.getRvalue();
         Value src = null;
 
-        if( astSource instanceof ast.BoolLiteral ) {
-            src = new Literal(astSource);
-        }
-        else if( astSource instanceof ast.IntegerLiteral ) {
-            src = new Literal(astSource);
-        }
-        else if( astSource instanceof ast.FloatLiteral ) {
-            src = new Literal(astSource);
-        }
-        else if( astSource instanceof ast.Designator ) {
-            src = new Variable( ((Designator) astSource).getSymbol() );
-        }
-        else {
-            asnDest = dst;
-            astSource.accept(this);
-            asnDest = null;
-            return null;
-        }
+        asnDest = dst;
+        src = astSource.accept(this);
+        asnDest = null;
 
-
-        Store tac = new Store(++instr, dst, src);
-        curBlock.add(tac);
+        if( src != dst ) {
+            Store tac = new Store(++instr, dst, src);
+            curBlock.add(tac);
+        }
 
         return null;
     }
@@ -90,7 +83,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(BoolLiteral bool) {
 
-        return null;
+        return new Literal(bool);
     }
 
     @Override
@@ -101,8 +94,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Designator des) {
-
-        return null;
+        return new Variable(des.getSymbol());
     }
 
     @Override
@@ -113,8 +105,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(FloatLiteral flt) {
-
-        return null;
+        return new Literal(flt);
     }
 
     @Override
@@ -142,8 +133,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(IntegerLiteral il) {
-
-        return null;
+        return new Literal(il);
     }
 
     @Override
@@ -172,8 +162,20 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Multiplication mul) {
+        Assignable tmpdest = asnDest;
 
-        return null;
+        asnDest = null;
+        Value lval = mul.getLvalue().accept(this);
+        Value rval = mul.getRvalue().accept(this);
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+
+        Mul tac = new Mul(instr++, target, lval, rval);
+        curBlock.add(tac);
+
+        return target;
+
     }
 
     @Override

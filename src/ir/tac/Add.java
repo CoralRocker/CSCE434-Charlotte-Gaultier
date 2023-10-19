@@ -1,7 +1,7 @@
 package ir.tac;
 
 public class Add extends Assign{
-    protected Add(int id, Variable dest, Value left, Value right) {
+    public Add(int id, Assignable dest, Value left, Value right) {
         super(id, dest, left, right);
     }
 
@@ -12,7 +12,7 @@ public class Add extends Assign{
 
     @Override
     public String genDot() {
-        return null;
+        return String.format("add %s %s %s", super.dest, super.left, super.right);
     }
     // either do this way or blend the operator's meaning into Assign
 }
