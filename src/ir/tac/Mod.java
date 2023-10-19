@@ -12,6 +12,6 @@ public class Mod extends Assign {
 
     @Override
     public String genDot() {
-        return null;
+        return String.format("mod %s %s %s", dest, left, right);
     }
 }

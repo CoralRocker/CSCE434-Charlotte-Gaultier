@@ -12,6 +12,6 @@ public class Div extends Assign {
 
     @Override
     public String genDot() {
-        return null;
+        return String.format("div %s %s %s", dest, left, right);
     }
 }

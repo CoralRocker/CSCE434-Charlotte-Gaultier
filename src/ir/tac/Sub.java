@@ -12,6 +12,6 @@ public class Sub extends Assign {
 
     @Override
     public String genDot() {
-        return null;
+        return String.format("sub %s %s %s", dest,left,right);
     }
 }

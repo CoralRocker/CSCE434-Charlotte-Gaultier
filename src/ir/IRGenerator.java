@@ -38,10 +38,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = add.getLvalue().accept(this);
+        tempNum += 1;
         Value rval = add.getRvalue().accept(this);
+        tempNum -= 1;
         asnDest = tmpdest;
 
-        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
         Add tac = new Add(instr++, target, lval, rval);
         curBlock.add(tac);
@@ -51,6 +53,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(ArgList list) {
+        for( AST ast : list.getArgs() ) {
+            Value val = ast.accept(this);
+
+        }
 
         return null;
     }
@@ -63,6 +69,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Assignment asn) {
+
+        tempNum = 0;
 
         Designator dest = (Designator) asn.getTarget();
         Symbol destSym = dest.getSymbol();
@@ -107,10 +115,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = div.getLvalue().accept(this);
+        tempNum += 1;
         Value rval = div.getRvalue().accept(this);
+        tempNum -= 1;
         asnDest = tmpdest;
 
-        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
         Div tac = new Div(instr++, target, lval, rval);
         curBlock.add(tac);
@@ -131,6 +141,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(FuncCall fc) {
+
+        fc.getArgs().accept(this);
 
         Call tac = new Call(instr++, fc.getFunc());
         curBlock.add(tac);
@@ -224,14 +236,17 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Modulo mod) {
+
         Assignable tmpdest = asnDest;
 
         asnDest = null;
         Value lval = mod.getLvalue().accept(this);
+        tempNum += 1;
         Value rval = mod.getRvalue().accept(this);
+        tempNum -= 1;
         asnDest = tmpdest;
 
-        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
         Mod tac = new Mod(instr++, target, lval, rval);
         curBlock.add(tac);
@@ -241,14 +256,17 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Multiplication mul) {
+
         Assignable tmpdest = asnDest;
 
         asnDest = null;
         Value lval = mul.getLvalue().accept(this);
+        tempNum+=1;
         Value rval = mul.getRvalue().accept(this);
+        tempNum-=1;
         asnDest = tmpdest;
 
-        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
         Mul tac = new Mul(instr++, target, lval, rval);
         curBlock.add(tac);
@@ -259,6 +277,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Power pwr) {
+
         Assignable tmpdest = asnDest;
 
         asnDest = null;
@@ -266,7 +285,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value rval = pwr.getRvalue().accept(this);
         asnDest = tmpdest;
 
-        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
         Pow tac = new Pow(instr++, target, lval, rval);
         curBlock.add(tac);
@@ -276,6 +295,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Relation rel) {
+        tempNum = 0;
 
         Value lval = rel.getLvalue().accept(this);
         Value rval = rel.getRvalue().accept(this);
@@ -326,6 +346,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(StatSeq seq) {
         for( AST ast : seq.getSequence() ) {
+            tempNum = 0;
             ast.accept(this);
         }
 
@@ -338,10 +359,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = sub.getLvalue().accept(this);
+        tempNum += 1;
         Value rval = sub.getRvalue().accept(this);
+        tempNum -= 1;
         asnDest = tmpdest;
 
-        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
         Sub tac = new Sub(instr++, target, lval, rval);
         curBlock.add(tac);
