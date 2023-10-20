@@ -1,6 +1,6 @@
 package ir.cfg;
 
-public interface Visitable {
+public interface Visitable<E> {
     
-    public void accept (CFGVisitor visitor);
+    public E accept (CFGVisitor<E> visitor);
 }

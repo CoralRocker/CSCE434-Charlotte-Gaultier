@@ -1,4 +1,7 @@
 package ir.cfg;
 
-public class CFGVisitor {
+public abstract class CFGVisitor<E> {
+    public E visit(BasicBlock blk) {
+       return null;
+    }
 }

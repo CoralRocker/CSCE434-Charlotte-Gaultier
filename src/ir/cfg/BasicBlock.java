@@ -25,6 +25,10 @@ public class BasicBlock extends Block implements Iterable<TAC> {
         return successors;
     }
 
+    public List<BasicBlock> getPredecessors() {
+        return predecessors;
+    }
+
     // public BasicBlock(String name) {
     //     num = -1;
     //     label = name;
@@ -70,16 +74,22 @@ public class BasicBlock extends Block implements Iterable<TAC> {
         visited = false;
     }
 
-    @Override
-    public void accept(CFGVisitor visitor) {
-
-    }
-
     public int getNum() {
         return num;
     }
 
     public void setNum(int i){
         num = i;
+    }
+
+    @Override
+    public Void accept(CFGVisitor<Void> visitor) {
+        visitor.visit(this);
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("BB%d", getNum());
     }
 }
