@@ -24,7 +24,8 @@ public abstract class Block implements Visitable<Void> {
         return visited;
     }
 
-    protected List<Block> dom;
+    protected List<BasicBlock> domBy, domTo;
+    protected BasicBlock idom = null;
 
     protected Block () {
         visited = false;
@@ -39,4 +40,33 @@ public abstract class Block implements Visitable<Void> {
     }
 
     public abstract void resetVisited ();
+
+    public abstract int getNum();
+
+    public BasicBlock getIDom() {
+
+        int minblk = -1, minidx = -1;
+        for( int i = 0; i < domBy.size(); i++ ) {
+            BasicBlock blk = domBy.get(i);
+
+            if( blk == this )
+                continue;
+
+            if( minidx == -1 ) {
+                minidx = i;
+                minblk = blk.getNum();
+            }
+            else if( (getNum() - blk.getNum()) < (getNum() - minblk) ) {
+                minidx = i;
+                minblk = blk.getNum();
+            }
+        }
+
+        if( minidx == -1 ) {
+            return null;
+        }
+
+        idom = domBy.get(minidx);
+        return idom;
+    }
 }

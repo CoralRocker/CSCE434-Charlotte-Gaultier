@@ -74,6 +74,7 @@ public class BasicBlock extends Block implements Iterable<TAC> {
         visited = false;
     }
 
+    @Override
     public int getNum() {
         return num;
     }

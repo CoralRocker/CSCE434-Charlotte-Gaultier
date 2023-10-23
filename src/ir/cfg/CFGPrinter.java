@@ -68,6 +68,14 @@ public class CFGPrinter extends CFGVisitor {
                 queue.add(block);
                 addLnf("bb%d -> bb%d", blk.getNum(), block.getNum());
             }
+
+            if( blk.idom != null ) {
+                addLnf("bb%d -> bb%d [style=dotted, color=blue, label=idom];", blk.idom.getNum(), blk.getNum());
+            }
+
+            // for( BasicBlock dom : blk.dom ) {
+            //     addLnf("bb%d -> bb%d [style=dotted, color=blue, label=dom];", blk.getNum(), dom.getNum());
+            // }
         }
         addLn("}");
 

@@ -95,8 +95,10 @@ public class CFG implements Visitable<Void> {
     }
 
     public void domIteration(List<BasicBlock> allblocks, BasicBlock rem) {
+
+
         List<Boolean> found = new ArrayList<>();
-        allblocks.forEach((BasicBlock) -> {found.add(false);});
+        allblocks.forEach((BasicBlock) -> {found.add(false);}); // O(n)
 
         Stack<BasicBlock> stack = new Stack<>();
 
@@ -104,6 +106,7 @@ public class CFG implements Visitable<Void> {
             stack.add(head);
         }
 
+        // O(n)
         while( !stack.isEmpty() ) {
             BasicBlock node = stack.pop();
             node.markVisited();
@@ -118,58 +121,15 @@ public class CFG implements Visitable<Void> {
 
         }
 
-        System.out.printf("BB%d dominates: \n", rem.getNum());
+        // O(n)
         for( int i = 0; i < found.size(); i++ ) {
             if( !found.get(i) ) {
-                System.out.printf("\tBB%d: %s\n", i+1, allblocks.get(i) );
+                allblocks.get(i).domBy.add( rem );
+                rem.domTo.add(allblocks.get(i));
             }
         }
 
     }
-
-    public List<BasicBlock> getReversePostOrder() {
-        Stack<Pair<BasicBlock, BasicBlock>> stack = new Stack<>();
-        Stack<BasicBlock> out = new Stack<>();
-
-        breadthFirst((BasicBlock blk) -> {
-            blk.visitMap.clear();
-            blk.resetVisited();
-            for( BasicBlock parent : blk.getPredecessors() ) {
-                blk.visitMap.put(parent, false);
-            }
-        });
-
-        stack.push( new Pair<>(null, head) );
-
-        BasicBlock prev = null, curr = null;
-        while( !stack.isEmpty() ) {
-            Pair<BasicBlock, BasicBlock> pair = stack.pop();
-            curr = pair.second();
-            prev = pair.first();
-            out.push(curr);
-            curr.setVisited(prev);
-            curr.markVisited();
-
-            for( BasicBlock child : curr.getSuccessors() ) {
-                if( !child.visited() ) { // !child.allVisited() ) {
-                    stack.push(new Pair<>(curr, child));
-                }
-            }
-
-        }
-
-        stack.clear();
-        Stack<BasicBlock> outlist = new Stack<>();
-        while( !out.isEmpty() ) {
-            BasicBlock node = out.pop();
-            node.resetVisited();
-            node.visitMap.clear();
-            outlist.push(node);
-        }
-
-        return outlist;
-    }
-
 
     /**
      * @brief Calculate the DOM sets of each block in the CFG
@@ -179,86 +139,48 @@ public class CFG implements Visitable<Void> {
      *
      */
     public void calculateDOMSets() {
-        // Add Head to it's own dominance set
-        head.dom = new ArrayList<>();
-        head.dom.add( head );
 
         List<BasicBlock> dom = new ArrayList<>();
         List<Integer> domVal = new ArrayList<>();
-        List<BasicBlock> blocks = getReversePostOrder();
 
         markUnvisited();
-        for( int i = 0; i < blocks.size() - 1; i++ ) {
-            BasicBlock b1 = blocks.get(i);
-            BasicBlock b2 = blocks.get(i+1);
-
-            System.out.printf("bb%d -> bb%d [style=dotted]\n", b1.getNum(), b2.getNum());
-        }
-
-
-        BiFunction<Integer, Integer, Integer> intersect = (Integer b1, Integer b2) -> {
-            int finger1 = b1;
-            int finger2 = b2;
-
-            while( finger1 != finger2 ) {
-                while( domVal.get(finger1) < domVal.get(finger2) ) {
-                    finger1 = domVal.get(finger1);
-                }
-                while( domVal.get(finger2) < domVal.get(finger1) ) {
-                    finger2 = domVal.get(finger2);
-                }
-            }
-
-            return finger1;
-        };
-
         breadthFirst( (BasicBlock blk) -> {
             while( dom.size() < blk.getNum() ) {
                 dom.add(null);
+            }
+
+            if( blk.domBy == null ) {
+                blk.domBy = new ArrayList<>();
+            }
+            if( blk.domTo == null ) {
+                blk.domTo = new ArrayList<>();
             }
 
             dom.set( blk.getNum() - 1, blk);
         } );
         markUnvisited();
 
-        domIteration(dom, dom.get(2));
-
-        boolean changed = true;
-
-        while( changed ) {
-            changed = false;
-            for( BasicBlock b : blocks ) {
-               int new_idom = domVal.size();
-               for( BasicBlock p : b.getPredecessors() ) {
-                    int pval = domVal.get( p.getNum() );
-                    if( pval != -1 && p.getNum() < new_idom ) {
-                        new_idom = p.getNum();
-                    }
-               }
-
-               if( new_idom == domVal.size() ) {
-                   continue;
-               }
-
-               for( BasicBlock p : b.getPredecessors() ) {
-                   if( p.getNum() == new_idom ) {
-                       continue;
-                   }
-
-                   if( domVal.get(p.getNum()) != -1 ) {
-                        new_idom = intersect.apply(p.getNum(), new_idom);
-                   }
-               }
-
-               if( domVal.get(b.getNum()) != new_idom ) {
-                   domVal.set(b.getNum(), new_idom);
-                   changed = true;
-               }
-
-
-            }
-
+        for( int i = 0; i < dom.size(); i++ ) {
+            domIteration(dom, dom.get(i));
+            markUnvisited();
         }
+
+        for( BasicBlock blk : dom ) {
+            System.out.printf("BB%d Dominated By:\n", blk.getNum());
+            for( BasicBlock b : blk.domBy ) {
+                System.out.printf("\tBB%d\n", b.getNum());
+            }
+            System.out.printf("BB%d Dominates:\n", blk.getNum());
+            for( BasicBlock b : blk.domTo ) {
+                System.out.printf("\tBB%d\n", b.getNum());
+            }
+            BasicBlock idom = blk.getIDom();
+            if( idom == null )
+                System.out.printf("BB%d Immediate Dominator: NONE\n", blk.getNum());
+            else
+                System.out.printf("BB%d Immediate Dominator: BB%d\n", blk.getNum(), idom.getNum());
+        }
+
     }
 
     @Override
