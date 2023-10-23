@@ -162,7 +162,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Branch bra = new Branch(instr++, is.getIfrel().token().lexeme());
         if( val instanceof Variable ) {
-            Cmp cmp = new Cmp(instr++, val, new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))));
+            Cmp cmp = new Cmp(instr++,
+                              val,
+                              new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))),
+                              new Temporary(tempNum++),
+                              "eq" );
             curBlock.add(cmp);
             bra.setRel("==");
         }
@@ -295,25 +299,31 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Relation rel) {
-        tempNum = 0;
 
+        // tempNum = 0;
+        Assignable tempdest = asnDest;
+
+        asnDest = null;
         Value lval = rel.getLvalue().accept(this);
         Value rval = rel.getRvalue().accept(this);
+        asnDest = tempdest;
 
-        Cmp cmp = new Cmp(instr++, lval, rval );
-        curBlock.add(cmp);
+        Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
 
+        String op = null;
         switch( rel.token().kind() ) {
-            case GREATER_EQUAL -> {}
-            case GREATER_THAN -> {}
-            case LESS_EQUAL -> {}
-            case LESS_THAN -> {}
-            case EQUAL_TO -> {}
-            case NOT_EQUAL -> {}
+            case GREATER_EQUAL -> { op = "ge"; }
+            case GREATER_THAN -> { op = "gt"; }
+            case LESS_EQUAL -> { op = "le"; }
+            case LESS_THAN -> { op = "lt"; }
+            case EQUAL_TO -> { op = "eq"; }
+            case NOT_EQUAL -> { op = "ne"; }
         }
 
+        Cmp cmp = new Cmp(instr++, lval, rval, target, op );
+        curBlock.add(cmp);
 
-        return null;
+        return target;
     }
 
     @Override
@@ -380,6 +390,45 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(WhileStat wstat) {
+
+        tempNum = 0;
+        Value stmt = wstat.getRelation().accept(this);
+
+        BasicBlock loopBlk = new BasicBlock(blockNo++),
+                   postLoop = new BasicBlock(blockNo++);
+
+        Temporary cmpStart = new Temporary(tempNum++);
+        Cmp cmp = new Cmp(instr++, stmt, Literal.get(false), cmpStart, "eq" );
+        Branch braEnd = new Branch(instr++, "==");
+        braEnd.setVal(cmpStart);
+        braEnd.setDestination(postLoop);
+
+        curBlock.add(cmp);
+        curBlock.add(braEnd);
+
+        tempNum = 0;
+        curBlock.addSuccessor(loopBlk);
+        curBlock.addSuccessor(postLoop);
+        loopBlk.addPredecessor(curBlock);
+        postLoop.addPredecessor(curBlock);
+        postLoop.addPredecessor(loopBlk);
+        loopBlk.addSuccessor(postLoop);
+
+        curBlock = loopBlk;
+        wstat.getSeq().accept(this);
+        tempNum = 0;
+
+        stmt = wstat.getRelation().accept(this);
+        cmpStart = new Temporary(tempNum++);
+        cmp = new Cmp(instr++, stmt, Literal.get(true), cmpStart, "eq" );
+        braEnd = new Branch(instr++, "==");
+        braEnd.setVal(cmpStart);
+        braEnd.setDestination(loopBlk);
+        curBlock.add(cmp);
+        curBlock.add(braEnd);
+
+        curBlock = postLoop;
+
         return null;
     }
 

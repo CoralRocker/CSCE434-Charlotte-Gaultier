@@ -18,4 +18,5 @@ public abstract class TACVisitor {
 
     public abstract void visit(Branch bra);
 
+    public abstract void visit(Cmp cmp);
 }

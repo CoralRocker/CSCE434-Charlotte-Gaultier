@@ -4,6 +4,7 @@ import ir.cfg.BasicBlock;
 
 public class Branch extends TAC {
     private String rel;
+    private Value val = null;
 
     public void setRel(String rel) {
         this.rel = rel;
@@ -24,7 +25,10 @@ public class Branch extends TAC {
 
     @Override
     public void accept(TACVisitor visitor) {
+    }
 
+    public void setVal( Value val ) {
+        this.val = val;
     }
 
     @Override
@@ -54,6 +58,6 @@ public class Branch extends TAC {
             }
         }
 
-        return String.format("%s BB%d", jumpType, jumpTo.getNum());
+        return String.format("%s %s BB%d", jumpType, val.toString(), jumpTo.getNum());
     }
 }

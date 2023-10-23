@@ -1,6 +1,9 @@
 package ir.tac;
 
 import ast.AST;
+import ast.BoolLiteral;
+import ast.IntegerLiteral;
+import coco.Token;
 
 public class Literal implements Value{
 
@@ -17,6 +20,14 @@ public class Literal implements Value{
     public void accept(TACVisitor visitor) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'accept'");
+    }
+
+    public static Literal get(int i) {
+        return new Literal(new IntegerLiteral( Token.INT_VAL(String.valueOf(i), 0, 0)));
+    }
+
+    public static Literal get(boolean b) {
+        return new Literal(new BoolLiteral( new Token(String.valueOf(b), 0, 0)));
     }
 
     private AST val;
