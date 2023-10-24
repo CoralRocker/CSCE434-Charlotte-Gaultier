@@ -108,12 +108,12 @@ public class Compiler {
         return ast;
     }
 
-    public CFG genSSA(AST root) {
+    public List<CFG> genSSA(AST root) {
         IRGenerator gen = new IRGenerator();
 
         gen.visit((RootAST) root);
 
-        return gen.getCurCFG();
+        return gen.getAllCFGs();
     }
 
     public int[] compile () {

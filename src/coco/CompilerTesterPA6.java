@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 
 
 public class CompilerTesterPA6 {
@@ -92,8 +93,11 @@ public class CompilerTesterPA6 {
             System.exit(-4);
         }
 
-        CFG ssa = c.genSSA(ast);
-        System.out.println(ssa.asDotGraph());
+        Iterator<CFG> iterator = c.genSSA(ast).iterator();
+        while (iterator.hasNext()) {
+            CFG ssa = iterator.next();
+            System.out.println(ssa.asDotGraph());
+        }
 
     }
 }

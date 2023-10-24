@@ -1,4 +1,13 @@
 digraph G {
 bb1 [shape=record, label="<b>BB1 | {
-1: store 51 x|1: mul y 2 4|2: mul _t1 5 2|3: add x 3 _t1}"];
+	0: add x 3 1
+}"];
+}
+digraph G {
+bb1 [shape=record, label="<b>BB1 | {
+	2: store 51 x
+|	2: mul y 2 4
+|	3: mul _t1 5 2
+|	4: add x 3 _t1
+}"];
 }

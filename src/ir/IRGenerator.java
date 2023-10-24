@@ -156,7 +156,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(FuncDecl fd) {
-        System.out.println("visiting a function");
         // save curCFG as parent
         CFG parent = curCFG;
         // update curCFG to ths func
@@ -171,6 +170,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         // reset curCFG to parent
         curCFG = parent;
+        // TODO remove the curCFG resetting stuff, is unnecessary
+        // reset block number?? unsure
+        blockNo = 1;
         return null;
     }
 
@@ -397,7 +399,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         if( root.getVars() != null )
             root.getVars().accept(this);
         if( root.getFuncs() != null ) {
-            System.out.println("funcs");
             root.getFuncs().accept(this);
         }
         // TODO Vars
@@ -508,5 +509,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     public CFG getCurCFG() {
         return curCFG;
+    }
+
+    public List<CFG> getAllCFGs() {
+        return funcs;
     }
 }

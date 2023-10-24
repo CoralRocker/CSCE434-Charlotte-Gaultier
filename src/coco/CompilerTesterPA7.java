@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 
 
+import ir.cfg.CFG;
 import org.apache.commons.cli.*;
 
 //PA 7 generates 2 digraphs, one un-optimized, one optimized.
@@ -90,7 +91,6 @@ public class CompilerTesterPA7 {
         String graphDir = "graphs";
         if (cmd.hasOption("graphDir")) {
 //            graphDir = cmd.getOptionValue("graphDir");
-            System.out.println(graphDir);
             File dir = new File(graphDir);
             if (!dir.exists()) {
                 dir.mkdirs();
@@ -98,7 +98,6 @@ public class CompilerTesterPA7 {
             File file = new File("graphs/hello.txt");
             try {
                 boolean res = file.createNewFile();
-                System.out.println(res);
             } catch (IOException e) {
                 e.printStackTrace();
                 System.err.println("Error accessing the ast file: ");
@@ -109,7 +108,6 @@ public class CompilerTesterPA7 {
 
         if (cmd.hasOption("ast")) {
             String filename = cmd.hasOption("onefile") ? "ast.dot" : sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_ast.dot";
-            System.out.println(filename);
             try (PrintStream out = new PrintStream(graphDir+'/'+filename)) {
                 out.print(ast.asDotGraph());
             } catch (IOException e) {
@@ -127,9 +125,13 @@ public class CompilerTesterPA7 {
             System.exit(-4);
         }
 
-        String dotgraph_text = null;
+        String dotgraph_text = "";
         try {
-            dotgraph_text = c.genSSA(ast).asDotGraph();
+            Iterator<CFG> iterator = c.genSSA(ast).iterator();
+            while (iterator.hasNext()) {
+                CFG curCFG = iterator.next();
+                dotgraph_text += curCFG.asDotGraph();
+            }
             System.out.println(dotgraph_text);
         } catch (Exception e) {
             e.printStackTrace();
