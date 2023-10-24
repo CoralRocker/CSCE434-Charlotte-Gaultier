@@ -5,13 +5,14 @@ public class Div extends Assign {
         super(id, dest, left, right);
     }
 
-    @Override
-    public void accept(TACVisitor visitor) {
-
-    }
 
     @Override
     public String genDot() {
         return String.format("div %s %s %s", dest, left, right);
+    }
+
+    @Override
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 }

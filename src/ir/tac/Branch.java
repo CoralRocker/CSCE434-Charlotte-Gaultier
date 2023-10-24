@@ -23,9 +23,6 @@ public class Branch extends TAC {
         this.jumpTo = block;
     }
 
-    @Override
-    public void accept(TACVisitor visitor) {
-    }
 
     public void setVal( Value val ) {
         this.val = val;
@@ -59,5 +56,10 @@ public class Branch extends TAC {
         }
 
         return String.format("%s %s BB%d", jumpType, val.toString(), jumpTo.getNum());
+    }
+
+    @Override
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 }

@@ -25,8 +25,9 @@ public class Cmp extends TAC implements Visitable{
     }
 
 
+
     @Override
-    public void accept(TACVisitor visitor) {
-        visitor.visit(this);
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 }

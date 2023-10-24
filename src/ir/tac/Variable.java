@@ -24,11 +24,6 @@ public class Variable implements Value, Visitable, Assignable {
     }
 
     @Override
-    public void accept(TACVisitor visitor) {
-
-    }
-
-    @Override
     public String toString() {
         if( asnNum == -1 ) {
             return sym.name();
@@ -44,5 +39,10 @@ public class Variable implements Value, Visitable, Assignable {
 
     public void setAsnNum(int asnNum) {
         this.asnNum = asnNum;
+    }
+
+    @Override
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 }

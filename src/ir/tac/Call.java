@@ -18,7 +18,7 @@ public class Call extends TAC{
     }
 
     @Override
-    public void accept(TACVisitor visitor) {
-
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 }

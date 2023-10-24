@@ -85,7 +85,7 @@ public class BasicBlock extends Block implements Iterable<TAC> {
     }
 
     @Override
-    public Void accept(CFGVisitor<Void> visitor) {
+    public Object accept(CFGVisitor<Object> visitor) {
         visitor.visit(this);
         return null;
     }

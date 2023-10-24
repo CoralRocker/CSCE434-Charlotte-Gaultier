@@ -16,12 +16,6 @@ public class Literal implements Value{
         return true;
     }
 
-    @Override
-    public void accept(TACVisitor visitor) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accept'");
-    }
-
     public static Literal get(int i) {
         return new Literal(new IntegerLiteral( Token.INT_VAL(String.valueOf(i), 0, 0)));
     }
@@ -42,6 +36,11 @@ public class Literal implements Value{
             return String.valueOf(((ast.FloatLiteral) val).getLiteral());
         }
         return "LiteralValueError";
+    }
+
+    @Override
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 }
 

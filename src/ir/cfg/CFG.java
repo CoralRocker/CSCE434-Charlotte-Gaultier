@@ -24,15 +24,15 @@ class Pair<U, V> {
     }
 }
 
-public class CFG implements Visitable<Void> {
+public class CFG implements Visitable<Object> {
 
     private BasicBlock head;
     private DomTree tree = null;
 
     public String asDotGraph() {
         calculateDOMSets();
-        CFGPrinter printer = new CFGPrinter();
-        return printer.genDotGraph(this);
+        CFGPrinter printer = new CFGPrinter(this);
+        return printer.genDotGraph();
     }
 
     public CFG(BasicBlock head) {
@@ -152,12 +152,9 @@ public class CFG implements Visitable<Void> {
                 dom.add(null);
             }
 
-            if( blk.domBy == null ) {
-                blk.domBy = new ArrayList<>();
-            }
-            if( blk.domTo == null ) {
-                blk.domTo = new ArrayList<>();
-            }
+            blk.domBy = new ArrayList<>();
+            blk.domTo = new ArrayList<>();
+            blk.domFrontier = new ArrayList<>();
 
             dom.set( blk.getNum() - 1, blk);
         } );
@@ -224,7 +221,7 @@ public class CFG implements Visitable<Void> {
     }
 
     @Override
-    public Void accept(CFGVisitor<Void> visitor) {
-        return visitor.visit(head);
+    public Object accept(CFGVisitor<Object> visitor) {
+        return visitor.visit(this.head);
     }
 }

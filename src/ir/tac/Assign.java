@@ -21,4 +21,9 @@ public abstract class Assign extends TAC{
             throw new NullPointerException();
         }
     }
+
+    @Override
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
+    }
 }

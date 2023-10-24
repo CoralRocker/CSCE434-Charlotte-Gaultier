@@ -509,6 +509,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         return curCFG;
     }
 
+    public CFG getMainCFG() {
+        return funcs.get( funcs.size()-1 );
+    }
+
     public List<CFG> getAllCFGs() {
         return funcs;
     }

@@ -19,7 +19,7 @@ public class Temporary implements Value, Assignable, Visitable {
     }
 
     @Override
-    public void accept(TACVisitor visitor) {
-
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 }

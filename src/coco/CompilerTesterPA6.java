@@ -1,6 +1,7 @@
 package coco;
 
 import ir.cfg.CFG;
+import ir.cfg.SSACreator;
 import org.apache.commons.cli.*;
 
 import java.io.FileInputStream;
@@ -8,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.List;
 
 
 public class CompilerTesterPA6 {
@@ -93,11 +95,16 @@ public class CompilerTesterPA6 {
             System.exit(-4);
         }
 
-        Iterator<CFG> iterator = c.genSSA(ast).iterator();
+        List<CFG> cfgs = c.genSSA(ast);
+        Iterator<CFG> iterator = cfgs.iterator();
         while (iterator.hasNext()) {
             CFG ssa = iterator.next();
             System.out.println(ssa.asDotGraph());
         }
 
+        System.out.println("SSA-Ifying Main Function...");
+        SSACreator ssa = new SSACreator();
+        ssa.modify( cfgs.get( cfgs.size()-1 ) );
+        System.out.println( cfgs.get(cfgs.size()-1).asDotGraph() );
     }
 }

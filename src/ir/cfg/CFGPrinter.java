@@ -8,14 +8,15 @@ import java.util.List;
 import java.util.Queue;
 
 // To print basic block in Dot language
-public class CFGPrinter extends CFGVisitor {
+public class CFGPrinter {
 
     private StringBuilder builder;
 
     private CFG cfg;
 
-    public CFGPrinter() {
+    public CFGPrinter(CFG cfg) {
         builder = new StringBuilder();
+        this.cfg = cfg;
     }
 
     private void addLn(String f) {
@@ -28,8 +29,7 @@ public class CFGPrinter extends CFGVisitor {
         builder.append('\n');
     }
 
-    public String genDotGraph(CFG cfg) {
-        this.cfg = cfg;
+    public String genDotGraph() {
 
         addLn("digraph G {");
 
@@ -82,5 +82,4 @@ public class CFGPrinter extends CFGVisitor {
 
         return builder.toString();
     }
-
 }

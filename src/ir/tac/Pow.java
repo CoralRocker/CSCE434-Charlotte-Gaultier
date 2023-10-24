@@ -6,8 +6,8 @@ public class Pow extends Assign{
     }
 
     @Override
-    public void accept(TACVisitor visitor) {
-
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
     }
 
     @Override

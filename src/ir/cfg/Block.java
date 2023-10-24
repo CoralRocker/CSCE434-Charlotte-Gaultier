@@ -3,7 +3,7 @@ package ir.cfg;
 import java.util.HashMap;
 import java.util.List;
 
-public abstract class Block implements Visitable<Void> {
+public abstract class Block implements Visitable<Object> {
 
     boolean visited;
 
