@@ -1,0 +1,17 @@
+// Jaiden Kimmelman 328000077
+// Testing triple cascading error (adding int and bool, calling function with result, 
+// and assigning return to wrong type)
+
+main
+
+int x;
+bool a;
+
+function retInteger (int i) : int {
+	i++;
+	return i;
+};
+
+{
+	a = call retInteger(1+true);
+}.

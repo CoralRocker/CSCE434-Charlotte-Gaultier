@@ -24,7 +24,7 @@ public class CompilerTesterPA4 {
         options.addOption(null, "run-all", false, "Search current director for all \"testXXX.txt\" files");
 
         options.addOption("gDir", "graphDir", false, "Graph dir, default will be current dir");
-        options.addOption("ast", "ast", false, "Print AST.txt - requires graphs/");
+        options.addOption("ast", "ast", false, "Print AST.txt - requires coco.graphs/");
         options.addOption("sym", "sym", false, "Print Symbol Table to screen");
 
 

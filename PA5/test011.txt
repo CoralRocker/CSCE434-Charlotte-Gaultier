@@ -1,0 +1,15 @@
+// Tests type checks for equality and subtraction between booleans and integers
+// Anthony Pierson 430005891
+main
+
+bool a,b;
+{
+    a = true;
+    b = false;
+
+    if (a == 1) then
+        call printBool(2);
+    else
+        call printBool(3-b);
+    fi;
+}.

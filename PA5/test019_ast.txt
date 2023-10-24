@@ -1,0 +1,47 @@
+Computation[main:()->void]
+  DeclarationList
+    FunctionDeclaration[foo:(int,bool)->void]
+      FunctionBody
+        StatementSequence
+          Assignment
+            a:int
+            Addition
+              a:int
+              IntegerLiteral[1]
+          IfStatement
+            b:bool
+            StatementSequence
+              ReturnStatement
+                a:int
+            StatementSequence
+              ReturnStatement
+                Subtraction
+                  a:int
+                  IntegerLiteral[1]
+    FunctionDeclaration[foo:(bool,int)->void]
+      FunctionBody
+        StatementSequence
+          Assignment
+            b:int
+            Addition
+              b:int
+              IntegerLiteral[1]
+          IfStatement
+            a:bool
+            StatementSequence
+              ReturnStatement
+                b:int
+            StatementSequence
+              ReturnStatement
+                Addition
+                  b:int
+                  IntegerLiteral[1]
+  StatementSequence
+    FunctionCall[foo:(int,bool)->void, foo:(bool,int)->void]
+      ArgumentList
+        IntegerLiteral[1]
+        BoolLiteral[false]
+    FunctionCall[foo:(int,bool)->void, foo:(bool,int)->void]
+      ArgumentList
+        BoolLiteral[false]
+        IntegerLiteral[1]

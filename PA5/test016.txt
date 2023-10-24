@@ -1,0 +1,31 @@
+// Ahmet Coskuner 126009366
+// Function with var declaration inside
+// Void function in expression, non-void in statement
+main
+
+int x, y;
+bool z;
+
+function max (int a, int b) : int {
+    int ret;
+    if (a >= b) then
+        call printInt(a);
+        ret = a;
+    else
+        if (a < b) then
+            call printInt(b);
+            ret = b;
+        fi;
+    fi;
+    return (z > y);
+};
+
+{
+    x = 5;
+    y = 10;
+    z = call println();
+    y = call max(x, y);
+    if (not z) then
+        call printBool(z);
+    fi;
+}.

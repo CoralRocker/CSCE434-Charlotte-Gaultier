@@ -99,7 +99,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(DeclarationList list) {
-
+        for( AST decl : list.getContained() ) {
+            decl.accept(this);
+        }
         return null;
     }
 
@@ -152,6 +154,21 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(FuncDecl fd) {
+        System.out.println("visiting a function");
+        // save curCFG as parent
+        CFG parent = curCFG;
+        // update curCFG to ths func
+        // unsure if this is the right way to deal w block
+        curBlock = new BasicBlock(blockNo++);
+        curCFG = new CFG(curBlock);
+        funcs.add(curCFG);
+        // add curCFG to funcs list
+
+        // visit function body
+        fd.getBody().accept(this);
+
+        // reset curCFG to parent
+        curCFG = parent;
         return null;
     }
 
@@ -374,11 +391,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     public Value visit(RootAST root) {
 
         // TODO Functions
-
+        //
+        if( root.getVars() != null )
+            root.getVars().accept(this);
+        if( root.getFuncs() != null ) {
+            System.out.println("funcs");
+            root.getFuncs().accept(this);
+        }
         // TODO Vars
 
         curBlock = new BasicBlock(blockNo++);
         curCFG = new CFG(curBlock);
+        funcs.add(curCFG);
 
         root.getSeq().accept(this);
 

@@ -1,0 +1,12 @@
+// Farabi Mahmud
+// 327008950
+// should not do logical operation on bool and int
+main
+
+int a;
+bool b,c;
+
+{
+  c = (a or b);
+  call printBool(c);
+}.

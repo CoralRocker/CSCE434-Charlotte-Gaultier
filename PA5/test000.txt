@@ -1,0 +1,12 @@
+main
+int x,y,z;
+
+function func(): void {
+	return;
+};
+
+{
+    x = 51;
+    y = 2 * 4;
+    x = 3 + 5 * 2;
+}.

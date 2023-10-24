@@ -1,0 +1,16 @@
+main
+
+int a,b;
+
+{
+    a = not b;
+    a = call readInt();
+    while (a) do
+        a++;
+        b = a;
+        repeat
+            call printBool(b);
+            b--;
+        until (b==false);
+    od;
+}.

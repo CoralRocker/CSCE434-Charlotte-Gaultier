@@ -1,0 +1,25 @@
+//Samuel Torres 130006243
+main
+
+int x, y;
+bool b1, b2;
+
+main {
+  //Assignment
+  b1 = true;
+  b2 = false;
+  x = 1;
+  y = 0;
+
+  //Check UNI_INC
+  b1++;
+
+  //Check UNI_DEC
+  b2--;
+
+  //Check or for ints
+  x = x or y;
+
+  //Check or for mixed types (int and bool)
+  x = y or b2;
+}.

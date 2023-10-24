@@ -18,11 +18,11 @@ public class CompilerTesterPA7 {
         options.addOption("a", "astOut", false, "Print AST");
 
         options.addOption("gDir", "graphDir", false, "Graph dir, default will be current dir");
-        options.addOption("ast", "ast", false, "Print AST.dot - requires graphs/");
+        options.addOption("ast", "ast", false, "Print AST.dot - requires coco.graphs/");
 
-        options.addOption("cfg", "cfg", false, "Print CFG.dot - requires graphs/");
-        options.addOption("onefile", "onefile", false, "If true, 'ast.dot' and 'cfg.dot' are the names for files in graphs/");
-        options.addOption("allowVersions", "allowVersions", false, "Allowing versioning for files in graphs/");
+        options.addOption("cfg", "cfg", false, "Print CFG.dot - requires coco.graphs/");
+        options.addOption("onefile", "onefile", false, "If true, 'ast.dot' and 'cfg.dot' are the names for files in coco.graphs/");
+        options.addOption("allowVersions", "allowVersions", false, "Allowing versioning for files in coco.graphs/");
 
 
         options.addOption("o", "opt", true, "Order-sensitive optimization -allowed to have multiple");
@@ -87,19 +87,30 @@ public class CompilerTesterPA7 {
         }
 
         // create graph dir if needed
-        String graphDir = "";
+        String graphDir = "graphs";
         if (cmd.hasOption("graphDir")) {
-            graphDir = cmd.getOptionValue("graphDir");
+//            graphDir = cmd.getOptionValue("graphDir");
+            System.out.println(graphDir);
             File dir = new File(graphDir);
             if (!dir.exists()) {
                 dir.mkdirs();
+            }
+            File file = new File("graphs/hello.txt");
+            try {
+                boolean res = file.createNewFile();
+                System.out.println(res);
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.err.println("Error accessing the ast file: ");
+                System.exit(-2);
             }
         }
 
 
         if (cmd.hasOption("ast")) {
             String filename = cmd.hasOption("onefile") ? "ast.dot" : sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_ast.dot";
-            try (PrintStream out = new PrintStream(graphDir+File.pathSeparator+filename)) {
+            System.out.println(filename);
+            try (PrintStream out = new PrintStream(graphDir+'/'+filename)) {
                 out.print(ast.asDotGraph());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -128,7 +139,7 @@ public class CompilerTesterPA7 {
 
         if (cmd.hasOption("cfg")) {
             String filename = cmd.hasOption("onefile") ? "cfg.dot" : sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_cfg.dot";
-            try (PrintStream out = new PrintStream(graphDir+File.pathSeparator+filename)) {
+            try (PrintStream out = new PrintStream(graphDir+"/"+filename)) {
                 out.print(dotgraph_text);
             } catch (IOException e) {
                 e.printStackTrace();

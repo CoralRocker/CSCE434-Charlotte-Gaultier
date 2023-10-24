@@ -1,0 +1,18 @@
+// Caleb Austin 830006168
+// Makes sure function return type of void cannot be assigned to a variable. 
+
+main
+
+bool b;
+int i;
+float f;
+
+function func(): void {
+	return;
+};
+
+{
+	b = call func();
+	i = call func();
+	f = call func();
+}.

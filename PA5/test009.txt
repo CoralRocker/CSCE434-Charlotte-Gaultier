@@ -1,0 +1,17 @@
+// Caleb Norton 628007801
+// test call Statements must be void return type
+// and call Expressions must also be non void return type.
+
+main
+int a;
+{
+  // ok
+  a = call readInt();
+
+  // bad
+  call readBool();
+
+  // bad
+  a = printInt(a);
+
+}.

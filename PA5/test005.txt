@@ -1,0 +1,21 @@
+// Eyobel Berhane 328001599
+
+main
+
+// Create an int and a bool variable
+int t, q;
+bool l;
+
+// In main function, create define l based on t and q comparison
+{
+    // Initialize the integers
+    t = 2;
+    q = 1;
+
+    // Set and print "l"
+    l = (t > q);
+    call printBool(l);
+    
+    // Return an error if we attempt to logical-OR two ints together
+    call printBool(t or q);
+}.

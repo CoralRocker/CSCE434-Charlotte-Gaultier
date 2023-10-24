@@ -1,0 +1,84 @@
+// Chris Baldwin
+// 605 Only
+// Tests array return type used inside function arguments
+// Tests scope leak of variables
+// Tests future functions with same name, but different array args (cannot simply use an int array)
+
+main
+
+int[5] x, y, z;
+int[3][5] all;
+int i;
+
+function arrayCopy(int[] src, int[] dest, int length) : void {
+    int i;
+
+    i = 0;
+    while (i < length) do
+        dest[i] = src[i];
+    od;
+};
+
+function arrayInit(int[] dest, int length, int init) : void {
+    int i;
+
+    i = 0;
+    while (i < length) do
+        dest[i] = init;
+    od;
+};
+
+function arrayInit(int length, int init) : int[] {
+    int[5] ret;
+
+    return call arrayInit(ret, 5, init);
+}
+
+function itod(int[] dest, int length) : void {
+    int i;
+
+    i = 0;
+    while (i < length) do
+        dest[i] = i;
+    od;
+};
+
+
+function itod(int length) : int[] {
+    int[5] ret;
+
+    return call itod(ret, length);
+};
+
+// Calls future function and tests scope leak
+function printArray(int[][] arr, int cols, int rows) : void {
+    int i;
+
+    i = 0;
+    while ((i < length) and (length > 0)) do
+        call printArray(arr[i]);
+    od;
+}
+
+function printArray(int[] arr, int length) : void {
+    int i;
+
+    i = 0;
+    while ((i < length) and (length > 0)) do
+        call printInt(arr[i]);
+    od; 
+};
+
+{
+    call arrayCopy(call itod(5), x, 5);
+    call printInt(i); // Should be 0; No out of scope leak
+
+    call arrayCopy(call arrayInit(5, -1), y, 5);
+    call printInt(i); // Should be 0; No out of scope leak
+
+    call arrayCopy(all[0], x, 5);
+    call arrayCopy(all[1], y, 5);
+    call arrayCopy(all[2], z, 5);
+
+    call printArray(all, 3, 5);
+}.

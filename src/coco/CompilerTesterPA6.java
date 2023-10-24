@@ -20,7 +20,7 @@ public class CompilerTesterPA6 {
         options.addOption("a", "astOut", false, "Print AST");
 
         options.addOption("gDir", "graphDir", false, "Graph dir, default will be current dir");
-        options.addOption("ast", "ast", false, "Print AST.dot - requires graphs/");
+        options.addOption("ast", "ast", false, "Print AST.dot - requires coco.graphs/");
 
 
 

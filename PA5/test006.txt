@@ -1,0 +1,25 @@
+//Himani Deshpande
+//arithmetic operations on "like" and "unlike" types
+
+main
+int x,y;
+float a,b;
+bool p,q;
+{
+x = 2;
+y = 3;
+a = 2.0;
+b = 3.0;
+p = true;
+q = false;
+
+x += y; //fine
+a += b; //fine
+
+y += a;  //error
+b -= x;  //error
+b *= p;  //error
+x /= q;  //error
+
+return;
+}.
