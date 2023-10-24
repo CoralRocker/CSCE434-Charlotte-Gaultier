@@ -53,7 +53,7 @@ public class CFGPrinter extends CFGVisitor {
             while( instructions.hasNext() ) {
                 TAC tac = instructions.next();
 
-                builder.append(String.format("%d: %s", tac.getId(), tac.genDot()));
+                builder.append(String.format("\t%d: %s\n", tac.getId(), tac.genDot()));
                 if( instructions.hasNext() ) {
                     builder.append('|');
                 }

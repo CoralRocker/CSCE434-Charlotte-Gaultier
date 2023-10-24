@@ -162,13 +162,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Branch bra = new Branch(instr++, is.getIfrel().token().lexeme());
         if( val instanceof Variable ) {
+            Temporary storage = new Temporary(tempNum++);
             Cmp cmp = new Cmp(instr++,
                               val,
                               new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))),
-                              new Temporary(tempNum++),
+                              storage,
                               "eq" );
             curBlock.add(cmp);
             bra.setRel("==");
+            bra.setVal( storage );
+        }
+        else {
+            bra.setVal(val);
         }
 
 
@@ -329,6 +334,33 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(RepeatStat rep) {
 
+        BasicBlock repBlk = new BasicBlock(blockNo++);
+        curBlock.addSuccessor(repBlk);
+        repBlk.addPredecessor(curBlock);
+        curBlock = repBlk;
+
+        rep.getSeq().accept(this);
+
+        Value val = rep.getRelation().accept(this);
+
+        Branch braEnd = new Branch(instr++, "!=");
+        braEnd.setVal(val);
+        braEnd.setDestination(repBlk);
+        curBlock.add( braEnd );
+
+        // Add path back to start of loop
+        curBlock.addSuccessor(( repBlk ));
+        repBlk.addPredecessor( curBlock );
+
+        // Add exit path
+        BasicBlock postRep = new BasicBlock(blockNo++);
+        postRep.addPredecessor( curBlock );
+        curBlock.addSuccessor( postRep );
+        curBlock = postRep;
+
+
+
+
         return null;
     }
 
@@ -395,7 +427,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value stmt = wstat.getRelation().accept(this);
 
         BasicBlock loopBlk = new BasicBlock(blockNo++),
-                   postLoop = new BasicBlock(blockNo++);
+                   postLoop = new BasicBlock(-1);
 
         Temporary cmpStart = new Temporary(tempNum++);
         Cmp cmp = new Cmp(instr++, stmt, Literal.get(false), cmpStart, "eq" );
@@ -407,11 +439,19 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock.add(braEnd);
 
         tempNum = 0;
+
+        // Can Either go to loop or post loop
         curBlock.addSuccessor(loopBlk);
         curBlock.addSuccessor(postLoop);
+
+        // Loop inherits from this
         loopBlk.addPredecessor(curBlock);
+
+        // Post Loop Inherits from This and Loopblk
         postLoop.addPredecessor(curBlock);
         postLoop.addPredecessor(loopBlk);
+
+        // Loop Block falls through to post loop
         loopBlk.addSuccessor(postLoop);
 
         curBlock = loopBlk;
@@ -426,8 +466,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         braEnd.setDestination(loopBlk);
         curBlock.add(cmp);
         curBlock.add(braEnd);
+        curBlock.addSuccessor(loopBlk);
+        loopBlk.addPredecessor(curBlock);
 
         curBlock = postLoop;
+        postLoop.setNum(blockNo++);
 
         return null;
     }

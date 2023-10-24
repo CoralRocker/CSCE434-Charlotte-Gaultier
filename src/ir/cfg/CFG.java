@@ -27,6 +27,7 @@ class Pair<U, V> {
 public class CFG implements Visitable<Void> {
 
     private BasicBlock head;
+    private DomTree tree = null;
 
     public String asDotGraph() {
         calculateDOMSets();
@@ -74,6 +75,8 @@ public class CFG implements Visitable<Void> {
                 }
             }
         }
+
+        markUnvisited();
     }
 
     public void depthFirst( Consumer<BasicBlock> function ) {
@@ -181,6 +184,43 @@ public class CFG implements Visitable<Void> {
                 System.out.printf("BB%d Immediate Dominator: BB%d\n", blk.getNum(), idom.getNum());
         }
 
+        tree = new DomTree(head);
+        for( int i = 1; i < dom.size(); i++ ) {
+            BasicBlock node = dom.get(i);
+            tree.addNode(node.idom, node);
+        }
+
+        System.out.printf("Dominator Tree:\n %s\n", tree.genDot());
+
+        calculateDomFrontier();
+
+        System.out.println("Dominance Frontiers:");
+        for( BasicBlock blk : dom ) {
+            System.out.printf("BB%d: {", blk.getNum());
+            if( blk.domFrontier != null ) {
+                blk.domFrontier.forEach((BasicBlock b) -> {
+                    System.out.printf(" BB%d", b.getNum());
+                });
+            }
+            System.out.printf(" }\n");
+        }
+    }
+
+    public void calculateDomFrontier() {
+        breadthFirst((BasicBlock v) -> {
+            if( v.getPredecessors().size() >= 2 ) {
+                for( BasicBlock p : v.getPredecessors() ) {
+                    BasicBlock runner = p;
+                    while( runner != v.idom ) {
+                        if( runner.domFrontier == null ) {
+                            runner.domFrontier = new ArrayList<>();
+                        }
+                        runner.domFrontier.add(v);
+                        runner = runner.idom;
+                    }
+                }
+            }
+        });
     }
 
     @Override

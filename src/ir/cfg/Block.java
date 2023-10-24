@@ -24,7 +24,7 @@ public abstract class Block implements Visitable<Void> {
         return visited;
     }
 
-    protected List<BasicBlock> domBy, domTo;
+    protected List<BasicBlock> domBy, domTo, domFrontier;
     protected BasicBlock idom = null;
 
     protected Block () {
