@@ -137,7 +137,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(FuncBody fb) {
-
+        if( fb.getVarList() != null )
+            fb.getVarList().accept(this);
+        fb.getSeq().accept(this);
         return null;
     }
 
