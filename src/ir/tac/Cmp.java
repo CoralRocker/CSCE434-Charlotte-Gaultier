@@ -1,13 +1,13 @@
 package ir.tac;
 
-public class Cmp extends TAC implements Visitable{
+public class Cmp extends Assign implements Visitable{
 
     private Value rhs, lhs;
     private Assignable target;
     private String op;
 
     public Cmp(int id, Value rhs, Value lhs, Assignable target, String op) {
-        super(id);
+        super(id, target, lhs, rhs);
         this.rhs = rhs;
         this.lhs = lhs;
         this.op = op;

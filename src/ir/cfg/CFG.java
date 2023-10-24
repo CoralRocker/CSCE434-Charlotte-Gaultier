@@ -7,23 +7,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-class Pair<U, V> {
-    private U u;
-    private V v;
-    public Pair(U u, V v) {
-        this.u = u;
-        this.v = v;
-    }
-
-    public U first() {
-        return u;
-    }
-
-    public V second() {
-        return v;
-    }
-}
-
 public class CFG implements Visitable<Object> {
 
     private BasicBlock head;
@@ -165,21 +148,21 @@ public class CFG implements Visitable<Object> {
             markUnvisited();
         }
 
-        for( BasicBlock blk : dom ) {
-            System.out.printf("BB%d Dominated By:\n", blk.getNum());
-            for( BasicBlock b : blk.domBy ) {
-                System.out.printf("\tBB%d\n", b.getNum());
-            }
-            System.out.printf("BB%d Dominates:\n", blk.getNum());
-            for( BasicBlock b : blk.domTo ) {
-                System.out.printf("\tBB%d\n", b.getNum());
-            }
-            BasicBlock idom = blk.getIDom();
-            if( idom == null )
-                System.out.printf("BB%d Immediate Dominator: NONE\n", blk.getNum());
-            else
-                System.out.printf("BB%d Immediate Dominator: BB%d\n", blk.getNum(), idom.getNum());
-        }
+        // for( BasicBlock blk : dom ) {
+        //     System.out.printf("BB%d Dominated By:\n", blk.getNum());
+        //     for( BasicBlock b : blk.domBy ) {
+        //         System.out.printf("\tBB%d\n", b.getNum());
+        //     }
+        //     System.out.printf("BB%d Dominates:\n", blk.getNum());
+        //     for( BasicBlock b : blk.domTo ) {
+        //         System.out.printf("\tBB%d\n", b.getNum());
+        //     }
+        //     BasicBlock idom = blk.getIDom();
+        //     if( idom == null )
+        //         System.out.printf("BB%d Immediate Dominator: NONE\n", blk.getNum());
+        //     else
+        //         System.out.printf("BB%d Immediate Dominator: BB%d\n", blk.getNum(), idom.getNum());
+        // }
 
         tree = new DomTree(head);
         for( int i = 1; i < dom.size(); i++ ) {
@@ -187,20 +170,20 @@ public class CFG implements Visitable<Object> {
             tree.addNode(node.idom, node);
         }
 
-        System.out.printf("Dominator Tree:\n %s\n", tree.genDot());
+        // System.out.printf("Dominator Tree:\n %s\n", tree.genDot());
 
         calculateDomFrontier();
 
-        System.out.println("Dominance Frontiers:");
-        for( BasicBlock blk : dom ) {
-            System.out.printf("BB%d: {", blk.getNum());
-            if( blk.domFrontier != null ) {
-                blk.domFrontier.forEach((BasicBlock b) -> {
-                    System.out.printf(" BB%d", b.getNum());
-                });
-            }
-            System.out.printf(" }\n");
-        }
+        // System.out.println("Dominance Frontiers:");
+        // for( BasicBlock blk : dom ) {
+        //     System.out.printf("BB%d: {", blk.getNum());
+        //     if( blk.domFrontier != null ) {
+        //         blk.domFrontier.forEach((BasicBlock b) -> {
+        //             System.out.printf(" BB%d", b.getNum());
+        //         });
+        //     }
+        //     System.out.printf(" }\n");
+        // }
     }
 
     public void calculateDomFrontier() {
