@@ -22,7 +22,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     private Assignable asnDest;
 
     private int tempNum = 0;
-    private int instr = 0;
+    private int instr = 1;
 
     private int blockNo = 1;
 
@@ -74,7 +74,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Designator dest = (Designator) asn.getTarget();
         Symbol destSym = dest.getSymbol();
-        Variable dst = new Variable(destSym);
+        Variable dst = new Variable(destSym, instr);
 
         AST astSource = asn.getRvalue();
         Value src = null;
@@ -84,7 +84,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         asnDest = null;
 
         if( src != dst ) {
-            Store tac = new Store(++instr, dst, src);
+            Store tac = new Store(instr++, dst, src);
             curBlock.add(tac);
         }
 
@@ -181,7 +181,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Value val = is.getIfrel().accept(this);
 
-        Branch bra = new Branch(instr++, is.getIfrel().token().lexeme());
+        Branch bra = new Branch(0, is.getIfrel().token().lexeme());
         if( val instanceof Variable ) {
             Temporary storage = new Temporary(tempNum++);
             Cmp cmp = new Cmp(instr++,
@@ -197,6 +197,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             bra.setVal(val);
         }
 
+        bra.setId( instr++ );
 
         curBlock.add(bra);
 
@@ -378,9 +379,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         postRep.addPredecessor( curBlock );
         curBlock.addSuccessor( postRep );
         curBlock = postRep;
-
-
-
 
         return null;
     }

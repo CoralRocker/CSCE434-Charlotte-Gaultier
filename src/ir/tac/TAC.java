@@ -16,4 +16,9 @@ public abstract class TAC implements Visitable{
     public abstract String genDot();
 
     public int getId() { return id; }
+
+    public int setId(int i) {
+        id = i;
+        return id;
+    }
 }
