@@ -19,6 +19,7 @@ public class CFG implements Visitable<Object> {
     public void setSymbols(TreeSet<VariableSymbol> syms) { symbols = syms; }
 
     private BasicBlock head;
+    protected List<BasicBlock> allNodes = null;
     private DomTree tree = null;
 
     public String asDotGraph() {
@@ -36,18 +37,25 @@ public class CFG implements Visitable<Object> {
     }
 
     public void markUnvisited() {
-        Queue<BasicBlock> queue = new LinkedList<>();
+        if( allNodes == null ) {
+            Queue<BasicBlock> queue = new LinkedList<>();
 
-        queue.add(head);
-        while( !queue.isEmpty() ) {
-            BasicBlock node = queue.remove();
-            node.resetVisited();
+            queue.add(head);
+            while (!queue.isEmpty()) {
+                BasicBlock node = queue.remove();
+                node.resetVisited();
 
-            for( BasicBlock child : node.getSuccessors() ) {
-                if( child.visited() ) {
-                    queue.add(child);
+                for (BasicBlock child : node.getSuccessors()) {
+                    if (child.visited()) {
+                        queue.add(child);
+                    }
                 }
             }
+        }
+        else {
+            allNodes.forEach(b -> {
+                b.resetVisited();
+            });
         }
     }
 
@@ -138,7 +146,10 @@ public class CFG implements Visitable<Object> {
         List<BasicBlock> dom = new ArrayList<>();
         List<Integer> domVal = new ArrayList<>();
 
+
         markUnvisited();
+
+        allNodes = dom;
         breadthFirst( (BasicBlock blk) -> {
             while( dom.size() < blk.getNum() ) {
                 dom.add(null);
@@ -150,7 +161,6 @@ public class CFG implements Visitable<Object> {
 
             dom.set( blk.getNum() - 1, blk);
         } );
-        markUnvisited();
 
         for( int i = 0; i < dom.size(); i++ ) {
             domIteration(dom, dom.get(i));

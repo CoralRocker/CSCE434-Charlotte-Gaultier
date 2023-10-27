@@ -6,23 +6,25 @@ import ir.tac.*;
 
 import java.util.TreeSet;
 
-class SymbolVal implements Comparable<SymbolVal> {
+class SymbolVal implements Comparable<SymbolVal>, Cloneable {
 
     public final VariableSymbol sym; // Symbol with type
     public int instr; // Where the literal is assigned. Start at -1 and never reset. -1 indicates undefined
     public Literal val; // Null or the Literal Const Value
 
+    private boolean same( SymbolVal o ) {
+        return this.sym == o.sym
+            && this.instr == o.instr
+            && this.val == o.val;
+    }
+
     // Merge Two Symbol Values together. Return whether the value changed.
     public boolean merge( SymbolVal other ) {
-        if( sym != other.sym )
+        if( !sym.equals(other.sym) )
             throw new IllegalArgumentException(String.format("%s and %s are no the same symbol values!", this, other));
 
-        // Not Const + Anything = Not Const
-        if( val == null || other.val == null ) {
-            boolean changed = val != null;
-            val = null;
-            return changed;
-        }
+        if( same(other) )
+            return false;
 
         // Undefined + Anything = Anything
         if( instr == -1 ) {
@@ -34,9 +36,20 @@ class SymbolVal implements Comparable<SymbolVal> {
             return false;
         }
 
+        // Not Const + Anything = Not Const
+        if( val == null || other.val == null ) {
+            boolean changed = val != null;
+            val = null;
+            if( changed )
+                instr = other.instr;
+            return changed;
+        }
+
+
         // If constants are not equal, not constant
         if( !val.equals(other.val) ) {
             val = null;
+            instr = 0;
             return true;
         }
 
@@ -49,17 +62,26 @@ class SymbolVal implements Comparable<SymbolVal> {
         val = l;
     }
 
-    public void assign( SymbolVal other ) {
-        if( sym != other.sym )
+    public boolean assign( SymbolVal other ) {
+        if( !sym.equals( other.sym ) )
             throw new IllegalArgumentException(String.format("%s and %s are no the same symbol values!", this, other));
 
+
         instr = other.instr;
+        boolean changed;
+        if( val != null ) {
+            changed = val.equals(other.val);
+        }
+        else {
+            changed = val != other.val;
+        }
         val = other.val;
+        return changed;
     }
 
     @Override
     public String toString() {
-        return String.format("%s:%d", val, instr);
+        return String.format("%s(%s:%d)", sym.name(), val, instr);
     }
 
     @Override
@@ -70,6 +92,22 @@ class SymbolVal implements Comparable<SymbolVal> {
     public boolean isConstant() {
         return instr != -1 && val != null;
     }
+
+    @Override
+    public SymbolVal clone() {
+        var clone = new SymbolVal(sym.clone(), instr, null);
+        if( val != null )
+            clone.val = val.clone();
+        return clone;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if( o == null || !(o instanceof SymbolVal) )
+            return false;
+
+        return sym.equals((SymbolVal) o);
+    }
 }
 
 public class GlobalConstProp extends CFGVisitor {
@@ -79,7 +117,7 @@ public class GlobalConstProp extends CFGVisitor {
         for( SymbolVal sym : src ) {
             if( dest.contains(sym) ) {
                 // Merge into the set
-                changed |= dest.subSet(sym,sym)
+                changed |= dest.subSet(sym, true, sym, true)
                                 .first()
                                 .merge( sym );
             }
@@ -110,23 +148,33 @@ public class GlobalConstProp extends CFGVisitor {
             });
         });
 
-        boolean changed = true;
-        while( changed ) {
-            changed = false;
-
+        var changed = new Object(){ boolean b = true; };
+        int iters = 0;
+        while( changed.b ) {
+            changed.b = false;
+            iters++;
             cfg.breadthFirst((BasicBlock b) -> {
                 for( BasicBlock p : b.getPredecessors() ) {
                     if( b != p ) {
                         // Merge the incoming changes from "ABOVE"
-                        GlobalConstProp.mergeSymbolList((TreeSet<SymbolVal>) b.entry, (TreeSet<SymbolVal>) p.exit);
+                        changed.b |= GlobalConstProp.mergeSymbolList((TreeSet<SymbolVal>) b.entry, (TreeSet<SymbolVal>) p.exit);
                     }
                 }
 
-                TreeSet<SymbolVal> set = ConstantDefinedInBlock.defInBlock(b);
+                changed.b |= ConstantDefinedInBlock.defInBlock(b, false);
 
             });
 
+            // System.out.printf("Post Iteration %2d:\n", iters);
+            // System.out.println(cfg.asDotGraph());
+            // System.out.println("\n");
         }
+
+        System.out.printf("GCP Ran for %d iterations\n", iters);
+        for (BasicBlock allNode : cfg.allNodes) {
+            ConstantDefinedInBlock.defInBlock(allNode, true);
+        }
+
     }
 
     @Override
@@ -134,6 +182,8 @@ public class GlobalConstProp extends CFGVisitor {
         return null;
     }
 }
+
+// Perform Constant Propagation Within A Basic Block
 class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     protected TreeSet<SymbolVal> defined = new TreeSet<>();
@@ -145,9 +195,17 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
         return defined.subSet(key, true, key, true).first();
     }
 
-    public static TreeSet<SymbolVal> defInBlock(BasicBlock blk) {
+    protected boolean modify = false;
+
+    public static boolean defInBlock(BasicBlock blk, boolean mod) {
         ConstantDefinedInBlock visitor = new ConstantDefinedInBlock();
-        visitor.defined = (TreeSet<SymbolVal>) ((TreeSet<SymbolVal>) blk.entry).clone();
+        visitor.modify = mod; // Whether to change the actual code
+        visitor.defined = new TreeSet<>();
+        for( SymbolVal sym : (TreeSet<SymbolVal>) blk.entry ) {
+            visitor.defined.add(sym.clone());
+        }
+
+        boolean changed = false;
 
         for( TAC tac : blk.getInstructions() ) {
             SymbolVal sym = tac.accept(visitor);
@@ -155,8 +213,8 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
                 if( visitor.defined.contains(sym) ) {
                     // Merge into the set
                     visitor.defined.subSet(sym, true, sym, true) // Fetch the element in range [sym, sym) (so whatever is equal to sym)
-                            .first() // Get the first (and only) piece of the list
-                            .assign( sym ); // Merge in our slightly different version
+                                    .first() // Get the first (and only) piece of the list
+                                    .merge( sym ); // Merge in our slightly different version
                 }
                 else {
                     throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s", sym));
@@ -164,8 +222,16 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
             }
         }
 
+        if( blk.exit != null && ((TreeSet<SymbolVal>)blk.exit).size() == visitor.defined.size() ) {
+            changed = false;
+            for( SymbolVal sym : ((TreeSet<SymbolVal>)blk.exit) ) {
+                SymbolVal val = visitor.get(sym);
+
+                changed |= val.val != sym.val;
+            }
+        }
         blk.exit = visitor.defined;
-        return visitor.defined;
+        return changed;
     }
 
     @Override
@@ -192,14 +258,14 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Add add) {
-        if( add.left instanceof Variable ) {
+        if( modify && add.left instanceof Variable ) {
             SymbolVal val = get((Variable) add.left);
             if( val.isConstant() ) {
                 add.left = val.val; // Set to Constant
             }
         }
 
-        if( add.right instanceof Variable ) {
+        if( modify && add.right instanceof Variable ) {
             SymbolVal val = get((Variable) add.right);
             if( val.isConstant() ) {
                 add.right = val.val; // Set to Constant
@@ -225,14 +291,14 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Div div) {
-        if( div.left instanceof Variable ) {
+        if( modify && div.left instanceof Variable ) {
             SymbolVal val = get((Variable) div.left);
             if( val.isConstant() ) {
                 div.left = val.val; // Set to Constant
             }
         }
 
-        if( div.right instanceof Variable ) {
+        if( modify && div.right instanceof Variable ) {
             SymbolVal val = get((Variable) div.right);
             if( val.isConstant() ) {
                 div.right = val.val; // Set to Constant
@@ -248,14 +314,14 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Mod mod) {
-        if( mod.left instanceof Variable ) {
+        if( modify && mod.left instanceof Variable ) {
             SymbolVal val = get((Variable) mod.left);
             if( val.isConstant() ) {
                 mod.left = val.val; // Set to Constant
             }
         }
 
-        if( mod.right instanceof Variable ) {
+        if(modify &&  mod.right instanceof Variable ) {
             SymbolVal val = get((Variable) mod.right);
             if( val.isConstant() ) {
                 mod.right = val.val; // Set to Constant
@@ -271,14 +337,14 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Mul mul) {
-        if( mul.left instanceof Variable ) {
+        if( modify && mul.left instanceof Variable ) {
             SymbolVal val = get((Variable) mul.left);
             if( val.isConstant() ) {
                 mul.left = val.val; // Set to Constant
             }
         }
 
-        if( mul.right instanceof Variable ) {
+        if( modify && mul.right instanceof Variable ) {
             SymbolVal val = get((Variable) mul.right);
             if( val.isConstant() ) {
                 mul.right = val.val; // Set to Constant
@@ -294,14 +360,14 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Sub sub) {
-        if( sub.left instanceof Variable ) {
+        if( modify && sub.left instanceof Variable ) {
             SymbolVal val = get((Variable) sub.left);
             if( val.isConstant() ) {
                 sub.left = val.val; // Set to Constant
             }
         }
 
-        if( sub.right instanceof Variable ) {
+        if( modify && sub.right instanceof Variable ) {
             SymbolVal val = get((Variable) sub.right);
             if( val.isConstant() ) {
                 sub.right = val.val; // Set to Constant
@@ -322,14 +388,14 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Cmp cmp) {
-        if( cmp.left instanceof Variable ) {
+        if( modify && cmp.left instanceof Variable ) {
             SymbolVal val = get((Variable) cmp.left);
             if( val.isConstant() ) {
                 cmp.left = val.val; // Set to Constant
             }
         }
 
-        if( cmp.right instanceof Variable ) {
+        if( modify && cmp.right instanceof Variable ) {
             SymbolVal val = get((Variable) cmp.right);
             if( val.isConstant() ) {
                 cmp.right = val.val; // Set to Constant

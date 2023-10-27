@@ -1,8 +1,8 @@
 package coco;
 
-public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>{
+public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>, Cloneable {
 
-    private ArrayType type;
+    private final ArrayType type;
     private Object value;
 
     public VariableSymbol(String name, ArrayType type) {
@@ -18,6 +18,7 @@ public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>
     public void setValue(Object val ) {
         value = val;
     }
+
 
     @Override
     public ArrayType type() {
@@ -48,5 +49,10 @@ public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>
     @Override
     public int compareTo(VariableSymbol variableSymbol) {
         return String.format("%s:%s", name, type).compareTo(String.format("%s:%s", variableSymbol.name, variableSymbol.type));
+    }
+
+    @Override
+    public VariableSymbol clone() {
+        return new VariableSymbol(super.name, type);
     }
 }

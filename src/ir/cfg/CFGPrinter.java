@@ -37,6 +37,7 @@ public class CFGPrinter {
 
         addLn("digraph G {");
 
+
         Queue<BasicBlock> queue = new LinkedList<>();
 
         queue.add(cfg.getHead());
@@ -91,14 +92,11 @@ public class CFGPrinter {
             if( blk.idom != null ) {
                 addLnf("bb%d:B -> bb%d:B [style=dotted, color=blue, label=idom];", blk.idom.getNum(), blk.getNum());
             }
-            else {
-                System.err.println(String.format("Block %d has no idom", blk.getNum()));
-
-            }
 
         }
         addLn("}");
 
+        cfg.markUnvisited();
 
         return builder.toString();
     }

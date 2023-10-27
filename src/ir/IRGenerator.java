@@ -201,6 +201,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         BasicBlock nextBlock = new BasicBlock(-1, "Post-If");
         BasicBlock ifblock = new BasicBlock(-1, "If");
+
         Branch bra = new Branch(0, is.getIfrel().token().lexeme());
         if( val instanceof Variable ) {
             Temporary storage = new Temporary(tempNum++);
@@ -262,6 +263,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         }
         else {
             entryBlock.addSuccessor(nextBlock);
+            nextBlock.addPredecessor(entryBlock);
         }
 
         curBlock = nextBlock;
