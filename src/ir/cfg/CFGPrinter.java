@@ -89,7 +89,7 @@ public class CFGPrinter {
             }
 
             if( blk.idom != null ) {
-                addLnf("bb%d:exit -> bb%d:entry [style=dotted, color=blue, label=idom];", blk.idom.getNum(), blk.getNum());
+                addLnf("bb%d:B -> bb%d:B [style=dotted, color=blue, label=idom];", blk.idom.getNum(), blk.getNum());
             }
             else {
                 System.err.println(String.format("Block %d has no idom", blk.getNum()));
