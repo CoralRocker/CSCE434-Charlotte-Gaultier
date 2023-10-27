@@ -157,7 +157,7 @@ public class CFG implements Visitable<Object> {
         //     for( BasicBlock b : blk.domTo ) {
         //         System.out.printf("\tBB%d\n", b.getNum());
         //     }
-        //     BasicBlock idom = blk.getIDom();
+        //
         //     if( idom == null )
         //         System.out.printf("BB%d Immediate Dominator: NONE\n", blk.getNum());
         //     else
@@ -167,6 +167,7 @@ public class CFG implements Visitable<Object> {
         tree = new DomTree(head);
         for( int i = 1; i < dom.size(); i++ ) {
             BasicBlock node = dom.get(i);
+            node.getIDom();
             tree.addNode(node.idom, node);
         }
 

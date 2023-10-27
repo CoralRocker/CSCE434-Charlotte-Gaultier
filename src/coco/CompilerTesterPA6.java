@@ -99,12 +99,9 @@ public class CompilerTesterPA6 {
         Iterator<CFG> iterator = cfgs.iterator();
         while (iterator.hasNext()) {
             CFG ssa = iterator.next();
+            ssa.calculateDOMSets();
             System.out.println(ssa.asDotGraph());
         }
 
-        System.out.println("SSA-Ifying Main Function...");
-        SSACreator ssa = new SSACreator();
-        ssa.modify( cfgs.get( cfgs.size()-1 ) );
-        System.out.println( cfgs.get(cfgs.size()-1).asDotGraph() );
     }
 }

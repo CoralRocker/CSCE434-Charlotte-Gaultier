@@ -5,6 +5,11 @@ import coco.Symbol;
 public class Variable implements Value, Visitable, Assignable {
 
     protected Symbol sym;
+
+    public Symbol getSym() {
+        return sym;
+    }
+
     protected int asnNum = -1;
     private boolean isConstant = false;
 

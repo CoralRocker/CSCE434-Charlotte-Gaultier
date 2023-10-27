@@ -55,6 +55,8 @@ public class Branch extends TAC {
             }
         }
 
+        if( val == null )
+            return String.format("%s BB%d", jumpType, jumpTo.getNum());
         return String.format("%s %s BB%d", jumpType, val.toString(), jumpTo.getNum());
     }
 

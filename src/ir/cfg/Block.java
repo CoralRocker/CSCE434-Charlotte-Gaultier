@@ -7,6 +7,8 @@ public abstract class Block implements Visitable<Object> {
 
     boolean visited;
 
+    protected String name;
+
     protected HashMap<BasicBlock, Boolean> visitMap = new HashMap<>();
 
     public void setVisited( BasicBlock blk) {
@@ -27,7 +29,10 @@ public abstract class Block implements Visitable<Object> {
     protected List<BasicBlock> domBy, domTo, domFrontier;
     protected BasicBlock idom = null;
 
-    protected Block () {
+    protected Block (String name) {
+        if( name == null )
+            throw new IllegalArgumentException("Block Name cannot be null! Use empty string instead");
+        this.name = name;
         visited = false;
     }
 

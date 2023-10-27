@@ -160,7 +160,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         CFG parent = curCFG;
         // update curCFG to ths func
         // unsure if this is the right way to deal w block
-        curBlock = new BasicBlock(blockNo++);
+        curBlock = new BasicBlock(blockNo++, fd.funcName());
         curCFG = new CFG(curBlock);
         funcs.add(curCFG);
         // add curCFG to funcs list
@@ -181,6 +181,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Value val = is.getIfrel().accept(this);
 
+        BasicBlock nextBlock = new BasicBlock(-1, "Post-If");
+        BasicBlock ifblock = new BasicBlock(-1, "If");
         Branch bra = new Branch(0, is.getIfrel().token().lexeme());
         if( val instanceof Variable ) {
             Temporary storage = new Temporary(tempNum++);
@@ -198,31 +200,41 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         }
 
         bra.setId( instr++ );
-
+        bra.setDestination(ifblock);
         curBlock.add(bra);
+        Branch elsebra = new Branch(instr++, "");
+        elsebra.setDestination(nextBlock);
+        curBlock.add(elsebra);
 
-        BasicBlock ifblock, elseblock = null, entryBlock = curBlock;
-        ifblock = new BasicBlock(blockNo++);
+        BasicBlock elseblock = null, entryBlock = curBlock;
+        ifblock.setNum(blockNo++);
         ifblock.addPredecessor(curBlock);
         curBlock.addSuccessor(ifblock);
 
-        bra.setDestination(ifblock);
 
         if( is.getElseseq() != null ) {
-            elseblock = new BasicBlock(blockNo++);
+            elseblock = new BasicBlock(blockNo++, "Else");
             elseblock.addPredecessor(curBlock);
             curBlock.addSuccessor(elseblock);
         }
+        nextBlock.setNum(blockNo++);
 
 
         curBlock = ifblock;
         is.getIfseq().accept(this);
+        bra = new Branch(instr++, "");
+        bra.setDestination(nextBlock);
+        curBlock.add( bra );
+
         if( is.getElseseq() != null ) {
             curBlock = elseblock;
             is.getElseseq().accept(this);
+            bra = new Branch(instr++, "");
+            bra.setDestination(nextBlock);
+            curBlock.add( bra );
+            elsebra.setDestination(elseblock);
         }
 
-        BasicBlock nextBlock = new BasicBlock(blockNo++);
 
         ifblock.addSuccessor(nextBlock);
         nextBlock.addPredecessor(ifblock);
@@ -233,8 +245,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         else {
             entryBlock.addSuccessor(nextBlock);
         }
-
-
 
         curBlock = nextBlock;
 
@@ -356,26 +366,34 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(RepeatStat rep) {
 
-        BasicBlock repBlk = new BasicBlock(blockNo++);
+        BasicBlock repBlk = new BasicBlock(blockNo++, "Repeat");
+        BasicBlock postRep = new BasicBlock(-1, "");
         curBlock.addSuccessor(repBlk);
         repBlk.addPredecessor(curBlock);
+        Branch bra = new Branch(instr++, "");
+        bra.setDestination(repBlk);
+        curBlock.add(bra);
+
         curBlock = repBlk;
 
         rep.getSeq().accept(this);
 
         Value val = rep.getRelation().accept(this);
 
+        postRep.setNum(blockNo++);
         Branch braEnd = new Branch(instr++, "!=");
+        bra = new Branch(instr++, "");
         braEnd.setVal(val);
         braEnd.setDestination(repBlk);
+        bra.setDestination(postRep);
         curBlock.add( braEnd );
+        curBlock.add( bra );
 
         // Add path back to start of loop
         curBlock.addSuccessor(( repBlk ));
         repBlk.addPredecessor( curBlock );
 
         // Add exit path
-        BasicBlock postRep = new BasicBlock(blockNo++);
         postRep.addPredecessor( curBlock );
         curBlock.addSuccessor( postRep );
         curBlock = postRep;
@@ -401,7 +419,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         }
         // TODO Vars
 
-        curBlock = new BasicBlock(blockNo++);
+        curBlock = new BasicBlock(blockNo++, "Main");
         curCFG = new CFG(curBlock);
         funcs.add(curCFG);
 
@@ -451,8 +469,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         tempNum = 0;
         Value stmt = wstat.getRelation().accept(this);
 
-        BasicBlock loopBlk = new BasicBlock(blockNo++),
-                   postLoop = new BasicBlock(-1);
+        BasicBlock loopBlk = new BasicBlock(blockNo++, "While"),
+                   postLoop = new BasicBlock(-1, "Post-While");
 
         Temporary cmpStart = new Temporary(tempNum++);
         Cmp cmp = new Cmp(instr++, stmt, Literal.get(false), cmpStart, "eq" );
@@ -460,8 +478,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         braEnd.setVal(cmpStart);
         braEnd.setDestination(postLoop);
 
+        Branch failCond = new Branch(instr++, "");
+        failCond.setDestination(loopBlk);
+
         curBlock.add(cmp);
         curBlock.add(braEnd);
+        curBlock.add(failCond);
 
         tempNum = 0;
 
@@ -474,10 +496,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         // Post Loop Inherits from This and Loopblk
         postLoop.addPredecessor(curBlock);
-        postLoop.addPredecessor(loopBlk);
+        // postLoop.addPredecessor(loopBlk);
 
         // Loop Block falls through to post loop
-        loopBlk.addSuccessor(postLoop);
+        //loopBlk.addSuccessor(postLoop);
 
         curBlock = loopBlk;
         wstat.getSeq().accept(this);
@@ -489,10 +511,17 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         braEnd = new Branch(instr++, "==");
         braEnd.setVal(cmpStart);
         braEnd.setDestination(loopBlk);
+
+        failCond = new Branch(instr++, "");
+        failCond.setDestination(postLoop);
         curBlock.add(cmp);
         curBlock.add(braEnd);
+        curBlock.add(failCond);
         curBlock.addSuccessor(loopBlk);
+        curBlock.addSuccessor(postLoop);
         loopBlk.addPredecessor(curBlock);
+
+
 
         curBlock = postLoop;
         postLoop.setNum(blockNo++);

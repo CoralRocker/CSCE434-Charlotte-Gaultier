@@ -29,6 +29,10 @@ public class CFGPrinter {
         builder.append('\n');
     }
 
+    private void addf(String format, Object ... objs ) {
+        builder.append(String.format(format, objs));
+    }
+
     public String genDotGraph() {
 
         addLn("digraph G {");
@@ -46,15 +50,30 @@ public class CFGPrinter {
 
             blk.markVisited();
 
-            addLnf("bb%d [shape=record, label=\"<b>BB%d | {", blk.getNum(), blk.getNum());
+            if( !blk.name.isEmpty() ) {
+                addf("bb%d [shape=record, label=\"<B> %s \\n BB%d | {", blk.getNum(), blk.name, blk.getNum());
+            }
+            else {
+                addf("bb%d [shape=record, label=\"<B> %s \\n BB%d | {", blk.getNum(), blk.name, blk.getNum());
+            }
 
-            Iterator<TAC> instructions = blk.getInstructions().listIterator();
+            List<TAC> instructions = blk.getInstructions();
+            Iterator<TAC> iter = instructions.listIterator();
 
-            while( instructions.hasNext() ) {
-                TAC tac = instructions.next();
+            if( instructions.size() != 1 )
+            builder.append("<entry>\n");
 
-                builder.append(String.format("\t%d: %s\n", tac.getId(), tac.genDot()));
-                if( instructions.hasNext() ) {
+            if( !iter.hasNext() )
+                builder.append("|<exit>\n");
+
+            while( iter.hasNext() ) {
+                TAC tac = iter.next();
+
+                if( !iter.hasNext() )
+                    builder.append("<exit>");
+
+                builder.append(String.format("\t%d: %s \n", tac.getId(), tac.genDot()));
+                if( iter.hasNext() ) {
                     builder.append('|');
                 }
 
@@ -66,16 +85,17 @@ public class CFGPrinter {
 
             for( BasicBlock block : blk.getSuccessors()) {
                 queue.add(block);
-                addLnf("bb%d -> bb%d", blk.getNum(), block.getNum());
+                addLnf("bb%d:exit -> bb%d:entry", blk.getNum(), block.getNum());
             }
 
             if( blk.idom != null ) {
-                addLnf("bb%d -> bb%d [style=dotted, color=blue, label=idom];", blk.idom.getNum(), blk.getNum());
+                addLnf("bb%d:exit -> bb%d:entry [style=dotted, color=blue, label=idom];", blk.idom.getNum(), blk.getNum());
+            }
+            else {
+                System.err.println(String.format("Block %d has no idom", blk.getNum()));
+
             }
 
-            // for( BasicBlock dom : blk.dom ) {
-            //     addLnf("bb%d -> bb%d [style=dotted, color=blue, label=dom];", blk.getNum(), dom.getNum());
-            // }
         }
         addLn("}");
 

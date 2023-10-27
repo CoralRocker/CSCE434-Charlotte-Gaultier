@@ -38,7 +38,8 @@ public class BasicBlock extends Block implements Iterable<TAC> {
     //     this.instructions = new ArrayList<>();
     // }
 
-    public BasicBlock(int id) {
+    public BasicBlock(int id, String name) {
+        super(name);
         num = id;
         label = "";
         this.successors = new ArrayList<>();
@@ -58,8 +59,8 @@ public class BasicBlock extends Block implements Iterable<TAC> {
         successors.add(block);
     }
 
-    public BasicBlock createSuccessor(int id) {
-        BasicBlock blck = new BasicBlock(id);
+    public BasicBlock createSuccessor(int id, String name) {
+        BasicBlock blck = new BasicBlock(id, name);
         successors.add(blck);
         blck.addPredecessor(this);
         return blck;
