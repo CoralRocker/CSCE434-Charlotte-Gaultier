@@ -2,9 +2,9 @@ package ir.tac;
 
 public abstract class Assign extends TAC{
     
-    protected Assignable dest; // lhs
-    protected Value left; // operand_1
-    protected Value right; // operand_2
+    public Assignable dest; // lhs
+    public Value left; // operand_1
+    public Value right; // operand_2
 
     protected Assign(int id, Assignable dest, Value left, Value right) {
         super(id);

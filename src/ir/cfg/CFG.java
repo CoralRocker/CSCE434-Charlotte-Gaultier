@@ -1,6 +1,10 @@
 package ir.cfg;
 
 
+import coco.Symbol;
+import coco.Variable;
+import coco.VariableSymbol;
+
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -8,6 +12,11 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public class CFG implements Visitable<Object> {
+
+    protected TreeSet<VariableSymbol> symbols;
+
+    public TreeSet<VariableSymbol> getSymbols() { return symbols; }
+    public void setSymbols(TreeSet<VariableSymbol> syms) { symbols = syms; }
 
     private BasicBlock head;
     private DomTree tree = null;

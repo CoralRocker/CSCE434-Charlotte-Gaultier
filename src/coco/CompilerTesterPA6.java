@@ -1,6 +1,7 @@
 package coco;
 
 import ir.cfg.CFG;
+import ir.cfg.GlobalConstProp;
 import ir.cfg.SSACreator;
 import org.apache.commons.cli.*;
 
@@ -103,5 +104,7 @@ public class CompilerTesterPA6 {
             System.out.println(ssa.asDotGraph());
         }
 
+        GlobalConstProp gcp = new GlobalConstProp(cfgs.get(0));
+        System.out.println(cfgs.get(0).asDotGraph());
     }
 }

@@ -24,7 +24,7 @@ public class Literal implements Value{
         return new Literal(new BoolLiteral( new Token(String.valueOf(b), 0, 0)));
     }
 
-    private AST val;
+    private final AST val;
 
     @Override
     public String toString() {
@@ -36,6 +36,24 @@ public class Literal implements Value{
             return String.valueOf(((ast.FloatLiteral) val).getLiteral());
         }
         return "LiteralValueError";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if( o == null )
+            return false;
+
+        if( !(o instanceof Literal ) )
+            return false;
+
+        final Literal other = (Literal) o;
+
+        return other.toString().equals(this.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
     }
 
     @Override

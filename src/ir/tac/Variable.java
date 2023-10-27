@@ -34,7 +34,9 @@ public class Variable implements Value, Visitable, Assignable {
             return sym.name();
         }
         else {
-            return String.format("%s_%d", sym.name(), asnNum);
+            return String.format("%s", sym.name());
+
+            // return String.format("%s_%d", sym.name(), asnNum);
         }
     }
 

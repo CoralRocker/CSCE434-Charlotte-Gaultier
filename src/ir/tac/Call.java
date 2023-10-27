@@ -4,17 +4,19 @@ import coco.Symbol;
 
 public class Call extends TAC{
     
-    private Symbol function;
+    public final Symbol function;
+    public final Assignable dest;
     // private ValueList args;
 
-    public Call(int id, Symbol func) {
+    public Call(int id, Symbol func, Assignable dest) {
         super(id);
         function = func;
+        this.dest = dest;
     }
 
     @Override
     public String genDot() {
-        return String.format("call %s", function.name());
+        return String.format("call %s %s", dest, function.name());
     }
 
     @Override

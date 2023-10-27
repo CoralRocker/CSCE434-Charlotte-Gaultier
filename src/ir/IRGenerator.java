@@ -4,6 +4,7 @@ import ast.*;
 import ast.Return;
 import coco.Symbol;
 import coco.Token;
+import coco.VariableSymbol;
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.tac.*;
@@ -11,6 +12,7 @@ import ir.tac.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 
 //Traverse the AST - generate a CFG for each function
 public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG> {
@@ -83,6 +85,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         src = astSource.accept(this);
         asnDest = null;
 
+
         if( src != dst ) {
             Store tac = new Store(instr++, dst, src);
             curBlock.add(tac);
@@ -99,9 +102,17 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(DeclarationList list) {
+        if( curCFG.getSymbols() != null ) {
+            throw new RuntimeException("Symbols list already made for CFG " + curCFG.toString());
+        }
+
+        TreeSet<VariableSymbol> vars = new TreeSet<>();
+        curCFG.setSymbols(vars);
+
         for( AST decl : list.getContained() ) {
             decl.accept(this);
         }
+
         return null;
     }
 
@@ -148,10 +159,17 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         fc.getArgs().accept(this);
 
-        Call tac = new Call(instr++, fc.getFunc());
+
+        Assignable retval = asnDest;
+
+        Call tac;
+        if( retval == null )
+            retval = new Temporary(tempNum++);
+        tac = new Call(instr++, fc.getFunc(), retval);
         curBlock.add(tac);
 
-        return null;
+        //  Call Returns in temporary
+        return retval;
     }
 
     @Override
@@ -410,6 +428,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(RootAST root) {
 
+        BasicBlock tmpBlk = new BasicBlock(0, "Main");
+        CFG tmpCFG = new CFG(tmpBlk);
+
+
+        curCFG = tmpCFG;
+
         // TODO Functions
         //
         if( root.getVars() != null )
@@ -419,8 +443,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         }
         // TODO Vars
 
-        curBlock = new BasicBlock(blockNo++, "Main");
-        curCFG = new CFG(curBlock);
+        curCFG = tmpCFG;
+        curBlock = tmpBlk;
+        tmpBlk.setNum(blockNo++);
         funcs.add(curCFG);
 
         root.getSeq().accept(this);
@@ -459,8 +484,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(VariableDeclaration var) {
+        curCFG.getSymbols().add((VariableSymbol) var.symbol());
         return null;
-
     }
 
     @Override

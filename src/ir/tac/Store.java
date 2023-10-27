@@ -2,8 +2,8 @@ package ir.tac;
 
 public class Store extends TAC{
 
-    protected final Variable dest;
-    private final Value source;
+    public final Variable dest;
+    public final Value source;
     public Store(int id, Variable dest, Value source) {
         super(id);
         this.dest = dest;
@@ -17,6 +17,6 @@ public class Store extends TAC{
 
     @Override
     public String genDot() {
-        return String.format("store %s %s", source.toString(), dest.toString());
+        return String.format("store %s %s", dest.toString(), source.toString());
     }
 }

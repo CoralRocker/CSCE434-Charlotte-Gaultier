@@ -5,6 +5,8 @@ import java.util.List;
 
 public abstract class Block implements Visitable<Object> {
 
+    protected Object entry, exit;
+
     boolean visited;
 
     protected String name;
