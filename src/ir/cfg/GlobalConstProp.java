@@ -27,7 +27,7 @@ class SymbolVal implements Comparable<SymbolVal>, Cloneable {
             return false;
 
         // Undefined + Anything = Anything
-        if( instr == -1 ) {
+        if( instr == -1 && other.instr != -1 ) {
             instr = other.instr;
             val = other.val;
             return true;
@@ -161,16 +161,19 @@ public class GlobalConstProp extends CFGVisitor {
             iters++;
             int finalIters = iters;
             cfg.breadthFirst((BasicBlock b) -> {
+                System.out.printf("%2d: Processing BB%d\n", finalIters, b.getNum());
+
                 for( BasicBlock p : b.getPredecessors() ) {
                     if( b != p ) {
                         // Merge the incoming changes from "ABOVE"
-                        System.out.printf("%2d: Merging BB%d -> BB%d\n", finalIters, p.getNum(), b.getNum() );
+                        System.out.printf(" -> Merging BB%d -> BB%d\n", finalIters, p.getNum(), b.getNum() );
                         changed.b |= GlobalConstProp.mergeSymbolList((TreeSet<SymbolVal>) b.entry, (TreeSet<SymbolVal>) p.exit);
                     }
                 }
 
                 changed.b |= ConstantDefinedInBlock.defInBlock(b, false);
 
+                System.out.println();
             });
 
             System.out.printf("Post Iteration %2d:\n", iters);
@@ -245,7 +248,7 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
                 if( diff ) {
                     changed = true;
-                    System.out.printf("\tChanged In Block: %s -> %s\n", sym, val);
+                    System.out.printf("\tChanged In Block: Old( %s ) -> New( %s )\n", sym, val);
                 }
             }
         }

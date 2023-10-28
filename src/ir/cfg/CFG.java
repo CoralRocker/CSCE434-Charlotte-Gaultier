@@ -63,15 +63,16 @@ public class CFG implements Visitable<Object> {
         Queue<BasicBlock> queue = new LinkedList<>();
 
         queue.add(head);
+        head.markVisited();
         while( !queue.isEmpty() ) {
             BasicBlock node = queue.remove();
-            node.markVisited();
 
             function.accept(node);
 
             for( BasicBlock child : node.getSuccessors() ) {
                 if( !child.visited() ) {
                     queue.add(child);
+                    child.markVisited();
                 }
             }
         }
