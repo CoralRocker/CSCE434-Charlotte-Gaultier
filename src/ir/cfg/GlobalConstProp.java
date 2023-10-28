@@ -117,9 +117,15 @@ public class GlobalConstProp extends CFGVisitor {
         for( SymbolVal sym : src ) {
             if( dest.contains(sym) ) {
                 // Merge into the set
-                changed |= dest.subSet(sym, true, sym, true)
-                                .first()
-                                .merge( sym );
+                SymbolVal o = dest.subSet(sym, true, sym, true)
+                                  .first();
+                SymbolVal cpy = o.clone();
+                boolean isChg = o.merge( sym );
+
+                if( isChg ) {
+                    System.out.printf("\tMerged %s into %s\n", sym, cpy);
+                    changed = true;
+                }
             }
             else {
                 throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s", sym));
@@ -151,12 +157,14 @@ public class GlobalConstProp extends CFGVisitor {
         var changed = new Object(){ boolean b = true; };
         int iters = 0;
         while( changed.b ) {
-            changed.b = false;
+           changed.b = false;
             iters++;
+            int finalIters = iters;
             cfg.breadthFirst((BasicBlock b) -> {
                 for( BasicBlock p : b.getPredecessors() ) {
                     if( b != p ) {
                         // Merge the incoming changes from "ABOVE"
+                        System.out.printf("%2d: Merging BB%d -> BB%d\n", finalIters, p.getNum(), b.getNum() );
                         changed.b |= GlobalConstProp.mergeSymbolList((TreeSet<SymbolVal>) b.entry, (TreeSet<SymbolVal>) p.exit);
                     }
                 }
@@ -165,7 +173,7 @@ public class GlobalConstProp extends CFGVisitor {
 
             });
 
-            // System.out.printf("Post Iteration %2d:\n", iters);
+            System.out.printf("Post Iteration %2d:\n", iters);
             // System.out.println(cfg.asDotGraph());
             // System.out.println("\n");
         }
@@ -214,7 +222,7 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
                     // Merge into the set
                     visitor.defined.subSet(sym, true, sym, true) // Fetch the element in range [sym, sym) (so whatever is equal to sym)
                                     .first() // Get the first (and only) piece of the list
-                                    .merge( sym ); // Merge in our slightly different version
+                                    .assign( sym ); // Merge in our slightly different version
                 }
                 else {
                     throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s", sym));
@@ -227,7 +235,18 @@ class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
             for( SymbolVal sym : ((TreeSet<SymbolVal>)blk.exit) ) {
                 SymbolVal val = visitor.get(sym);
 
-                changed |= val.val != sym.val;
+                boolean diff;
+                if( val.val == null ) {
+                    diff = val.val != sym.val;
+                }
+                else {
+                    diff = !val.val.equals(sym.val);
+                }
+
+                if( diff ) {
+                    changed = true;
+                    System.out.printf("\tChanged In Block: %s -> %s\n", sym, val);
+                }
             }
         }
         blk.exit = visitor.defined;
