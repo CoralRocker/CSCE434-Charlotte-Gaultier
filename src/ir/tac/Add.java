@@ -6,6 +6,21 @@ public class Add extends Assign{
     }
 
     @Override
+    public Literal calculate() {
+        if(!( left.isConst() && right.isConst() ) ) {
+            return null;
+        }
+
+        Literal rhs = (Literal) right, lhs = (Literal) left;
+
+        if( lhs.typeString() == "bool" ) {
+            throw new RuntimeException("Cannot add bools");
+        }
+
+        return Literal.get( rhs.getInt() + lhs.getInt() );
+    }
+
+    @Override
     public String genDot() {
         return String.format("add %s %s %s", super.dest, super.left, super.right);
     }

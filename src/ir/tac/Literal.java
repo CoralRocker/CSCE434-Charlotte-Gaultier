@@ -6,6 +6,8 @@ import ast.FloatLiteral;
 import ast.IntegerLiteral;
 import coco.Token;
 
+import java.util.function.Function;
+
 public class Literal implements Value, Cloneable{
 
     public Literal(AST val) {
@@ -31,6 +33,29 @@ public class Literal implements Value, Cloneable{
 
     private final AST val;
 
+    private <E> E apply( E b, E i, E f ) {
+        if (val instanceof ast.BoolLiteral) {
+            return b;
+        } else if (val instanceof ast.IntegerLiteral) {
+            return i;
+        } else if (val instanceof ast.FloatLiteral) {
+            return f;
+        }
+        throw new RuntimeException("");
+    }
+
+    public float getFloat() {
+        return ((FloatLiteral)val).getFloatLiteral();
+    }
+
+    public int getInt() {
+        return ((IntegerLiteral)val).getIntLiteral();
+    }
+
+    public boolean getBool() {
+        return ((BoolLiteral)val).getBoolLiteral();
+    }
+
     @Override
     public String toString() {
         if (val instanceof ast.BoolLiteral) {
@@ -40,7 +65,12 @@ public class Literal implements Value, Cloneable{
         } else if (val instanceof ast.FloatLiteral) {
             return String.valueOf(((ast.FloatLiteral) val).getLiteral());
         }
-        return "LiteralValueError";
+        return "LiteralTypeError";
+    }
+
+
+    public String typeString() {
+        return apply("bool", "int", "float");
     }
 
     @Override
@@ -68,14 +98,14 @@ public class Literal implements Value, Cloneable{
 
     @Override
     public Literal clone() {
-        if (val instanceof BoolLiteral) {
+        if (val instanceof ast.BoolLiteral) {
             return get(((BoolLiteral) val).getBoolLiteral());
-        } else if (val instanceof IntegerLiteral) {
+        } else if (val instanceof ast.IntegerLiteral) {
             return get(((IntegerLiteral) val).getIntLiteral());
-        } else if (val instanceof FloatLiteral) {
+        } else if (val instanceof ast.FloatLiteral) {
             return get(((FloatLiteral) val).getFloatLiteral());
         }
-        throw new RuntimeException("Value in Literal is not Bool, Int, or Float literal!: " + val.toString());
+        throw new RuntimeException("Invalid Literal Type: " + val.getClass());
     }
 }
 

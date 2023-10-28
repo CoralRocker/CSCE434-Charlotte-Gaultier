@@ -104,7 +104,10 @@ public class CompilerTesterPA6 {
             System.out.println(ssa.asDotGraph());
         }
 
-        GlobalConstProp gcp = new GlobalConstProp(cfgs.get(0));
-        System.out.println(cfgs.get(0).asDotGraph());
+        for( int i = 0; i < 2; i++ ) {
+            System.out.printf("Running GCP + CF: %2d\n", i);
+            GlobalConstProp gcp = new GlobalConstProp(cfgs.get(0), true, true);
+            System.out.println(cfgs.get(0).asDotGraph());
+        }
     }
 }

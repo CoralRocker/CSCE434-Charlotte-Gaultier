@@ -22,6 +22,8 @@ public abstract class Assign extends TAC{
         }
     }
 
+    public abstract Literal calculate();
+
     @Override
     public <E> E accept(TACVisitor<E> visitor) {
         return visitor.visit(this);

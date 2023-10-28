@@ -52,4 +52,9 @@ public class Variable implements Value, Visitable, Assignable {
     public <E> E accept(TACVisitor<E> visitor) {
         return visitor.visit(this);
     }
+
+    @Override
+    public String name() {
+        return sym.name();
+    }
 }

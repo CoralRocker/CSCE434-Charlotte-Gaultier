@@ -25,6 +25,49 @@ public class Cmp extends Assign implements Visitable{
     }
 
 
+    @Override
+    public Literal calculate() {
+        if(!( left.isConst() && right.isConst() ) ) {
+            return null;
+        }
+
+        Literal rhs = (Literal) right, lhs = (Literal) left;
+
+
+        switch ( op ) {
+            case ">=" -> {
+                return Literal.get( lhs.getInt() >= rhs.getInt() );
+            }
+            case ">" -> {
+                return Literal.get( lhs.getInt() > rhs.getInt() );
+            }
+            case "<=" -> {
+                return Literal.get( lhs.getInt() <= rhs.getInt() );
+            }
+            case "<" -> {
+                return Literal.get( lhs.getInt() < rhs.getInt() );
+            }
+            case "=="-> {
+                if( lhs.typeString().equals("bool") ) {
+                    return Literal.get( lhs.getBool() == rhs.getBool() );
+                }
+                else {
+                    return Literal.get( lhs.getInt() == rhs.getInt() );
+                }
+            }
+            case "!="-> {
+                if( lhs.typeString().equals("bool") ) {
+                    return Literal.get( lhs.getBool() != rhs.getBool() );
+                }
+                else {
+                    return Literal.get( lhs.getInt() != rhs.getInt() );
+                }
+            }
+        }
+
+
+        return null;
+    }
 
     @Override
     public <E> E accept(TACVisitor<E> visitor) {

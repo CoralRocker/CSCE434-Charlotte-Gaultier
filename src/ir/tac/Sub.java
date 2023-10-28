@@ -15,4 +15,19 @@ public class Sub extends Assign {
     public <E> E accept(TACVisitor<E> visitor) {
         return visitor.visit(this);
     }
+
+    @Override
+    public Literal calculate() {
+        if(!( left.isConst() && right.isConst() ) ) {
+            return null;
+        }
+
+        Literal rhs = (Literal) right, lhs = (Literal) left;
+
+        if( lhs.typeString() == "bool" ) {
+            throw new RuntimeException("Cannot sub bools");
+        }
+
+        return Literal.get( lhs.getInt() - rhs.getInt() );
+    }
 }

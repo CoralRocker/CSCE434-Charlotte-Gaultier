@@ -12,6 +12,10 @@ public class Temporary implements Value, Assignable, Visitable {
         return String.format("_t%d", num);
     }
 
+    @Override
+    public String name() {
+        return this.toString();
+    }
 
     @Override
     public boolean isConst() {
