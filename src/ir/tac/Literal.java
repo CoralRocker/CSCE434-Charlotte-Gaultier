@@ -8,7 +8,7 @@ import coco.Token;
 
 import java.util.function.Function;
 
-public class Literal implements Value, Cloneable{
+public class Literal extends Value implements Cloneable{
 
     public Literal(AST val) {
         this.val = val;

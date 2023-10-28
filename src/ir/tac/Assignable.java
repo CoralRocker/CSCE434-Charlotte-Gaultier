@@ -1,6 +1,6 @@
 package ir.tac;
 
-public interface Assignable extends Value {
+public abstract class Assignable extends Value {
 
-    public String name();
+    public abstract String name();
 }

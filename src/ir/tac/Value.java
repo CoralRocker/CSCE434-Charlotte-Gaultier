@@ -1,7 +1,8 @@
 package ir.tac;
 
-public interface Value extends Visitable{
+public abstract class Value implements Visitable {
 
-    boolean isConst();
+    public abstract boolean isConst();
 
+    public abstract boolean equals(Object other);
 }

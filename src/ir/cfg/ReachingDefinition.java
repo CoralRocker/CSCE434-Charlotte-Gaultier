@@ -3,7 +3,6 @@ package ir.cfg;
 import coco.VariableSymbol;
 import ir.tac.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TreeSet;
 
@@ -125,7 +124,7 @@ class SymbolVal implements Comparable<SymbolVal>, Cloneable {
     }
 }
 
-public class GlobalConstProp extends CFGVisitor {
+public class ReachingDefinition extends CFGVisitor {
 
     protected static boolean mergeSymbolList(TreeSet<SymbolVal> dest, TreeSet<SymbolVal> src) {
         boolean changed = false;
@@ -152,7 +151,7 @@ public class GlobalConstProp extends CFGVisitor {
 
     private CFG cfg;
 
-    public GlobalConstProp( CFG cfg, boolean do_prop, boolean do_fold ) {
+    public ReachingDefinition(CFG cfg, boolean do_prop, boolean do_fold ) {
         this.cfg = cfg;
 
         System.out.println("CFG: " + cfg.getSymbols());
@@ -182,7 +181,7 @@ public class GlobalConstProp extends CFGVisitor {
                     if( b != p ) {
                         // Merge the incoming changes from "ABOVE"
                         System.out.printf(" -> Merging BB%d -> BB%d\n", finalIters, p.getNum(), b.getNum() );
-                        changed.b |= GlobalConstProp.mergeSymbolList((TreeSet<SymbolVal>) b.entry, (TreeSet<SymbolVal>) p.exit);
+                        changed.b |= ReachingDefinition.mergeSymbolList((TreeSet<SymbolVal>) b.entry, (TreeSet<SymbolVal>) p.exit);
                     }
                 }
 

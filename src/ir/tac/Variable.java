@@ -2,7 +2,7 @@ package ir.tac;
 
 import coco.Symbol;
 
-public class Variable implements Value, Visitable, Assignable {
+public class Variable extends Assignable implements Visitable {
 
     protected Symbol sym;
 
@@ -26,6 +26,14 @@ public class Variable implements Value, Visitable, Assignable {
     @Override
     public boolean isConst() {
         return isConstant;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if( !(other instanceof Variable) )
+            return false;
+
+        return sym.equals(((Variable) other).sym);
     }
 
     @Override

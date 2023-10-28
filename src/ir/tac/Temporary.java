@@ -1,6 +1,9 @@
 package ir.tac;
 
-public class Temporary implements Value, Assignable, Visitable {
+public class Temporary extends Assignable implements Visitable {
+
+
+
     private final int num;
 
     public Temporary(int n) {
@@ -20,6 +23,14 @@ public class Temporary implements Value, Assignable, Visitable {
     @Override
     public boolean isConst() {
         return false;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if( !(other instanceof Temporary) )
+            return false;
+
+        return num == ((Temporary) other).num;
     }
 
     @Override
