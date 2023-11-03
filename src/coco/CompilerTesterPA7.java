@@ -18,6 +18,7 @@ public class CompilerTesterPA7 {
         options.addOption("b", "asm", false, "Print DLX instructions");
         options.addOption("a", "astOut", false, "Print AST");
 
+        options.addOption("d", "setDir", true, "Set Dir used to store graph");
         options.addOption("gDir", "graphDir", false, "Graph dir, default will be current dir");
         options.addOption("ast", "ast", false, "Print AST.dot - requires coco.graphs/");
 
@@ -89,13 +90,17 @@ public class CompilerTesterPA7 {
 
         // create graph dir if needed
         String graphDir = "graphs";
+        if( cmd.hasOption('d') ) {
+            graphDir = cmd.getOptionValue('d');
+        }
+
         if (cmd.hasOption("graphDir")) {
 //            graphDir = cmd.getOptionValue("graphDir");
             File dir = new File(graphDir);
             if (!dir.exists()) {
                 dir.mkdirs();
             }
-            File file = new File("graphs/hello.txt");
+            File file = new File(graphDir + "/hello.txt");
             try {
                 boolean res = file.createNewFile();
             } catch (IOException e) {

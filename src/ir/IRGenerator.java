@@ -55,9 +55,20 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(ArgList list) {
+        tempNum = 0;
+        int ctr = -1;
         for( AST ast : list.getArgs() ) {
+            ctr++;
+            tempNum = ctr;
             Value val = ast.accept(this);
 
+            if( val instanceof Temporary && ((Temporary)val).num == ctr ) {
+                continue;
+            }
+            else {
+                tempNum = ctr;
+                curBlock.add(new Store(instr++, new Temporary(tempNum), val));
+            }
         }
 
         return null;
@@ -102,12 +113,14 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(DeclarationList list) {
-        if( curCFG.getSymbols() != null ) {
+
+        if( curCFG.getSymbols() != null && !(list.getContained().get(0) instanceof FuncDecl) ) {
             throw new RuntimeException("Symbols list already made for CFG " + curCFG.toString());
         }
-
-        TreeSet<VariableSymbol> vars = new TreeSet<>();
-        curCFG.setSymbols(vars);
+        else {
+            TreeSet<VariableSymbol> vars = new TreeSet<>();
+            curCFG.setSymbols(vars);
+        }
 
         for( AST decl : list.getContained() ) {
             decl.accept(this);
@@ -159,12 +172,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         fc.getArgs().accept(this);
 
-
+        tempNum = 0;
         Assignable retval = asnDest;
-
         Call tac;
-        if( retval == null )
+        if( retval == null ) {
             retval = new Temporary(tempNum++);
+        }
         tac = new Call(instr++, fc.getFunc(), retval);
         curBlock.add(tac);
 

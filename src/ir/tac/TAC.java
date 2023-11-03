@@ -21,4 +21,8 @@ public abstract class TAC implements Visitable{
         id = i;
         return id;
     }
+
+    public String opName() {
+        return getClass().getSimpleName();
+    }
 }

@@ -1,7 +1,7 @@
 package coco;
 
 import ir.cfg.CFG;
-import ir.cfg.ReachingDefinition;
+import ir.cfg.optimizations.ReachingDefinition;
 import org.apache.commons.cli.*;
 
 import java.io.FileInputStream;
@@ -105,7 +105,7 @@ public class CompilerTesterPA6 {
 
         for( int i = 0; i < 2; i++ ) {
             System.out.printf("Running GCP + CF: %2d\n", i);
-            ReachingDefinition gcp = new ReachingDefinition(cfgs.get(0), true, true);
+            ReachingDefinition gcp = new ReachingDefinition(cfgs.get(0), true, true, false, true);
             System.out.println(cfgs.get(0).asDotGraph());
         }
     }

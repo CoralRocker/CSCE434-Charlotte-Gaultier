@@ -19,7 +19,7 @@ public class CFG implements Visitable<Object> {
     public void setSymbols(TreeSet<VariableSymbol> syms) { symbols = syms; }
 
     private BasicBlock head;
-    protected List<BasicBlock> allNodes = null;
+    public List<BasicBlock> allNodes = null;
     private DomTree tree = null;
 
     public String asDotGraph() {

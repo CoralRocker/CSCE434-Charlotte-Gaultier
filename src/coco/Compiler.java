@@ -9,9 +9,12 @@ import java.util.function.Function;
 
 import ast.*;
 import ir.IRGenerator;
+import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
 import org.apache.commons.cli.CommandLine;
 import types.TypeChecker;
+
+import javax.accessibility.AccessibleValue;
 
 public class Compiler {
 
@@ -39,7 +42,34 @@ public class Compiler {
     }
 
     public String optimization(List<String> optArguments, CommandLine cmd) {
-        return null;
+        CFG main = flowGraphs.get(0);
+        for( String opt : optArguments ) {
+            System.out.printf("Running opt: %s\n", opt);
+            switch( opt ) {
+                case "cf" -> {
+                    ReachingDefinition def = new ReachingDefinition(main, false, true, false, false);
+                }
+                case "cp" -> {
+                    ReachingDefinition def = new ReachingDefinition(main, true, false, false, false);
+                }
+                case "cse" -> {
+                    AvailableExpression expr = new AvailableExpression(main, true, false);
+                }
+
+                case "cpp" -> {
+                    ReachingDefinition def = new ReachingDefinition(main, false, false, true, true);
+                }
+
+                case "max" -> {
+                    ReachingDefinition def = new ReachingDefinition(main, true, true, false, false);
+                    while( def.getIterations() != 1 ) {
+                        def = new ReachingDefinition(main, true, true, false, false);
+                    }
+                }
+            }
+        }
+
+        return main.asDotGraph();
     }
 
     private class QuitParseException extends RuntimeException {
@@ -68,6 +98,8 @@ public class Compiler {
 
     private int numDataRegisters; // available registers are [1..numDataRegisters]
     private List<Integer> instructions;
+
+    private List<CFG> flowGraphs;
 
     // Need to map from IDENT to memory offset
 
@@ -113,7 +145,8 @@ public class Compiler {
 
         gen.visit((RootAST) root);
 
-        return gen.getAllCFGs();
+        flowGraphs = gen.getAllCFGs();
+        return flowGraphs;
     }
 
     public int[] compile () {
@@ -777,7 +810,6 @@ public class Compiler {
     private FuncDecl funcDecl () {
         Token ftok = expectRetrieve( Token.Kind.FUNC );
         Token funcName = expectRetrieve(Token.Kind.IDENT);
-
 
         ArrayList< Symbol > argSymbols = formalParam();
         expect( Token.Kind.COLON );

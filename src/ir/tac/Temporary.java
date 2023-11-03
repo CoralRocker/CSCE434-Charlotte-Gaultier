@@ -4,7 +4,7 @@ public class Temporary extends Assignable implements Visitable {
 
 
 
-    private final int num;
+    public final int num;
 
     public Temporary(int n) {
         num = n;
