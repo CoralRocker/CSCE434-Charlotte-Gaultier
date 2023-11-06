@@ -48,8 +48,8 @@ public class ReachingDefinition extends CFGVisitor {
             b.exit = new TreeSet<SymbolVal>();
 
             cfg.getSymbols().forEach((VariableSymbol sym)->{
-                ((TreeSet<SymbolVal>)b.entry).add( new SymbolVal(sym.name(), -1, null));
-                ((TreeSet<SymbolVal>)b.exit).add( new SymbolVal(sym.name(), -1, null));
+                ((TreeSet<SymbolVal>)b.entry).add( new SymbolVal(sym.name(), -1));
+                ((TreeSet<SymbolVal>)b.exit).add( new SymbolVal(sym.name(), -1));
             });
         });
 

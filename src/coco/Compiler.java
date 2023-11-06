@@ -42,7 +42,7 @@ public class Compiler {
     }
 
     public String optimization(List<String> optArguments, CommandLine cmd) {
-        CFG main = flowGraphs.get(0);
+        CFG main = flowGraphs.get(flowGraphs.size()-1);
         for( String opt : optArguments ) {
             System.out.printf("Running opt: %s\n", opt);
             switch( opt ) {

@@ -1,5 +1,6 @@
 package ir.cfg.optimizations;
 
+import coco.Symbol;
 import coco.VariableSymbol;
 import ir.cfg.BasicBlock;
 import ir.tac.*;
@@ -8,25 +9,27 @@ import java.util.HashMap;
 import java.util.TreeSet;
 
 // Perform Constant Propagation Within A Basic Block
+// Also perform copy propagation
 public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     protected TreeSet<SymbolVal> defined = new TreeSet<>();
     protected HashMap<String, Literal> temporaries = new HashMap<>();
 
     private SymbolVal get(Assignable key) {
-        return get(new SymbolVal(key.name(), -1, null));
+        return get(new SymbolVal(key.name(), -1));
     }
 
     private SymbolVal get(SymbolVal key) {
         return defined.subSet(key, true, key, true).first();
     }
 
-    protected boolean do_prop = false, do_fold = false;
+    protected boolean do_prop = false, do_fold = false, do_copy_prop = false;
 
     public static boolean defInBlock(BasicBlock blk, boolean do_prop, boolean do_fold, boolean do_copy_prop, boolean do_print) {
         ConstantDefinedInBlock visitor = new ConstantDefinedInBlock();
         visitor.do_prop = do_prop; // Whether to perform constant propagation
         visitor.do_fold = do_fold; // Whether to perform constant folding
+        visitor.do_copy_prop = do_copy_prop;
         visitor.defined = new TreeSet<>();
         for (SymbolVal sym : (TreeSet<SymbolVal>) blk.entry) {
             visitor.defined.add(sym.clone());
@@ -55,6 +58,13 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
             // Must replace Assign with Store
             if (do_fold && sym != null && sym.isConstant() && tac instanceof Assign) {
                 blk.getInstructions().set(ctr, new Store(tac.getId(), ((Assign) tac).dest, sym.val));
+            }
+
+            if( do_copy_prop && sym != null && sym.isCopied() && tac instanceof Store ) {
+                SymbolVal cpy = visitor.get( sym.copy );
+                if( cpy.isCopied() ) {
+                    blk.getInstructions().set(ctr, new Store(tac.getId(), ((Store) tac).dest, cpy.copy));
+                }
             }
         }
 
@@ -96,7 +106,7 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
     @Override
     public SymbolVal visit(Call call) {
         if (call.dest instanceof Variable)
-            return new SymbolVal(((VariableSymbol) ((Variable) call.dest).getSym()).name(), call.getId(), null);
+            return new SymbolVal(((VariableSymbol) ((Variable) call.dest).getSym()).name(), call.getId() );
         return null;
     }
 
@@ -107,41 +117,49 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Add add) {
-
-        if (do_prop && (add.left instanceof Variable || add.left instanceof Temporary)) {
-            SymbolVal val = get((Assignable) add.left);
-            if (val.isConstant()) {
-                add.left = val.val; // Set to Constant
-            }
-        }
-
-        if (do_prop && (add.right instanceof Variable || add.right instanceof Temporary)) {
-            SymbolVal val = get((Assignable) add.right);
-            if (val.isConstant()) {
-                add.right = val.val; // Set to Constant
-            }
-        }
-
-        Literal retVal = null;
-
-        if (do_fold && add.left.isConst() && add.right.isConst()) {
-            retVal = add.calculate();
-        }
-
-        if (add.dest instanceof Variable) {
-            return new SymbolVal(((VariableSymbol) ((Variable) add.dest).getSym()).name(), add.getId(), retVal);
-        } else if (add.dest instanceof Temporary) {
-            Temporary dest = (Temporary) add.dest;
-            return new SymbolVal(dest.toString(), add.getId(), retVal);
-        } else {
-            return null;
-        }
+        return visit((Assign) add);
     }
 
     @Override
     public SymbolVal visit(Assign asn) {
+
+        if( asn.left instanceof Assignable ) {
+            if ( do_prop ) {
+                SymbolVal val = get((Assignable) asn.left);
+                if (val.isConstant()) {
+                    asn.left = val.val; // Set to Constant
+                }
+            }
+            if( do_copy_prop ) {
+                SymbolVal cpy = get((Assignable) asn.left);
+                if( cpy != null && cpy.isCopied() ) {
+                    asn.left = cpy.copy;
+                }
+            }
+        }
+
+        if ( asn.right instanceof Assignable ) {
+            if (do_prop ) {
+                SymbolVal val = get((Assignable) asn.right);
+                if (val.isConstant()) {
+                    asn.right = val.val; // Set to Constant
+                }
+            }
+
+
+        }
+
+        Literal retVal = null;
+
+        if (do_fold && asn.left.isConst() && asn.right.isConst()) {
+            retVal = asn.calculate();
+        }
+
         if (asn.dest instanceof Variable) {
-            return new SymbolVal(((VariableSymbol) ((Variable) asn.dest).getSym()).name(), asn.getId(), null);
+            return new SymbolVal(((VariableSymbol) ((Variable) asn.dest).getSym()).name(), asn.getId(), retVal);
+        } else if (asn.dest instanceof Temporary) {
+            Temporary dest = (Temporary) asn.dest;
+            return new SymbolVal(dest.toString(), asn.getId(), retVal);
         } else {
             return null;
         }
@@ -149,131 +167,22 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Div div) {
-        if (do_prop && (div.left instanceof Variable || div.left instanceof Temporary)) {
-            SymbolVal val = get((Assignable) div.left);
-            if (val.isConstant()) {
-                div.left = val.val; // Set to Constant
-            }
-        }
-
-        if (do_prop && (div.right instanceof Variable || div.right instanceof Temporary)) {
-            SymbolVal val = get((Assignable) div.right);
-            if (val.isConstant()) {
-                div.right = val.val; // Set to Constant
-            }
-        }
-
-        Literal retVal = null;
-
-        if (do_fold && div.left.isConst() && div.right.isConst()) {
-            retVal = div.calculate();
-        }
-
-        if (div.dest instanceof Variable) {
-            return new SymbolVal(((VariableSymbol) ((Variable) div.dest).getSym()).name(), div.getId(), retVal);
-        } else if (div.dest instanceof Temporary) {
-            Temporary dest = (Temporary) div.dest;
-            return new SymbolVal(dest.toString(), div.getId(), retVal);
-        } else {
-            return null;
-        }
+        return visit((Assign) div);
     }
 
     @Override
     public SymbolVal visit(Mod mod) {
-        if (do_prop && (mod.left instanceof Variable || mod.left instanceof Temporary)) {
-            SymbolVal val = get((Assignable) mod.left);
-            if (val.isConstant()) {
-                mod.left = val.val; // Set to Constant
-            }
-        }
-
-        if (do_prop && (mod.right instanceof Variable || mod.right instanceof Temporary)) {
-            SymbolVal val = get((Assignable) mod.right);
-            if (val.isConstant()) {
-                mod.right = val.val; // Set to Constant
-            }
-        }
-
-        Literal retVal = null;
-
-        if (do_fold && mod.left.isConst() && mod.right.isConst()) {
-            retVal = mod.calculate();
-        }
-
-        if (mod.dest instanceof Variable) {
-            return new SymbolVal(((VariableSymbol) ((Variable) mod.dest).getSym()).name(), mod.getId(), retVal);
-        } else if (mod.dest instanceof Temporary) {
-            Temporary dest = (Temporary) mod.dest;
-            return new SymbolVal(dest.toString(), mod.getId(), retVal);
-        } else {
-            return null;
-        }
+        return visit((Assign) mod);
     }
 
     @Override
     public SymbolVal visit(Mul mul) {
-        if (do_prop && (mul.left instanceof Variable || mul.left instanceof Temporary)) {
-            SymbolVal val = get((Assignable) mul.left);
-            if (val.isConstant()) {
-                mul.left = val.val; // Set to Constant
-            }
-        }
-
-        if (do_prop && (mul.right instanceof Variable || mul.right instanceof Temporary)) {
-            SymbolVal val = get((Assignable) mul.right);
-            if (val.isConstant()) {
-                mul.right = val.val; // Set to Constant
-            }
-        }
-
-        Literal retVal = null;
-
-        if (do_fold && mul.left.isConst() && mul.right.isConst()) {
-            retVal = mul.calculate();
-        }
-
-        if (mul.dest instanceof Variable) {
-            return new SymbolVal(((VariableSymbol) ((Variable) mul.dest).getSym()).name(), mul.getId(), retVal);
-        } else if (mul.dest instanceof Temporary) {
-            Temporary dest = (Temporary) mul.dest;
-            return new SymbolVal(dest.toString(), mul.getId(), retVal);
-        } else {
-            return null;
-        }
+        return visit((Assign) mul);
     }
 
     @Override
     public SymbolVal visit(Sub sub) {
-        if (do_prop && (sub.left instanceof Variable || sub.left instanceof Temporary)) {
-            SymbolVal val = get((Assignable) sub.left);
-            if (val.isConstant()) {
-                sub.left = val.val; // Set to Constant
-            }
-        }
-
-        if (do_prop && (sub.right instanceof Variable || sub.right instanceof Temporary)) {
-            SymbolVal val = get((Assignable) sub.right);
-            if (val.isConstant()) {
-                sub.right = val.val; // Set to Constant
-            }
-        }
-
-        Literal retVal = null;
-
-        if (do_fold && sub.left.isConst() && sub.right.isConst()) {
-            retVal = sub.calculate();
-        }
-
-        if (sub.dest instanceof Variable) {
-            return new SymbolVal(((VariableSymbol) ((Variable) sub.dest).getSym()).name(), sub.getId(), retVal);
-        } else if (sub.dest instanceof Temporary) {
-            Temporary dest = (Temporary) sub.dest;
-            return new SymbolVal(dest.toString(), sub.getId(), retVal);
-        } else {
-            return null;
-        }
-
+        return visit((Assign) sub);
     }
 
     @Override
@@ -283,42 +192,19 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Cmp cmp) {
-        if (do_prop && (cmp.left instanceof Variable || cmp.left instanceof Temporary)) {
-            SymbolVal val = get((Assignable) cmp.left);
-            if (val.isConstant()) {
-                cmp.left = val.val; // Set to Constant
-            }
-        }
-
-        if (do_prop && (cmp.right instanceof Variable || cmp.right instanceof Temporary)) {
-            SymbolVal val = get((Assignable) cmp.right);
-            if (val.isConstant()) {
-                cmp.right = val.val; // Set to Constant
-            }
-        }
-
-        Literal retVal = null;
-
-        if (do_fold && cmp.left.isConst() && cmp.right.isConst()) {
-            retVal = cmp.calculate();
-        }
-
-        if (cmp.dest instanceof Variable) {
-            return new SymbolVal(((VariableSymbol) ((Variable) cmp.dest).getSym()).name(), cmp.getId(), retVal);
-        } else if (cmp.dest instanceof Temporary) {
-            Temporary dest = (Temporary) cmp.dest;
-            return new SymbolVal(dest.toString(), cmp.getId(), retVal);
-        } else {
-            return null;
-        }
+        return visit((Assign) cmp);
     }
 
     @Override
     public SymbolVal visit(Store store) {
         if (store.source instanceof Literal) {
-            return new SymbolVal(store.dest.name(), store.getId(), (Literal) store.source);
-        } else {
-            return new SymbolVal(store.dest.name(), store.getId(), null);
+            return new SymbolVal( store.dest.name(), store.getId(), (Literal) store.source);
+        }
+        else if ( store.source instanceof Assignable ) {
+            return  new SymbolVal( store.dest.name(), store.getId(), (Assignable) store.source);
+        }
+        else {
+            return new SymbolVal( store.dest.name(), store.getId() );
         }
     }
 

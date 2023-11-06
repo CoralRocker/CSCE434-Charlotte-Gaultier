@@ -1,5 +1,6 @@
 package ir.cfg.optimizations;
 
+import ir.tac.Assignable;
 import ir.tac.Literal;
 
 public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
@@ -7,6 +8,7 @@ public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
     public final String sym; // Symbol with type
     public int instr; // Where the literal is assigned. Start at -1 and never reset. -1 indicates undefined
     public Literal val; // Null or the Literal Const Value
+    public Assignable copy; // In copy prop, used to signify what to replace this symbol with.
 
     private boolean same(SymbolVal o) {
         return this.sym.equals(o.sym)
@@ -57,12 +59,33 @@ public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
         sym = s;
         instr = i;
         val = l;
+        copy = null;
+    }
+
+    public SymbolVal(String s, int i ) {
+        sym = s;
+        instr = i;
+        copy = null;
+        val = null;
+    }
+
+    public SymbolVal(String s, int i, Assignable c) {
+        sym = s;
+        instr = i;
+        val = null;
+        copy = c;
     }
 
     public boolean assign(SymbolVal other) {
         if (!sym.equals(other.sym))
             throw new IllegalArgumentException(String.format("%s and %s are no the same symbol values!", this, other));
 
+        if( other.isCopied() ) {
+            val = null;
+            instr = other.instr;
+            copy = other.copy;
+            return true;
+        }
 
         instr = other.instr;
         boolean changed;
@@ -101,9 +124,11 @@ public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
         return sym.charAt(0) == '_';
     }
 
+    public boolean isCopied() { return copy != null; }
+
     @Override
     public SymbolVal clone() {
-        var clone = new SymbolVal(sym, instr, null);
+        var clone = new SymbolVal(sym, instr);
         if (val != null)
             clone.val = val.clone();
         return clone;

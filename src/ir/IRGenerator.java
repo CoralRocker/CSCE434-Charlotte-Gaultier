@@ -20,6 +20,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     private CFG curCFG;
     private BasicBlock curBlock;
     private List<CFG> funcs;
+    private CFG mainFunc;
 
     private Assignable asnDest;
 
@@ -117,7 +118,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         if( curCFG.getSymbols() != null && !(list.getContained().get(0) instanceof FuncDecl) ) {
             throw new RuntimeException("Symbols list already made for CFG " + curCFG.toString());
         }
-        else {
+        else if( list.getContained().get(0) instanceof VariableDeclaration ) {
             TreeSet<VariableSymbol> vars = new TreeSet<>();
             curCFG.setSymbols(vars);
         }
@@ -448,6 +449,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
 
         curCFG = tmpCFG;
+        mainFunc = tmpCFG;
 
         // TODO Functions
         //
@@ -579,7 +581,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     }
 
     public CFG getMainCFG() {
-        return funcs.get( funcs.size()-1 );
+        return mainFunc;
     }
 
     public List<CFG> getAllCFGs() {

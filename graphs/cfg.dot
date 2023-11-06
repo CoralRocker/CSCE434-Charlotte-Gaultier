@@ -9,10 +9,9 @@ digraph G {
 bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
 	4: store a d 
 |	5: add b a c 
-|	6: store _t0 b 
-|	7: add _t3 b 8 
-|	8: mul _t2 c _t3 
-|	9: add _t1 d _t2 
-|<exit>	10: call _t0 foo 
+|	6: sub b a b 
+|	7: add c d c 
+|	8: store _t0 c 
+|<exit>	9: call _t0 printInt 
 }"];
 }
