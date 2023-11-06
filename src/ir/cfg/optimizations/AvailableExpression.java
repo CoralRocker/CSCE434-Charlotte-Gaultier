@@ -13,17 +13,12 @@ public class AvailableExpression extends CFGVisitor {
     // Perform a set intersection
     // Return true if one of the keys in dest are not in src.
     public static boolean merge(Map<Expression, Expression> dest, Map<Expression, Expression> src ) {
-        boolean changed = false;
+        if( src == dest )
+            throw new RuntimeException("Merge Cannot Be Done To Itself!");
 
         var keys = dest.keySet();
-        for( Expression expr : keys ) {
-            if( !src.containsKey(expr) ) {
-                changed = true;
-                dest.remove(expr);
-            }
-        }
 
-        return changed;
+        return keys.retainAll(src.keySet());
     }
 
     private CFG cfg;

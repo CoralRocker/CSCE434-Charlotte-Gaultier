@@ -26,13 +26,35 @@ public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
         if (same(other))
             return false;
 
+
+
         // Undefined + Anything = Anything
         if (instr == -1 && other.instr != -1) {
             instr = other.instr;
             val = other.val;
+            copy = other.copy;
             return true;
         } else if (other.instr == -1) {
             return false;
+        }
+
+        // Copied + Copied = Copied if equal
+        // Else return undefined.
+        if( this.isCopied() && other.isCopied() ) {
+            if( copy != other.copy ) {
+                copy = null;
+                instr = -1;
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        else if ( this.isCopied() ^ other.isCopied() ) {
+            copy = null;
+            val = null;
+            instr = -1;
+            return true;
         }
 
         // Not Const + Anything = Not Const
@@ -100,7 +122,7 @@ public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
 
     @Override
     public String toString() {
-        return String.format("%s(%s:%d)", sym, val, instr);
+        return String.format("%s(%s:%s:%d)", sym, val, copy, instr);
     }
 
     @Override
@@ -131,6 +153,8 @@ public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
         var clone = new SymbolVal(sym, instr);
         if (val != null)
             clone.val = val.clone();
+        if (copy != null)
+            clone.copy = copy;
         return clone;
     }
 

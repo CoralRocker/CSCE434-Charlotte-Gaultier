@@ -45,8 +45,8 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
                 if (visitor.defined.contains(sym)) {
                     // Merge into the set
                     visitor.defined.subSet(sym, true, sym, true) // Fetch the element in range [sym, sym) (so whatever is equal to sym)
-                            .first() // Get the first (and only) piece of the list
-                            .assign(sym); // Merge in our slightly different version
+                                        .first() // Get the first (and only) piece of the list
+                                        .assign(sym); // Merge in our slightly different version
                 } else if (sym.isTemporary()) {
                     visitor.defined.remove(sym);
                     visitor.defined.add(sym);
@@ -58,18 +58,19 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
             // Must replace Assign with Store
             if (do_fold && sym != null && sym.isConstant() && tac instanceof Assign) {
                 blk.getInstructions().set(ctr, new Store(tac.getId(), ((Assign) tac).dest, sym.val));
+                changed = true;
             }
 
             if( do_copy_prop && sym != null && sym.isCopied() && tac instanceof Store ) {
                 SymbolVal cpy = visitor.get( sym.copy );
                 if( cpy.isCopied() ) {
                     blk.getInstructions().set(ctr, new Store(tac.getId(), ((Store) tac).dest, cpy.copy));
+                    changed = true;
                 }
             }
         }
 
         if (blk.exit != null && ((TreeSet<SymbolVal>) blk.exit).size() == visitor.defined.size()) {
-            changed = false;
             for (SymbolVal sym : ((TreeSet<SymbolVal>) blk.exit)) {
                 SymbolVal val = visitor.get(sym);
 

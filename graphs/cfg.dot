@@ -11,7 +11,23 @@ bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
 |	5: add b a c 
 |	6: sub b a b 
 |	7: add c d c 
-|	8: store _t0 c 
-|<exit>	9: call _t0 printInt 
+|	8: cmpeq _t0 b 32 
+|	9: beq _t0 BB2 
+|<exit>	10: bra BB3 
 }"];
+bb1:exit -> bb2:entry
+bb1:exit -> bb3:entry
+bb2 [shape=record, label="<B> If \n BB2 | {<entry>
+	11: sub c a b 
+|	12: store d b 
+|	13: add c d b 
+|<exit>	14: bra BB3 
+}"];
+bb2:exit -> bb3:entry
+bb1:B -> bb2:B [style=dotted, color=blue, label=idom];
+bb3 [shape=record, label="<B> Post-If \n BB3 | {<entry>
+	15: store _t0 c 
+|<exit>	16: call _t0 printInt 
+}"];
+bb1:B -> bb3:B [style=dotted, color=blue, label=idom];
 }
