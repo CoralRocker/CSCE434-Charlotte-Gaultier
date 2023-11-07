@@ -19,6 +19,7 @@ public class TacID {
 
     public void remove() {
         parent.remove( this );
+        num = -1;
     }
 
     public void moveToEnd() {

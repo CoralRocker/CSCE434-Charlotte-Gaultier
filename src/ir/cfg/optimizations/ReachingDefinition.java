@@ -85,6 +85,9 @@ public class ReachingDefinition extends CFGVisitor {
 
         for (BasicBlock allNode : cfg.allNodes) {
             ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_print);
+            if( do_fold ) {
+                ArithmeticSimplification.MathSimplify(allNode);
+            }
         }
 
         System.out.printf("Post Optimization:\n%s\n", cfg.asDotGraph());
