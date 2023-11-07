@@ -59,7 +59,9 @@ public class Compiler {
                 case "cpp" -> {
                     ReachingDefinition def = new ReachingDefinition(main, false, false, true, true);
                 }
-
+                case "dce" -> {
+                    Liveness live = new Liveness(main, true, true);
+                }
                 case "max" -> {
                     ReachingDefinition def = new ReachingDefinition(main, true, true, false, false);
                     while( def.getIterations() != 1 ) {

@@ -1,13 +1,16 @@
 package ir.tac;
 
+import coco.Symbol;
 import ir.cfg.BasicBlock;
+import ir.cfg.optimizations.SymbolVal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 public class DefinedInBlock extends TACVisitor<List<Variable>> {
 
-    protected List<Variable> defined = new ArrayList<>();
+    public List<Variable> defined = new ArrayList<>();
 
     public static List<Variable> defInBlock(BasicBlock blk) {
         DefinedInBlock visitor = new DefinedInBlock();
