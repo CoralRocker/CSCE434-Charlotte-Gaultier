@@ -48,7 +48,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
-        Add tac = new Add(instr++, target, lval, rval);
+        Add tac = new Add(curCFG.instrNumberer.push(), target, lval, rval);
         curBlock.add(tac);
 
         return target;
@@ -68,7 +68,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             }
             else {
                 tempNum = ctr;
-                curBlock.add(new Store(instr++, new Temporary(tempNum), val));
+                curBlock.add(new Store(curCFG.instrNumberer.push(), new Temporary(tempNum), val));
             }
         }
 
@@ -99,7 +99,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
 
         if( src != dst ) {
-            Store tac = new Store(instr++, dst, src);
+            Store tac = new Store(curCFG.instrNumberer.push(), dst, src);
             curBlock.add(tac);
         }
 
@@ -149,7 +149,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
-        Div tac = new Div(instr++, target, lval, rval);
+        Div tac = new Div(curCFG.instrNumberer.push(), target, lval, rval);
         curBlock.add(tac);
 
         return target;
@@ -179,7 +179,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         if( retval == null ) {
             retval = new Temporary(tempNum++);
         }
-        tac = new Call(instr++, fc.getFunc(), retval);
+        tac = new Call(curCFG.instrNumberer.push(), fc.getFunc(), retval);
         curBlock.add(tac);
 
         //  Call Returns in temporary
@@ -216,10 +216,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         BasicBlock nextBlock = new BasicBlock(-1, "Post-If");
         BasicBlock ifblock = new BasicBlock(-1, "If");
 
-        Branch bra = new Branch(0, is.getIfrel().token().lexeme());
+        Branch bra = new Branch(curCFG.instrNumberer.push(), is.getIfrel().token().lexeme());
         if( val instanceof Variable ) {
             Temporary storage = new Temporary(tempNum++);
-            Cmp cmp = new Cmp(instr++,
+            Cmp cmp = new Cmp(curCFG.instrNumberer.push(),
                               val,
                               new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))),
                               storage,
@@ -232,10 +232,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             bra.setVal(val);
         }
 
-        bra.setId( instr++ );
+        bra.getIdObj().moveToEnd();
         bra.setDestination(ifblock);
         curBlock.add(bra);
-        Branch elsebra = new Branch(instr++, "");
+        Branch elsebra = new Branch(curCFG.instrNumberer.push(), "");
         elsebra.setDestination(nextBlock);
         curBlock.add(elsebra);
 
@@ -255,14 +255,14 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         curBlock = ifblock;
         is.getIfseq().accept(this);
-        bra = new Branch(instr++, "");
+        bra = new Branch(curCFG.instrNumberer.push(), "");
         bra.setDestination(nextBlock);
         curBlock.add( bra );
 
         if( is.getElseseq() != null ) {
             curBlock = elseblock;
             is.getElseseq().accept(this);
-            bra = new Branch(instr++, "");
+            bra = new Branch(curCFG.instrNumberer.push(), "");
             bra.setDestination(nextBlock);
             curBlock.add( bra );
             elsebra.setDestination(elseblock);
@@ -323,7 +323,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
-        Mod tac = new Mod(instr++, target, lval, rval);
+        Mod tac = new Mod(curCFG.instrNumberer.push(), target, lval, rval);
         curBlock.add(tac);
 
         return target;
@@ -343,7 +343,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
-        Mul tac = new Mul(instr++, target, lval, rval);
+        Mul tac = new Mul(curCFG.instrNumberer.push(), target, lval, rval);
         curBlock.add(tac);
 
         return target;
@@ -362,7 +362,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
-        Pow tac = new Pow(instr++, target, lval, rval);
+        Pow tac = new Pow(curCFG.instrNumberer.push(), target, lval, rval);
         curBlock.add(tac);
 
         return target;
@@ -391,7 +391,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             case NOT_EQUAL -> { op = "ne"; }
         }
 
-        Cmp cmp = new Cmp(instr++, lval, rval, target, op );
+        Cmp cmp = new Cmp(curCFG.instrNumberer.push(), lval, rval, target, op );
         curBlock.add(cmp);
 
         return target;
@@ -404,7 +404,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         BasicBlock postRep = new BasicBlock(-1, "");
         curBlock.addSuccessor(repBlk);
         repBlk.addPredecessor(curBlock);
-        Branch bra = new Branch(instr++, "");
+        Branch bra = new Branch(curCFG.instrNumberer.push(), "");
         bra.setDestination(repBlk);
         curBlock.add(bra);
 
@@ -415,8 +415,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value val = rep.getRelation().accept(this);
 
         postRep.setNum(blockNo++);
-        Branch braEnd = new Branch(instr++, "!=");
-        bra = new Branch(instr++, "");
+        Branch braEnd = new Branch(curCFG.instrNumberer.push(), "!=");
+        bra = new Branch(curCFG.instrNumberer.push(), "");
         braEnd.setVal(val);
         braEnd.setDestination(repBlk);
         bra.setDestination(postRep);
@@ -493,7 +493,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
 
-        Sub tac = new Sub(instr++, target, lval, rval);
+        Sub tac = new Sub(curCFG.instrNumberer.push(), target, lval, rval);
         curBlock.add(tac);
 
         return target;
@@ -515,12 +515,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
                    postLoop = new BasicBlock(-1, "Post-While");
 
         Temporary cmpStart = new Temporary(tempNum++);
-        Cmp cmp = new Cmp(instr++, stmt, Literal.get(false), cmpStart, "eq" );
-        Branch braEnd = new Branch(instr++, "==");
+        Cmp cmp = new Cmp(curCFG.instrNumberer.push(), stmt, Literal.get(false), cmpStart, "eq" );
+        Branch braEnd = new Branch(curCFG.instrNumberer.push(), "==");
         braEnd.setVal(cmpStart);
         braEnd.setDestination(postLoop);
 
-        Branch failCond = new Branch(instr++, "");
+        Branch failCond = new Branch(curCFG.instrNumberer.push(), "");
         failCond.setDestination(loopBlk);
 
         curBlock.add(cmp);
@@ -549,12 +549,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         stmt = wstat.getRelation().accept(this);
         cmpStart = new Temporary(tempNum++);
-        cmp = new Cmp(instr++, stmt, Literal.get(true), cmpStart, "eq" );
-        braEnd = new Branch(instr++, "==");
+        cmp = new Cmp(curCFG.instrNumberer.push(), stmt, Literal.get(true), cmpStart, "eq" );
+        braEnd = new Branch(curCFG.instrNumberer.push(), "==");
         braEnd.setVal(cmpStart);
         braEnd.setDestination(loopBlk);
 
-        failCond = new Branch(instr++, "");
+        failCond = new Branch(curCFG.instrNumberer.push(), "");
         failCond.setDestination(postLoop);
         curBlock.add(cmp);
         curBlock.add(braEnd);

@@ -45,9 +45,9 @@ public class ExprInBlock extends TACVisitor<Expression> {
             // System.out.printf("Post instruction %2d: %s\n", instr.getId(), visitor.avail.keySet());
             if (ret != null && ret.op.getId() != instr.getId()) {
                 if (instr instanceof Store && do_cpp) {
-                    blk.getInstructions().set(ctr, new Store(instr.getId(), ((Store) instr).dest, ret.dest));
+                    blk.getInstructions().set(ctr, new Store(instr.getIdObj(), ((Store) instr).dest, ret.dest));
                 } else if (instr instanceof Assign && do_cse) {
-                    blk.getInstructions().set(ctr, new Store(instr.getId(), ((Assign) instr).dest, ret.dest));
+                    blk.getInstructions().set(ctr, new Store(instr.getIdObj(), ((Assign) instr).dest, ret.dest));
                 }
             }
         }

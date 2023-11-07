@@ -1,7 +1,7 @@
 package ir.tac;
 
 public class Sub extends Assign {
-    public Sub(int id, Assignable dest, Value left, Value right) {
+    public Sub(TacID id, Assignable dest, Value left, Value right) {
         super(id, dest, left, right);
     }
 

@@ -4,7 +4,7 @@ public class Return extends TAC{
     
     private Variable var;
 
-    protected Return(int id) {
+    protected Return(TacID id) {
         super(id);
     }
 

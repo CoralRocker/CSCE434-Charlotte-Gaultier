@@ -12,7 +12,7 @@ public class Branch extends TAC {
 
     private BasicBlock jumpTo;
 
-    public Branch(int id, String op) {
+    public Branch(TacID id, String op) {
         super(id);
 
         this.rel = op;

@@ -6,7 +6,7 @@ public class Cmp extends Assign implements Visitable{
     private Assignable target;
     private String op;
 
-    public Cmp(int id, Value rhs, Value lhs, Assignable target, String op) {
+    public Cmp(TacID id, Value rhs, Value lhs, Assignable target, String op) {
         super(id, target, lhs, rhs);
         this.rhs = rhs;
         this.lhs = lhs;

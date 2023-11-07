@@ -1,7 +1,7 @@
 package ir.tac;
 
 public class Pow extends Assign{
-    public Pow(int id, Assignable dest, Value left, Value right) {
+    public Pow(TacID id, Assignable dest, Value left, Value right) {
         super(id, dest, left, right);
     }
 

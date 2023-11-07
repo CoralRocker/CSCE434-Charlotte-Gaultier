@@ -6,7 +6,7 @@ public abstract class Assign extends TAC{
     public Value left; // operand_1
     public Value right; // operand_2
 
-    protected Assign(int id, Assignable dest, Value left, Value right) {
+    protected Assign(TacID id, Assignable dest, Value left, Value right) {
         super(id);
         this.dest = dest;
         if( dest == null ) {

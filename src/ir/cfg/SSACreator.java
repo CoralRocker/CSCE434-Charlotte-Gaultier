@@ -9,7 +9,9 @@ import java.util.List;
 
 public class SSACreator extends CFGVisitor<Object> {
 
+    private CFG cfg;
     public void modify( CFG cfg ) {
+        this.cfg = cfg;
         cfg.markUnvisited();
         visit( cfg.getHead() );
     }
@@ -31,7 +33,7 @@ public class SSACreator extends CFGVisitor<Object> {
 
                 for( Variable var : def ) {
                     Variable v = new Variable(var.getSym(), 0);
-                    Phi phi = new Phi(-1, var, v);
+                    Phi phi = new Phi(cfg.instrNumberer.pushFrontBlock(blk.getNum()), var, v);
                     instr.add(0, phi);
                 }
             }

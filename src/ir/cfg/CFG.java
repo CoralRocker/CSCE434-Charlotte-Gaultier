@@ -4,6 +4,7 @@ package ir.cfg;
 import coco.Symbol;
 import coco.Variable;
 import coco.VariableSymbol;
+import ir.tac.TacIDGenerator;
 
 import java.awt.*;
 import java.util.*;
@@ -12,6 +13,8 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public class CFG implements Visitable<Object> {
+
+    public TacIDGenerator instrNumberer = new TacIDGenerator();
 
     protected TreeSet<VariableSymbol> symbols;
 

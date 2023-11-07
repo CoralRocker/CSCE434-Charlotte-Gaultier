@@ -8,7 +8,7 @@ public class Call extends TAC{
     public final Assignable dest;
     // private ValueList args;
 
-    public Call(int id, Symbol func, Assignable dest) {
+    public Call(TacID id, Symbol func, Assignable dest) {
         super(id);
         function = func;
         this.dest = dest;

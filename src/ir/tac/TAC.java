@@ -2,11 +2,11 @@ package ir.tac;
 
 public abstract class TAC implements Visitable{
     
-    private int id; // instruction id
+    private TacID id; // instruction id
 
     private boolean eliminated; 
 
-    protected TAC(int id) {
+    protected TAC(TacID id) {
         this.id = id;
         this.eliminated = false;
 
@@ -15,12 +15,9 @@ public abstract class TAC implements Visitable{
 
     public abstract String genDot();
 
-    public int getId() { return id; }
+    public int getId() { return id.getNum(); }
 
-    public int setId(int i) {
-        id = i;
-        return id;
-    }
+    public TacID getIdObj() { return id; }
 
     public String opName() {
         return getClass().getSimpleName();

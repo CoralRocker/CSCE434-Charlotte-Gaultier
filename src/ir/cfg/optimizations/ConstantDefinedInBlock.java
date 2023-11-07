@@ -57,14 +57,14 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
             // Must replace Assign with Store
             if (do_fold && sym != null && sym.isConstant() && tac instanceof Assign) {
-                blk.getInstructions().set(ctr, new Store(tac.getId(), ((Assign) tac).dest, sym.val));
+                blk.getInstructions().set(ctr, new Store(tac.getIdObj(), ((Assign) tac).dest, sym.val));
                 changed = true;
             }
 
             if( do_copy_prop && sym != null && sym.isCopied() && tac instanceof Store ) {
                 SymbolVal cpy = visitor.get( sym.copy );
                 if( cpy.isCopied() ) {
-                    blk.getInstructions().set(ctr, new Store(tac.getId(), ((Store) tac).dest, cpy.copy));
+                    blk.getInstructions().set(ctr, new Store(tac.getIdObj(), ((Store) tac).dest, cpy.copy));
                     changed = true;
                 }
             }

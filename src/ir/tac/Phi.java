@@ -3,7 +3,7 @@ package ir.tac;
 public class Phi extends TAC {
     private Variable p1, p2;
 
-    public Phi( int id, Variable v1, Variable v2 ) {
+    public Phi( TacID id, Variable v1, Variable v2 ) {
         super(id);
         this.p1 = v1;
         this.p2 = v2;

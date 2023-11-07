@@ -1,7 +1,7 @@
 package ir.tac;
 
 public class Mul extends Assign {
-    public Mul(int id, Assignable dest, Value left, Value right) {
+    public Mul(TacID id, Assignable dest, Value left, Value right) {
         super(id, dest, left, right);
     }
 
