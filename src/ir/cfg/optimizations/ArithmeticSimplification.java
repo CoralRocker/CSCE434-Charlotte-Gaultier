@@ -16,6 +16,7 @@ public class ArithmeticSimplification extends TACVisitor<TAC> {
             TAC ntac = instr.accept(visitor);
             if( ntac != null ) {
                 blk.getInstructions().set(instr.getId(), ntac);
+                changed = true;
             }
         }
 
@@ -128,6 +129,12 @@ public class ArithmeticSimplification extends TACVisitor<TAC> {
 
             if( val == 0 ) {
                 return new Store(sub.getIdObj(), sub.dest, sub.left);
+            }
+        }
+
+        if( sub.right instanceof Assignable && sub.left instanceof Assignable ) {
+            if( sub.right.equals(sub.left) ) {
+                return new Store(sub.getIdObj(), sub.dest, Literal.get(0));
             }
         }
         return null;

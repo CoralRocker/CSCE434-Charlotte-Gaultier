@@ -72,6 +72,9 @@ public class ReachingDefinition extends CFGVisitor {
                 }
 
                 changed.b |= ConstantDefinedInBlock.defInBlock(b, false, do_fold, false, do_print);
+                if( do_fold ) {
+                    changed.b |= ArithmeticSimplification.MathSimplify(b);
+                }
 
                 if( do_print )
                     System.out.println();

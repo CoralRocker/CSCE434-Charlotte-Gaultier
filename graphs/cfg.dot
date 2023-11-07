@@ -1,6 +1,9 @@
 digraph G {
 bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
 	0: mul b 0 a 
-|<exit>	1: mul c 1 b 
+|	1: mul c 1 b 
+|	2: sub c b b 
+|	3: div a d d 
+|<exit>	4: div c 0 c 
 }"];
 }
