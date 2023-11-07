@@ -94,6 +94,37 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
         return changed;
     }
 
+    public static TreeSet<SymbolVal> defInBlock(BasicBlock blk) {
+        ConstantDefinedInBlock visitor = new ConstantDefinedInBlock();
+
+        visitor.defined = new TreeSet<>();
+        for (SymbolVal sym : (TreeSet<SymbolVal>) blk.entry) {
+            visitor.defined.add(sym.clone());
+        }
+
+        boolean changed = false;
+
+        int ctr = -1;
+        for (final TAC tac : blk.getInstructions()) {
+            ctr++;
+            SymbolVal sym = (SymbolVal) tac.accept(visitor);
+            if (sym != null) {
+                if (visitor.defined.contains(sym)) {
+                    // Merge into the set
+                    visitor.defined.subSet(sym, true, sym, true) // Fetch the element in range [sym, sym) (so whatever is equal to sym)
+                            .first() // Get the first (and only) piece of the list
+                            .assign(sym); // Merge in our slightly different version
+                } else if (sym.isTemporary()) {
+                    visitor.defined.remove(sym);
+                    visitor.defined.add(sym);
+                } else {
+                    throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s", sym));
+                }
+            }
+        }
+
+        return visitor.defined;
+    }
     @Override
     public SymbolVal visit(Return ret) {
         return null;
