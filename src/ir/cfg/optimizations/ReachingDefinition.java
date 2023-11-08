@@ -38,6 +38,8 @@ public class ReachingDefinition extends CFGVisitor {
     private CFG cfg;
     private int iters = 0;
 
+    public boolean cfgchanged = false;
+
     public ReachingDefinition(CFG cfg, boolean do_prop, boolean do_fold, boolean do_copy_prop, boolean do_print ) {
         this.cfg = cfg;
 
@@ -54,6 +56,7 @@ public class ReachingDefinition extends CFGVisitor {
         });
 
         var changed = new Object(){ boolean b = true; };
+        iters = 0;
         while( changed.b ) {
            changed.b = false;
             iters++;
@@ -87,13 +90,11 @@ public class ReachingDefinition extends CFGVisitor {
         }
 
         for (BasicBlock allNode : cfg.allNodes) {
-            ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_print);
+            cfgchanged |= ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_print);
             if( do_fold ) {
-                ArithmeticSimplification.MathSimplify(allNode);
+                cfgchanged |= ArithmeticSimplification.MathSimplify(allNode);
             }
         }
-
-        System.out.printf("Post Optimization:\n%s\n", cfg.asDotGraph());
     }
 
     @Override

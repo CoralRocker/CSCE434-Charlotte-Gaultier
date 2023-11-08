@@ -63,9 +63,29 @@ public class Compiler {
                     Liveness live = new Liveness(main, true, true);
                 }
                 case "max" -> {
-                    ReachingDefinition def = new ReachingDefinition(main, true, true, false, false);
-                    while( def.getIterations() != 1 ) {
-                        def = new ReachingDefinition(main, true, true, false, false);
+                    boolean changed = true;
+
+                    while( changed ) {
+                        changed = false;
+
+                        ReachingDefinition def = new ReachingDefinition(main, true, true, false, false);
+                        changed |= def.cfgchanged;
+                        while ( def.cfgchanged ) {
+                            def = new ReachingDefinition(main, true, true, true, false);
+                        }
+
+                        AvailableExpression avail = new AvailableExpression(main, true, true);
+                        changed |= avail.isChanged();
+                        while( avail.isChanged() ) {
+                            avail = new AvailableExpression(main, true, true);
+                        }
+
+                        Liveness lvanal = new Liveness(main, false, true);
+                        changed |= lvanal.isChanged();
+                        while( lvanal.isChanged() ) {
+                            lvanal = new Liveness(main, false, true);
+                        }
+
                     }
                 }
             }

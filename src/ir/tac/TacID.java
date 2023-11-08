@@ -25,4 +25,17 @@ public class TacID {
     public void moveToEnd() {
         parent.moveToEnd( this );
     }
+
+    public void moveToBlockFront(int blk) {
+        parent.moveToBlockFront(blk, this);
+    }
+
+    public void moveRelative( int amt ) {
+        parent.moveRelative(this, amt);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Instruction #%d", num);
+    }
 }

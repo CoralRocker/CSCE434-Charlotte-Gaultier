@@ -24,7 +24,13 @@ public class AvailableExpression extends CFGVisitor {
     private CFG cfg;
     private int iters = 0;
 
-    public AvailableExpression( CFG cfg, boolean do_cse, boolean do_cpp ) {
+    protected boolean isChanged = false;
+
+    public boolean isChanged() {
+        return isChanged;
+    }
+
+    public AvailableExpression(CFG cfg, boolean do_cse, boolean do_cpp ) {
         this.cfg = cfg;
 
         var changed = new Object(){ boolean b = true; };
@@ -36,6 +42,7 @@ public class AvailableExpression extends CFGVisitor {
             blk.exit = null;
         });
 
+        iters = 0;
         while( changed.b ) {
             changed.b = false;
             iters++;
@@ -66,7 +73,7 @@ public class AvailableExpression extends CFGVisitor {
         }
 
         for( BasicBlock b : cfg.allNodes ) {
-            ExprInBlock.ExprInBlock(b, do_cse, do_cpp);
+            isChanged |= ExprInBlock.ExprInBlock(b, do_cse, do_cpp);
         }
 
     }
@@ -76,5 +83,8 @@ public class AvailableExpression extends CFGVisitor {
         return null;
     }
 
+    public int getIters() {
+        return iters;
+    }
 }
 

@@ -194,6 +194,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         // unsure if this is the right way to deal w block
         curBlock = new BasicBlock(blockNo++, fd.funcName());
         curCFG = new CFG(curBlock);
+        curCFG.instrNumberer.newBlock(curBlock.getNum());
         funcs.add(curCFG);
         // add curCFG to funcs list
 
@@ -224,6 +225,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
                               new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))),
                               storage,
                               "eq" );
+            // If We're at the start of the block "rehead" it. Else just move back
+            if( curBlock.getInstructions().isEmpty() )
+                cmp.getIdObj().moveToBlockFront(curBlock.getNum());
+            else
+                cmp.getIdObj().moveRelative( -1 );
+
             curBlock.add(cmp);
             bra.setRel("==");
             bra.setVal( storage );
@@ -254,6 +261,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
 
         curBlock = ifblock;
+        curCFG.instrNumberer.newBlock(ifblock.getNum());
         is.getIfseq().accept(this);
         bra = new Branch(curCFG.instrNumberer.push(), "");
         bra.setDestination(nextBlock);
@@ -261,6 +269,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         if( is.getElseseq() != null ) {
             curBlock = elseblock;
+            curCFG.instrNumberer.newBlock(elseblock.getNum());
             is.getElseseq().accept(this);
             bra = new Branch(curCFG.instrNumberer.push(), "");
             bra.setDestination(nextBlock);
@@ -281,6 +290,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         }
 
         curBlock = nextBlock;
+        curCFG.instrNumberer.newBlock(nextBlock.getNum());
 
         return null;
 
@@ -409,6 +419,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock.add(bra);
 
         curBlock = repBlk;
+        curCFG.instrNumberer.newBlock(repBlk);
 
         rep.getSeq().accept(this);
 
@@ -431,6 +442,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         postRep.addPredecessor( curBlock );
         curBlock.addSuccessor( postRep );
         curBlock = postRep;
+        curCFG.instrNumberer.newBlock(postRep);
 
         return null;
     }
@@ -464,6 +476,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock = tmpBlk;
         tmpBlk.setNum(blockNo++);
         funcs.add(curCFG);
+
+        curCFG.instrNumberer.newBlock(tmpBlk.getNum());
 
         root.getSeq().accept(this);
 
@@ -514,6 +528,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         BasicBlock loopBlk = new BasicBlock(blockNo++, "While"),
                    postLoop = new BasicBlock(-1, "Post-While");
 
+        curCFG.instrNumberer.newBlock(loopBlk);
         Temporary cmpStart = new Temporary(tempNum++);
         Cmp cmp = new Cmp(curCFG.instrNumberer.push(), stmt, Literal.get(false), cmpStart, "eq" );
         Branch braEnd = new Branch(curCFG.instrNumberer.push(), "==");
@@ -567,6 +582,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         curBlock = postLoop;
         postLoop.setNum(blockNo++);
+        curCFG.instrNumberer.newBlock(postLoop);
 
         return null;
     }

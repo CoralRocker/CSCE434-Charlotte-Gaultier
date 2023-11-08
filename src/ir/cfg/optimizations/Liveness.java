@@ -14,6 +14,11 @@ public class Liveness extends CFGVisitor{
     private CFG cfg;
     private int iters = 0;
 
+    protected boolean isChanged = false;
+
+    public boolean isChanged() {
+        return isChanged;
+    }
 
     public Liveness(CFG cfg, boolean do_print, boolean do_dce) {
         this.cfg = cfg;
@@ -29,6 +34,7 @@ public class Liveness extends CFGVisitor{
         });
 
         var changed = new Object(){ boolean b = true; };
+        iters = 0;
         while(changed.b) {
             changed.b = false;
             iters++;
@@ -94,6 +100,7 @@ public class Liveness extends CFGVisitor{
                                 }
                             }
                             if(!contains){
+                                isChanged = true;
                                 System.out.println(uses);
                                 System.out.println(defVar);
                                 if (do_print) {
@@ -116,8 +123,6 @@ public class Liveness extends CFGVisitor{
                 }
             });
         }
-
-        System.out.printf("Post Optimization:\n%s\n", cfg.asDotGraph());
     }
 
     private HashSet<Variable> getUses(BasicBlock block) {
