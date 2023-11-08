@@ -1,0 +1,34 @@
+digraph G {
+bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
+	1: bra true BB2 
+|<exit>	1: bra BB3 
+}"];
+bb1:exit -> bb2:entry
+bb1:exit -> bb3:entry
+bb2 [shape=record, label="<B> If \n BB2 | {<entry>
+	2: store a 2 
+|	3: store y 3 
+|	4: store a 1 
+|<exit>	5: bra BB4 
+}"];
+bb2:exit -> bb4:entry
+bb1:B -> bb2:B [style=dotted, color=blue, label=idom];
+bb3 [shape=record, label="<B> Else \n BB3 | {<entry>
+	6: call _t0 println 
+|<exit>	7: bra BB4 
+}"];
+bb3:exit -> bb4:entry
+bb1:B -> bb3:B [style=dotted, color=blue, label=idom];
+bb4 [shape=record, label="<B> Post-If \n BB4 | {<entry>
+	8: store a 1 
+|	9: store x 51 
+|	10: mul _t0 2 x 
+|	11: add y _t0 y 
+|	12: mul _t1 y 2 
+|	13: add _t0 x _t1 
+|	14: add x _t0 z 
+|	15: store _t0 y 
+|<exit>	16: call _t0 printInt 
+}"];
+bb1:B -> bb4:B [style=dotted, color=blue, label=idom];
+}

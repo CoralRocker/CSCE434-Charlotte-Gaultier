@@ -1,0 +1,15 @@
+// Caleb Austin 830006168
+// Tests for common subexpression elimination.
+
+main
+int a, b, x, y;
+{
+	a = call readInt();
+	b = call readInt();
+	
+	x = a + b;
+	y = a + b;
+	
+	call printInt(x);
+	call printInt(y);
+}.

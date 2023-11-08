@@ -1,0 +1,45 @@
+digraph G {
+bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
+	1: store a 1 
+|	2: store b 2 
+|	3: store c 3 
+|	4: cmpgt _t0 c b 
+|	5: bgt _t0 BB2 
+|<exit>	6: bra BB3 
+}"];
+bb1:exit -> bb2:entry
+bb1:exit -> bb3:entry
+bb2 [shape=record, label="<B> If \n BB2 | {<entry>
+	7: store d a 
+|<exit>	8: bra BB4 
+}"];
+bb2:exit -> bb4:entry
+bb1:B -> bb2:B [style=dotted, color=blue, label=idom];
+bb3 [shape=record, label="<B> Else \n BB3 | {<entry>
+	9: cmpgt _t0 a 1 
+|	10: bgt _t0 BB5 
+|<exit>	11: bra BB6 
+}"];
+bb3:exit -> bb5:entry
+bb3:exit -> bb6:entry
+bb3:exit -> bb4:entry
+bb1:B -> bb3:B [style=dotted, color=blue, label=idom];
+bb4 [shape=record, label="<B> Post-If \n BB4 | {<exit>	17: add e d a 
+}"];
+bb1:B -> bb4:B [style=dotted, color=blue, label=idom];
+bb5 [shape=record, label="<B> If \n BB5 | {<entry>
+	12: store d b 
+|<exit>	13: bra BB7 
+}"];
+bb5:exit -> bb7:entry
+bb3:B -> bb5:B [style=dotted, color=blue, label=idom];
+bb6 [shape=record, label="<B> Else \n BB6 | {<entry>
+	14: store d c 
+|<exit>	15: bra BB7 
+}"];
+bb6:exit -> bb7:entry
+bb3:B -> bb6:B [style=dotted, color=blue, label=idom];
+bb7 [shape=record, label="<B> Post-If \n BB7 | {<exit>	16: bra BB4 
+}"];
+bb3:B -> bb7:B [style=dotted, color=blue, label=idom];
+}

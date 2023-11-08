@@ -1,0 +1,34 @@
+// Timothy Reynolds 824004266
+// Test IR generation with loops and array indexes
+
+main
+int i;
+int[2][4] j;
+
+function comp(bool check, int a, int b) : int {
+	if (check) then
+		return a;
+	else
+		return b;
+	fi;
+};
+
+{
+	i = 0;
+	if (i == 0) then 
+		call println();
+	else
+		call printInt(i);
+	fi;
+	
+	j[1][2] = 4;
+	
+	while (i <= 0) do
+		call printInt(i);
+		i++;
+	od;
+	
+	repeat
+		call printInt(i);
+	until (i > 5);
+}.

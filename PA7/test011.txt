@@ -1,0 +1,13 @@
+// Caleb Norton 628007801
+// unused functions should not generate a CFG
+
+main
+
+function retInteger (int i) : int {
+	i++;
+	return i;
+};
+
+{
+  call printInt(3);
+}.

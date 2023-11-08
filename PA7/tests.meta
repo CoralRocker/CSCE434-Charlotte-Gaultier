@@ -1,0 +1,24 @@
+test000, cp cf
+test000, cp cf dce 
+test000, max
+test001, cf
+test002, cse
+test003, cpp
+test004, cf
+test004, cp
+test005, dce
+test006, max
+test007, cse cp
+test008, cp cf
+test010, dce
+test012, cf cp
+test013, cf cp
+test101, cse
+test101, cp cf max
+test102, cf cp max
+test103, cpp
+test104, dce
+test104, cf
+test104, max
+test105, cp cf max
+test106, dce 

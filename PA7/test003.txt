@@ -1,0 +1,18 @@
+//Himani Deshpande 730007406
+//Test CPP
+
+main
+int a, b, c, d, e, z, x, y;
+{
+    a = 1 + 2;
+    b = a;
+   y = a + b;
+   z = y * y;
+   c = y * y;
+   a = 1 + y;
+   e = a + b;
+   x = a + b;
+   y = 24 % 2;
+   z = y * y;
+   c = y * y;
+}.

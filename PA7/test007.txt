@@ -1,0 +1,19 @@
+// Eyobel Berhane 328001599
+
+main
+
+int i0, i1, i2;
+
+// Start main function
+{
+    // Goal is to test for bad common expression eliminations and constant propagation
+    i0 = 5;
+    i1 = i0 * 2;
+    i0 = 2;
+    i2 = i0 * 2;
+
+    // Print results
+    call printInt(i0); // 2
+    call printInt(i1); // 10
+    call printInt(i2); // 4
+}.

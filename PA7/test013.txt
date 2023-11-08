@@ -1,0 +1,15 @@
+// Anthony Pierson 430005891
+// cp cf
+main
+int x,y,z;
+
+{
+    if (true) then
+        x = 2;
+    else
+        x = 999;
+    fi;
+
+    x = (1*2) - 3;
+    call printInt(x);
+}.

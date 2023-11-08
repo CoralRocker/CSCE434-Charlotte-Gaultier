@@ -1,0 +1,21 @@
+// Chris Baldwin
+// Tests retursive function calls
+
+main
+int init, result;
+
+function fib(int current) : int {
+    if(current == 1) then
+        return 1;
+    fi;
+    if(current == 0) then
+        return 0;
+    fi;
+    return call fib(current-1) + call fib(current-2);
+};
+
+{
+    init = 6;
+    result = call fib(init);
+    call printInt(result); // Should be 0; No out of scope leak
+}.

@@ -1,0 +1,13 @@
+// Samuel Torres 130006243
+// dead code elimination
+
+main 
+
+int x, y, z;
+
+{
+	x = 14;
+	y = 5;
+	z = 10;
+	z = y;
+}.
