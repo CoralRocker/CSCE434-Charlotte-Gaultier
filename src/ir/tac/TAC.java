@@ -22,4 +22,7 @@ public abstract class TAC implements Visitable{
     public String opName() {
         return getClass().getSimpleName();
     }
+
+    public Assignable dest;
+
 }

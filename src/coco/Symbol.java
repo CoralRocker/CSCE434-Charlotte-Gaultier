@@ -1,5 +1,7 @@
 package coco;
 
+import ir.tac.Variable;
+
 public abstract class Symbol {
 
     protected String name;
@@ -17,5 +19,12 @@ public abstract class Symbol {
     public abstract ArrayType type();
 
     public abstract boolean hasType();
+
+    @Override
+    public boolean equals(Object other) {
+        if( !(other instanceof Symbol) )
+            return false;
+        return name.equals(((Symbol) other).name) && type().equals(((Symbol) other).type());
+    }
 }
 
