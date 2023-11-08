@@ -89,6 +89,8 @@ public class Compiler {
                     }
                 }
             }
+            System.out.println("Post Optimization:");
+            System.out.println(main.asDotGraph());
         }
 
         return main.asDotGraph();

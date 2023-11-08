@@ -74,4 +74,7 @@ public class Expression {
         return this.exprString().hashCode();
     }
 
+    public boolean isTemporary() {
+        return dest instanceof Temporary;
+    }
 }

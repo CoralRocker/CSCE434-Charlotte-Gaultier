@@ -57,9 +57,17 @@ public class AvailableExpression extends CFGVisitor {
                 }
                 else {
                     var iter = preds.iterator();
-                    blk.entry = iter.next().exit;
                     while( iter.hasNext() ) {
-                        merge((Map<Expression, Expression>) blk.entry, (Map<Expression, Expression>) iter.next().exit);
+                        var src = iter.next();
+                        if( src.exit != null ) {
+                            blk.entry = ((HashMap<Expression, Expression>)src.exit).clone(); // Needs to be a deep copy
+                            break;
+                        }
+                    }
+                    while( iter.hasNext() ) {
+                        var src = iter.next();
+                        if( src.exit != null )
+                            merge((Map<Expression, Expression>) blk.entry, (Map<Expression, Expression>) src.exit);
                     }
                 }
                 // for (BasicBlock p : blk.getPredecessors()) {

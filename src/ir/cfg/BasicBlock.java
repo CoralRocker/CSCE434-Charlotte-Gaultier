@@ -93,6 +93,9 @@ public class BasicBlock extends Block implements Iterable<TAC> {
 
     @Override
     public String toString() {
+        if( visited ) {
+            return String.format("BB%d VISITED", getNum());
+        }
         return String.format("BB%d", getNum());
     }
 

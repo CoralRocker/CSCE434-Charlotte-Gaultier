@@ -52,6 +52,14 @@ public class ExprInBlock extends TACVisitor<Expression> {
             }
         }
 
+        // Remove Temporaries From Available Expressions To Be propagated.
+        var keyIter = visitor.avail.keySet().iterator();
+        while( keyIter.hasNext() ) {
+            var key = keyIter.next();
+            if( key.isTemporary() )
+                keyIter.remove();
+        }
+
         HashMap<Expression, Expression> blkmap = (HashMap<Expression, Expression>) blk.exit;
         blk.exit = visitor.avail;
 
