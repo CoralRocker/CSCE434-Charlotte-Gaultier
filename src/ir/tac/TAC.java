@@ -19,6 +19,10 @@ public abstract class TAC implements Visitable{
 
     public TacID getIdObj() { return id; }
 
+    public void setId(int num){
+        this.id.setNum(num);
+    }
+
     public String opName() {
         return getClass().getSimpleName();
     }

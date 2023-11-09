@@ -76,11 +76,23 @@ public class Liveness extends CFGVisitor{
             // TODO implement
             // loop thru basic blocks
             // run kill
+
             cfg.breadthFirst((BasicBlock b) -> {
+                List<TAC> kill = new ArrayList<>();
+
                 HashSet<Variable> uses = getUses(b);
                 List<TAC> gen = new ArrayList<>();
                 //      for each instruction
+                int i = 0;
+
                 for (TAC instr : b.getInstructions()) {
+                    i++;
+
+                    if (i == 1){
+//                        kill.add(instr);
+//                        continue;
+                    }
+
                     if (instr instanceof Assign || instr instanceof Store) {
                         TAC assignInstr = instr;
 
@@ -106,6 +118,7 @@ public class Liveness extends CFGVisitor{
                                 if (do_print) {
                                     System.out.printf("Removing dead instruction: %s\n", instr);
                                 }
+                                kill.add(instr);
                                 continue;
                             }
                         }
@@ -113,14 +126,17 @@ public class Liveness extends CFGVisitor{
                     gen.add(instr);
                 }
 
-                int ctr = -1;
                 // update instructions
+                for (TAC instr : kill) {
+                    cfg.instrNumberer.remove(instr.getIdObj());
+                }
                 b.getInstructions().clear();
                 for (TAC instr : gen){
-                    ctr = ctr + 1;
                     // was erroring with ++ and .getAndIncrement() was the suggested fix
                     b.getInstructions().add(instr);
                 }
+                cfg.instrNumberer.genNum();
+                // reassign IDs to genned instructions
             });
         }
     }
