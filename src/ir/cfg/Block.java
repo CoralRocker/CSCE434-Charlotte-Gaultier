@@ -1,12 +1,19 @@
 package ir.cfg;
 
+import ir.tac.TAC;
+import ir.tac.Variable;
+
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public abstract class Block implements Visitable<Object> {
 
     public Object entry;
     public Object exit;
+
+    public HashSet<Variable> live_in;
+    public HashSet<Variable> live_out;
 
     boolean visited;
 

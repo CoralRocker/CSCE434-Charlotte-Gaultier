@@ -2,7 +2,7 @@ package ir.tac;
 
 public abstract class Assign extends TAC{
     
-    public Assignable dest; // lhs
+
     public Value left; // operand_1
     public Value right; // operand_2
 

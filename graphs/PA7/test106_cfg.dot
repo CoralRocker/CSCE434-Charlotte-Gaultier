@@ -1,0 +1,56 @@
+digraph G {
+bb1 [shape=record, label="<B> foo \n BB1 | {<entry>
+	1: cmpgt _t0 x 0 
+|	2: cmpeq _t1 _t0 false 
+|	3: beq _t1 BB3 
+|<exit>	4: bra BB2 
+}"];
+bb1:exit -> bb2:entry
+bb1:exit -> bb3:entry
+bb2 [shape=record, label="<B> While \n BB2 | {<entry>
+	5: add a a y 
+|	6: sub x x 1 
+|	7: cmpgt _t0 x 0 
+|	8: cmpeq _t1 _t0 false 
+|	9: beq _t1 BB2 
+|<exit>	10: bra BB3 
+}"];
+bb2:exit -> bb2:entry
+bb2:exit -> bb3:entry
+bb1:B -> bb2:B [style=dotted, color=blue, label=idom];
+bb3 [shape=record, label="<B> Post-While \n BB3 | {<entry>
+|<exit>
+}"];
+bb1:B -> bb3:B [style=dotted, color=blue, label=idom];
+}
+digraph G {
+bb1 [shape=record, label="<B> bar \n BB1 | {<entry>
+	1: store _t0 x 
+|	2: call _t0 printInt 
+|	3: store _t0 y 
+|	4: call _t0 printInt 
+|	5: store _t0 a 
+|	6: call _t0 printInt 
+|	7: store _t0 n 
+|	8: call _t0 printInt 
+|<exit>	9: add z a y 
+}"];
+}
+digraph G {
+bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
+	1: call m readInt 
+|	2: call n readInt 
+|	3: store _t0 m 
+|	4: store _t1 n 
+|	5: store _t2 0 
+|	6: call z foo 
+|	7: store _t0 z 
+|	8: call _t0 printInt 
+|	9: add x m 1 
+|	10: store y n 
+|	11: store a 100 
+|	12: call _t0 bar 
+|	13: store _t0 z 
+|<exit>	14: call _t0 printInt 
+}"];
+}

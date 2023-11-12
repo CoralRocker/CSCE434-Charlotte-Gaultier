@@ -2,7 +2,7 @@ package ir.tac;
 
 public class Store extends TAC{
 
-    public final Assignable dest;
+
     public final Value source;
     public Store(TacID id, Assignable dest, Value source) {
         super(id);

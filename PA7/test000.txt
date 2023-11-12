@@ -1,19 +1,17 @@
 main
 
-int x, y, z, a;
+int a, b, c, d;
+bool x;
 
-// cp cf dce
 {
-    if (true) then
-        a = 2;
-        y = 3;
-        a = 1;
-    else
-        call println();
-    fi;
-    a = 1;
-    x = 51;
-    y = 2 * x + y;
-    x = x + y * 2 + z;
-    call printInt(y);
+
+  a = call readInt();
+  b = call readInt();
+
+  c = b * a + d; // ELIMINATE THIS
+  b = b * a;
+  d = b + a;
+
+  call printInt( b );
+  call printInt( d );
 }.

@@ -25,6 +25,15 @@ public class UsedInBlock extends TACVisitor<List<Variable>> {
         return visitor.used;
     }
 
+    public static List<Variable> usedInInstr(TAC instr) {
+        ir.tac.UsedInBlock visitor = new ir.tac.UsedInBlock();
+        List<Variable> vars = instr.accept(visitor);
+        if( vars != null )
+            visitor.used.addAll(vars);
+
+        return visitor.used;
+    }
+
     @Override
     public List<Variable> visit(Return ret) {
         return emptyList();
@@ -37,6 +46,7 @@ public class UsedInBlock extends TACVisitor<List<Variable>> {
 
     @Override
     public List<Variable> visit(Call call) {
+        // TODO add function parameters to list of used variables here
         return emptyList();
     }
 

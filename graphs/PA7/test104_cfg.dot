@@ -1,0 +1,100 @@
+digraph G {
+bb1 [shape=record, label="<B> early_return \n BB1 | {<entry>
+	1: store c 1 
+|	2: store c 2 
+|	3: div unused c d 
+|	4: mul _t0 c d 
+|<exit>	5: call _t0 printInt 
+}"];
+}
+digraph G {
+bb1 [shape=record, label="<B> unreachableIf \n BB1 | {<entry>
+	1: store c 1 
+|	2: store d 2 
+|	3: cmpeq _t0 d c 
+|	4: beq _t0 BB2 
+|<exit>	5: bra BB3 
+}"];
+bb1:exit -> bb2:entry
+bb1:exit -> bb3:entry
+bb2 [shape=record, label="<B> If \n BB2 | {<entry>
+	6: store d c 
+|<exit>	7: bra BB3 
+}"];
+bb2:exit -> bb3:entry
+bb1:B -> bb2:B [style=dotted, color=blue, label=idom];
+bb3 [shape=record, label="<B> Post-If \n BB3 | {<entry>
+	8: bra false BB4 
+|<exit>	9: bra BB5 
+}"];
+bb3:exit -> bb4:entry
+bb3:exit -> bb5:entry
+bb1:B -> bb3:B [style=dotted, color=blue, label=idom];
+bb4 [shape=record, label="<B> If \n BB4 | {<entry>
+	10: call _t0 println 
+|<exit>	11: bra BB6 
+}"];
+bb4:exit -> bb6:entry
+bb3:B -> bb4:B [style=dotted, color=blue, label=idom];
+bb5 [shape=record, label="<B> Else \n BB5 | {<entry>
+	12: call _t0 println 
+|<exit>	13: bra BB6 
+}"];
+bb5:exit -> bb6:entry
+bb3:B -> bb5:B [style=dotted, color=blue, label=idom];
+bb6 [shape=record, label="<B> Post-If \n BB6 | {<entry>
+	14: bra true BB7 
+|<exit>	15: bra BB8 
+}"];
+bb6:exit -> bb7:entry
+bb6:exit -> bb8:entry
+bb3:B -> bb6:B [style=dotted, color=blue, label=idom];
+bb7 [shape=record, label="<B> If \n BB7 | {<entry>
+	16: call _t0 println 
+|<exit>	17: bra BB9 
+}"];
+bb7:exit -> bb9:entry
+bb6:B -> bb7:B [style=dotted, color=blue, label=idom];
+bb8 [shape=record, label="<B> Else \n BB8 | {<entry>
+	18: call _t0 println 
+|<exit>	19: bra BB9 
+}"];
+bb8:exit -> bb9:entry
+bb6:B -> bb8:B [style=dotted, color=blue, label=idom];
+bb9 [shape=record, label="<B> Post-If \n BB9 | {<entry>
+	20: bra true BB10 
+|<exit>	21: bra BB11 
+}"];
+bb9:exit -> bb10:entry
+bb9:exit -> bb11:entry
+bb6:B -> bb9:B [style=dotted, color=blue, label=idom];
+bb10 [shape=record, label="<B> If \n BB10 | {<entry>
+	22: call _t0 println 
+|<exit>	23: bra BB11 
+}"];
+bb10:exit -> bb11:entry
+bb9:B -> bb10:B [style=dotted, color=blue, label=idom];
+bb11 [shape=record, label="<B> Post-If \n BB11 | {<entry>
+	24: bra false BB12 
+|<exit>	25: bra BB13 
+}"];
+bb11:exit -> bb12:entry
+bb11:exit -> bb13:entry
+bb9:B -> bb11:B [style=dotted, color=blue, label=idom];
+bb12 [shape=record, label="<B> If \n BB12 | {<entry>
+	26: call _t0 println 
+|<exit>	27: bra BB13 
+}"];
+bb12:exit -> bb13:entry
+bb11:B -> bb12:B [style=dotted, color=blue, label=idom];
+bb13 [shape=record, label="<B> Post-If \n BB13 | {<entry>
+|<exit>
+}"];
+bb11:B -> bb13:B [style=dotted, color=blue, label=idom];
+}
+digraph G {
+bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
+	1: call _t0 unreachableIf 
+|<exit>	2: call _t0 early_return 
+}"];
+}

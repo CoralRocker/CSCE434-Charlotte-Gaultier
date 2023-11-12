@@ -23,6 +23,15 @@ public class DefinedInBlock extends TACVisitor<List<Variable>> {
 
         return visitor.defined;
     }
+    public static List<Variable> defInInstr(TAC instr) {
+        DefinedInBlock visitor = new DefinedInBlock();
+
+        List<Variable> vars = instr.accept(visitor);
+        if( vars != null )
+            visitor.defined.addAll(vars);
+
+        return visitor.defined;
+    }
 
     @Override
     public List<Variable> visit(Return ret) {

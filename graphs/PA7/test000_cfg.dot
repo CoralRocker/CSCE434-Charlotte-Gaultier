@@ -1,34 +1,14 @@
 digraph G {
 bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
-	1: bra true BB2 
-|<exit>	2: bra BB3 
+	1: call a readInt 
+|	2: call b readInt 
+|	3: mul _t0 b a 
+|	4: add c _t0 d 
+|	5: mul b b a 
+|	6: add d b a 
+|	7: store _t0 b 
+|	8: call _t0 printInt 
+|	9: store _t0 d 
+|<exit>	10: call _t0 printInt 
 }"];
-bb1:exit -> bb2:entry
-bb1:exit -> bb3:entry
-bb2 [shape=record, label="<B> If \n BB2 | {<entry>
-	3: store a 2 
-|	4: store y 3 
-|	5: store a 1 
-|<exit>	6: bra BB4 
-}"];
-bb2:exit -> bb4:entry
-bb1:B -> bb2:B [style=dotted, color=blue, label=idom];
-bb3 [shape=record, label="<B> Else \n BB3 | {<entry>
-	7: call _t0 println 
-|<exit>	8: bra BB4 
-}"];
-bb3:exit -> bb4:entry
-bb1:B -> bb3:B [style=dotted, color=blue, label=idom];
-bb4 [shape=record, label="<B> Post-If \n BB4 | {<entry>
-	9: store a 1 
-|	10: store x 51 
-|	11: mul _t0 2 x 
-|	12: add y _t0 y 
-|	13: mul _t1 y 2 
-|	14: add _t0 x _t1 
-|	15: add x _t0 z 
-|	16: store _t0 y 
-|<exit>	17: call _t0 printInt 
-}"];
-bb1:B -> bb4:B [style=dotted, color=blue, label=idom];
 }

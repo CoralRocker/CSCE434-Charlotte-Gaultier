@@ -29,4 +29,8 @@ public abstract class TAC implements Visitable{
 
     public Assignable dest;
 
+    public Assignable getDest(){
+        return dest;
+    }
+
 }
