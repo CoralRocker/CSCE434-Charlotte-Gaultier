@@ -29,6 +29,11 @@ public class Variable extends Assignable implements Visitable {
     }
 
     @Override
+    public int hashCode() {
+        return sym.name().hashCode();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if( !(other instanceof Variable) )
             return false;
