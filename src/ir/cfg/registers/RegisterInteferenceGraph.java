@@ -5,66 +5,6 @@ import ir.tac.Variable;
 import java.util.*;
 
 
-class AdjacencyGraph<E> {
-
-    private ArrayList<E> matrix;
-    private int N;
-
-    public int getSize() {
-        return (N * (N-1)) / 2;
-    }
-
-    private int index(int i, int j) {
-        if( i <= j ) {
-            throw new IllegalArgumentException(String.format("Cannot get index at (row: %d, col: %d): Row number must be greater than Column number"));
-        }
-
-        return (i * (i - 1) / 2) + j;
-    }
-
-    public E get(int i, int j) {
-        return matrix.get( index(i, j) );
-    }
-
-    public AdjacencyGraph(int numNodes) {
-        N = numNodes;
-        matrix = new ArrayList<>(getSize());
-        for( int i = 0; i < getSize(); i++ ) {
-            matrix.set(i, null );
-        }
-    }
-
-    public AdjacencyGraph(int numNodes, E defaultval) {
-        N = numNodes;
-        matrix = new ArrayList<>(getSize());
-        for( int i = 0; i < getSize(); i++ ) {
-            matrix.set(i, defaultval );
-        }
-    }
-
-    public void setEdge( int i, int j, E val ) {
-        matrix.set(index(i, j), val);
-    }
-
-    public void addNode() {
-        N++;
-        int size = getSize();
-        while( matrix.size() < size ) {
-            matrix.add(null);
-        }
-    }
-
-    public void addNodes(int n) {
-        if( n < 0 ) throw new IllegalArgumentException("Cannot add negative amount of nodes");
-        N += n;
-        int size = getSize();
-        while( matrix.size() < size ) {
-            matrix.add(null);
-        }
-    }
-
-}
-
 public class RegisterInteferenceGraph {
 
     public enum EdgeType {
@@ -73,34 +13,48 @@ public class RegisterInteferenceGraph {
         MOVE_RELATED;
     }
 
-    private AdjacencyGraph<EdgeType> adjacency;
-    private HashMap<VariableNode, VariableNode> nodes;
+    class Edge {
+        public RegisterInteferenceGraph.EdgeType type;
+        public VariableNode n1, n2;
+
+        public Edge(RegisterInteferenceGraph.EdgeType t, VariableNode n1, VariableNode n2) {
+            this.type = t;
+            this.n1 = n1;
+            this.n2 = n2;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if( !(other instanceof Edge) ) {
+                return false;
+            }
+
+            Edge edge = (Edge) other;
+
+            return (n1.hashCode() == edge.n1.hashCode() && n2.hashCode() == edge.n2.hashCode())
+                || (n2.hashCode() == edge.n1.hashCode() && n1.hashCode() == edge.n2.hashCode());
+        }
+    }
+
+    private HashMap<VariableNode, HashSet<Edge>> nodes;
+    private HashMap<VariableNode, VariableNode> nodeResovler;
     private int nodeNum;
 
 
     public RegisterInteferenceGraph(List<Variable> nodes) {
-        adjacency = new AdjacencyGraph<>(nodes.size(), EdgeType.NONE);
         this.nodes = new HashMap<>();
+        this.nodeResovler = new HashMap<>();
         nodeNum = 0;
 
         addVariables(nodes);
     }
 
     public void addEdge(VariableNode n1, VariableNode n2 ) {
-        if( n1.ID < n2.ID ) {
-            adjacency.setEdge(n2.ID, n1.ID, EdgeType.INTERFERE );
-        }
-        else {
-            adjacency.setEdge(n1.ID, n2.ID, EdgeType.INTERFERE );
-        }
+        Edge edge = new Edge(EdgeType.INTERFERE, n1, n2);
+
+
     }
     public void addMoveEdge(VariableNode n1, VariableNode n2 ) {
-        if( n1.ID < n2.ID ) {
-            adjacency.setEdge(n2.ID, n1.ID, EdgeType.MOVE_RELATED );
-        }
-        else {
-            adjacency.setEdge(n1.ID, n2.ID, EdgeType.MOVE_RELATED );
-        }
     }
 
     public void addVariables( List<Variable> vars ) {
@@ -110,11 +64,11 @@ public class RegisterInteferenceGraph {
 
         while( iter.hasNext() ) {
             Variable var = iter.next();
-            var node = nodes.getOrDefault(var, null);
+            var node = nodeResovler.getOrDefault(var, null);
             if( node == null ) {
                 node = new VariableNode(nodeNum++, var);
-                adjacency.addNode();
-                nodes.put( node, node );
+                nodeResovler.put(node, node);
+                nodes.put(node, new HashSet<>());
             }
 
             for( VariableNode n : added ) {

@@ -34,6 +34,11 @@ public class Temporary extends Assignable implements Visitable {
     }
 
     @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
+    @Override
     public <E> E accept(TACVisitor<E> visitor) {
         return visitor.visit(this);
     }

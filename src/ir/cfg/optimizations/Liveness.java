@@ -7,8 +7,6 @@ import ir.tac.*;
 
 import java.util.*;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class Liveness extends CFGVisitor{
 
     private CFG cfg;
@@ -30,9 +28,9 @@ public class Liveness extends CFGVisitor{
             // for each node n in CFG
             // in[n] = ∅; out[n] = ∅
             // live in
-            b.live_in = new HashSet<Variable>();
+            b.live_in = new HashSet<>();
             // live out
-            b.live_out = new HashSet<Variable>();
+            b.live_out = new HashSet<>();
         });
 
         List<BasicBlock> blockStack = new ArrayList<BasicBlock>();
@@ -59,15 +57,15 @@ public class Liveness extends CFGVisitor{
 //                if (do_print)
 //                    System.out.printf("%2d: Processing BB%d\n", finalIters, b.getNum());
                 // save cur in/out sets as prev to compare
-                HashSet<Variable> prevIn = new HashSet((HashSet<Variable>) b.live_in);
-                HashSet<Variable> prevOut = new HashSet((HashSet<Variable>) b.live_out);
+                HashSet<Assignable> prevIn = (HashSet<Assignable>) b.live_in.clone();
+                HashSet<Assignable> prevOut = (HashSet<Assignable>) b.live_out.clone();
 
                 // iterate through instructions to get lists of variable uses and assignments
-                HashSet<Variable> uses = getUses(b);
+                HashSet<Assignable> uses = getUses(b);
 
-                HashSet<Variable> defs = getDefs(b);
+                HashSet<Assignable> defs = getDefs(b);
 
-                HashSet<Variable> tempOut = new HashSet<>(prevOut);
+                HashSet<Assignable> tempOut = new HashSet<>(prevOut);
                 tempOut.removeAll(defs);
                 uses.addAll(tempOut);
                 b.live_in.addAll(uses);
@@ -110,7 +108,7 @@ public class Liveness extends CFGVisitor{
                 boolean use = false;
                 List<TAC> kill = new ArrayList<>();
 
-                HashSet<Variable> uses = getUses(b);
+                HashSet<Assignable> uses = getUses(b);
                 List<TAC> gen = new ArrayList<>();
                 // for each instruction
                 int i = 0;
@@ -141,8 +139,8 @@ public class Liveness extends CFGVisitor{
                         int j = i + 1;
                         while(j < b.getInstructions().size()){
                             TAC newInstr = b.getInstructions().get(j);
-                            List<Variable> usesInTAC = UsedInBlock.usedInInstr(newInstr);
-                            for(Variable var : usesInTAC){
+                            List<Assignable> usesInTAC = UsedInBlock.usedInInstr(newInstr);
+                            for(Assignable var : usesInTAC){
                                 if(defVar.equals(var)){
                                     // set use flag
                                     use = true;
@@ -175,7 +173,7 @@ public class Liveness extends CFGVisitor{
 
                         //      check if it defs a variable not in exit set
 
-                        if (!((HashSet<Variable>)b.live_out).contains(defVar)) {
+                        if (!b.live_out.contains(defVar)) {
                 //          if var is also not in uses add it to kill set
                             if(!use){
                                 isChanged = true;
@@ -205,17 +203,17 @@ public class Liveness extends CFGVisitor{
         }
     }
 
-    private HashSet<Variable> getUses(BasicBlock block) {
+    private HashSet<Assignable> getUses(BasicBlock block) {
 
         // loop thru instructions
         // read right-hand side
         // create SymbolVals of them
         // maybe create new class to handle
-        HashSet<Variable> uses = new HashSet<Variable>(UsedInBlock.usedInBlock(block));
-        HashSet<Variable> cleanedUses = new HashSet<Variable>(uses);
+        HashSet<Assignable> uses = new HashSet<Assignable>(UsedInBlock.usedInBlock(block));
+        HashSet<Assignable> cleanedUses = new HashSet<Assignable>(uses);
 
-        for (Variable var : uses){
-            for (Variable var2 : uses){
+        for (Assignable var : uses){
+            for (Assignable var2 : uses){
 //                System.out.println("( "+var+" , "+var2+" ) " + var.equals(var2));
                 if(var.equals(var2)){
                     cleanedUses.remove(var2);
@@ -226,18 +224,18 @@ public class Liveness extends CFGVisitor{
         return cleanedUses;
     }
 
-    private HashSet<Variable> getDefs(BasicBlock block) {
+    private HashSet<Assignable> getDefs(BasicBlock block) {
 
         // loop thru instructions
         // grab all assignments
         // create SymbolVals of them
 
         // logic in definedInBlock
-        HashSet<Variable> defs = new HashSet<Variable>(DefinedInBlock.defInBlock(block));
-        HashSet<Variable> cleanedDefs = new HashSet<Variable>(defs);
+        HashSet<Assignable> defs = new HashSet<Assignable>(DefinedInBlock.defInBlock(block));
+        HashSet<Assignable> cleanedDefs = new HashSet<Assignable>(defs);
 
-        for (Variable var : defs){
-            for (Variable var2 : defs){
+        for (Assignable var : defs){
+            for (Assignable var2 : defs){
 //                System.out.println("( "+var+" , "+var2+" ) " + var.equals(var2));
                 if(var.equals(var2)){
                     cleanedDefs.remove(var2);

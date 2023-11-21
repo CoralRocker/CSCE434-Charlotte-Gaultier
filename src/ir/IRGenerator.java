@@ -577,6 +577,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock.addSuccessor(loopBlk);
         curBlock.addSuccessor(postLoop);
         loopBlk.addPredecessor(curBlock);
+        postLoop.addPredecessor(curBlock);
 
 
 

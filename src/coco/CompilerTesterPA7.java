@@ -170,6 +170,7 @@ public class CompilerTesterPA7 {
         }
 
         // //PA 8
+        c.allocateRegisters(numRegs);
         // c.regAlloc(numRegs);
 
         // //PA 9
