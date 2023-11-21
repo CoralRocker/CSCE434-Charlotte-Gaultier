@@ -1,5 +1,6 @@
 package ir.cfg.registers;
 
+import ir.tac.Assignable;
 import ir.tac.Variable;
 
 import java.util.*;
@@ -41,29 +42,32 @@ public class RegisterInteferenceGraph {
     private int nodeNum;
 
 
-    public RegisterInteferenceGraph(List<Variable> nodes) {
+    public RegisterInteferenceGraph() {
         this.nodes = new HashMap<>();
         this.nodeResovler = new HashMap<>();
         nodeNum = 0;
-
-        addVariables(nodes);
     }
 
     public void addEdge(VariableNode n1, VariableNode n2 ) {
         Edge edge = new Edge(EdgeType.INTERFERE, n1, n2);
 
-
+        nodes.get(n1).add(edge);
+        nodes.get(n2).add(edge);
     }
     public void addMoveEdge(VariableNode n1, VariableNode n2 ) {
+        Edge edge = new Edge(EdgeType.MOVE_RELATED, n1, n2);
+
+        nodes.get(n1).add(edge);
+        nodes.get(n2).add(edge);
     }
 
-    public void addVariables( List<Variable> vars ) {
-        var iter = vars.listIterator();
+    public void addVariables( Collection<Assignable> vars ) {
+        var iter = vars.iterator();
 
         List<VariableNode> added = new ArrayList<>(vars.size());
 
         while( iter.hasNext() ) {
-            Variable var = iter.next();
+            Assignable var = iter.next();
             var node = nodeResovler.getOrDefault(var, null);
             if( node == null ) {
                 node = new VariableNode(nodeNum++, var);
@@ -78,6 +82,24 @@ public class RegisterInteferenceGraph {
             added.add( node );
         }
 
+    }
+
+    public String asDotGraph() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("graph Reg {\n");
+
+        for( var entry : nodes.entrySet() ) {
+            VariableNode node = entry.getKey();
+            sb.append(String.format("%s [shape=oval];\n", node.var));
+            for( Edge edge : entry.getValue() ) {
+                if( edge.n1.equals(node) ) {
+                    sb.append(String.format("%s -- %s;\n", edge.n1.var, edge.n2.var));
+                }
+            }
+        }
+
+        sb.append("}\n");
+        return sb.toString();
     }
 
 }

@@ -34,9 +34,8 @@ public class RegisterAllocator {
     }
 
     public void allocateRegisters(CFG cfg) {
-        ArrayList<Variable> nodes = new ArrayList<>();
 
-        rig = new RegisterInteferenceGraph(nodes);
+        rig = new RegisterInteferenceGraph();
 
         ProgramPointLiveness liveness = new ProgramPointLiveness(cfg);
 
@@ -45,6 +44,9 @@ public class RegisterAllocator {
 
         for( var blk : cfg.allNodes ) {
             for (TAC tac : blk.getInstructions()) {
+
+                rig.addVariables(tac.liveAfterPP);
+
                 tac.liveAfterPP.forEach(var -> {
                     if (!openRanges.containsKey(var)) {
                         openRanges.put(var, tac.getIdObj());
@@ -70,6 +72,8 @@ public class RegisterAllocator {
 
             }
         }
+
+        System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
 
     }
 }
