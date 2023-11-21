@@ -8,8 +8,14 @@ import java.util.HashSet;
 
 public class ProgramPointLiveness {
 
-    public ProgramPointLiveness(CFG cfg, boolean do_print) {
 
+    private final CFG cfg;
+
+    public ProgramPointLiveness(CFG cfg) {
+        this.cfg = cfg;
+    }
+
+    public void calculate(boolean do_print) {
         cfg.breadthFirst(blk -> {
             blk.live_in = new HashSet<>();  // Live in: Variable live at block entry
             blk.live_out = new HashSet<>(); // Live out: Variables live at block exit
@@ -203,6 +209,11 @@ class TACLiveness extends TACVisitor<LiveData> {
     }
 
     @Override
+    public LiveData visit(LoadStack lstack) {
+        return new LiveData(null, lstack.val, null);
+    }
+
+    @Override
     public LiveData visit(Branch bra) {
         return null;
     }
@@ -215,6 +226,11 @@ class TACLiveness extends TACVisitor<LiveData> {
     @Override
     public LiveData visit(Store store) {
         return new LiveData(store.dest, store.source);
+    }
+
+    @Override
+    public LiveData visit(StoreStack sstack) {
+        return new LiveData(sstack.dest, null, null);
     }
 
     @Override

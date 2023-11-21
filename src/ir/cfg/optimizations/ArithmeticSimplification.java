@@ -141,6 +141,11 @@ public class ArithmeticSimplification extends TACVisitor<TAC> {
     }
 
     @Override
+    public TAC visit(LoadStack lstack) {
+        return null;
+    }
+
+    @Override
     public TAC visit(Branch bra) {
         return null;
     }
@@ -152,6 +157,11 @@ public class ArithmeticSimplification extends TACVisitor<TAC> {
 
     @Override
     public TAC visit(Store store) {
+        return null;
+    }
+
+    @Override
+    public TAC visit(StoreStack sstack) {
         return null;
     }
 

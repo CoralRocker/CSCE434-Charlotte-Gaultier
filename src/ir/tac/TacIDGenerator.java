@@ -86,4 +86,30 @@ public class TacIDGenerator {
         blockMap.put(blk, id);
         genNum();
     }
+
+    public TacID pushAfter(TacID id) {
+        TacID newID = new TacID(this);
+        ids.add( id.getNum(), newID );
+
+        genNum();
+        return newID;
+    }
+    public TacID pushBefore(TacID id) {
+        int blkId = -1;
+        for( var entry : blockMap.entrySet() ) {
+            if( entry.getValue() == id ) {
+                blkId = entry.getKey();
+                break;
+            }
+        }
+
+        TacID newID = new TacID(this);
+        ids.add( id.getNum()-1, newID );
+
+        genNum();
+        if( blkId != -1 ) {
+            blockMap.put(blkId, newID);
+        }
+        return newID;
+    }
 }

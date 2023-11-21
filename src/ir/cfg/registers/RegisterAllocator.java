@@ -2,10 +2,7 @@ package ir.cfg.registers;
 
 import ir.cfg.CFG;
 import ir.cfg.optimizations.ProgramPointLiveness;
-import ir.tac.Assignable;
-import ir.tac.TAC;
-import ir.tac.TacID;
-import ir.tac.Variable;
+import ir.tac.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -85,17 +82,19 @@ public class RegisterAllocator {
     public HashMap<Assignable, Integer> allocateRegisters(CFG cfg) {
 
 
-        ProgramPointLiveness liveness = new ProgramPointLiveness(cfg, false);
+        ProgramPointLiveness liveness = new ProgramPointLiveness(cfg);
+        liveness.calculate(false);
 
         rig = calculateRIG(cfg);
 
+        int K = numRegisters - 2; // Reserve Last 2 registers for spilling
 
-        TreeSet<Integer> registers = new TreeSet<>(IntStream.range(0, numRegisters).boxed().collect(Collectors.toSet()));
+        TreeSet<Integer> registers = new TreeSet<>(IntStream.range(0, K).boxed().collect(Collectors.toSet()));
         HashMap<Assignable, Integer> allocation = new HashMap<>();
         Stack<VariableNode> popped = new Stack<>();
 
         while( !rig.isEmpty() ) {
-            VariableNode ltK = rig.nodeDegreeLessThan(numRegisters);
+            VariableNode ltK = rig.nodeDegreeLessThan(K);
             if( ltK == null ) {
                 ltK = rig.getNode();
                 if( ltK == null )
@@ -106,6 +105,7 @@ public class RegisterAllocator {
             popped.push(ltK);
         }
 
+        int spillNo = 0;
         while( !popped.isEmpty() ) {
             VariableNode node = popped.pop();
 
@@ -113,16 +113,21 @@ public class RegisterAllocator {
             var connections = rig.connections(node);
             TreeSet<Integer> available = (TreeSet<Integer>) registers.clone();
             available.removeAll(connections);
-            if( available.size() >= 1 ) {
+            if( !available.isEmpty() ) {
                 node.assignedRegister = available.first();
             }
             else {
                 node.spill = true;
+                RegisterSpiller spiller = new RegisterSpiller(cfg, node.var, new Spill(spillNo++));
+                spiller.generateLoadStores();
+                liveness.calculate(false);
+                rig = calculateRIG(cfg);
             }
 
         }
 
         System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
+        System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());
 
         return allocation;
     }

@@ -34,6 +34,14 @@ public class TacID {
         parent.moveRelative(this, amt);
     }
 
+    public TacID pushPrevious() {
+        return parent.pushBefore(this);
+    }
+
+    public TacID pushNext() {
+        return parent.pushAfter(this);
+    }
+
     @Override
     public String toString() {
         return String.format("Instruction #%d", num);

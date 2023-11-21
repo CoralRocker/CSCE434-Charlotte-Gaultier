@@ -92,6 +92,11 @@ public class UsedInBlock extends TACVisitor<List<Assignable>> {
     }
 
     @Override
+    public List<Assignable> visit(LoadStack lstack) {
+        return null;
+    }
+
+    @Override
     public List<Assignable> visit(Branch bra) {
         return emptyList();
     }
@@ -105,6 +110,11 @@ public class UsedInBlock extends TACVisitor<List<Assignable>> {
     @Override
     public List<Assignable> visit(Store store) {
         return store.source.accept(this);
+    }
+
+    @Override
+    public List<Assignable> visit(StoreStack sstack) {
+        return null;
     }
 
     @Override
