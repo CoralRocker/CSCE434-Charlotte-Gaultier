@@ -8,7 +8,7 @@ import java.util.HashSet;
 
 public class ProgramPointLiveness {
 
-    public ProgramPointLiveness(CFG cfg) {
+    public ProgramPointLiveness(CFG cfg, boolean do_print) {
 
         cfg.breadthFirst(blk -> {
             blk.live_in = new HashSet<>();  // Live in: Variable live at block entry
@@ -38,17 +38,20 @@ public class ProgramPointLiveness {
                 changed.b = TACLiveness.BlockLiveness(blk);
             });
 
-            System.out.printf("Liveness Analysis Iteration %d:\n", iterations);
-            System.out.printf("Done?: %b\n", !changed.b);
+            if( do_print ) {
+                System.out.printf("Liveness Analysis Iteration %d:\n", iterations);
+                System.out.printf("Done?: %b\n", !changed.b);
 
-            for( BasicBlock blk : cfg.allNodes ) {
-                System.out.printf("BB%d:\n", blk.getNum());
-                for( TAC tac : blk.getInstructions() ) {
-                    System.out.printf("%3d: %-20s %15s -> %-15s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP );
+                for (BasicBlock blk : cfg.allNodes) {
+                    System.out.printf("BB%d:\n", blk.getNum());
+                    for (TAC tac : blk.getInstructions()) {
+                        System.out.printf("%3d: %-20s %15s -> %-15s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
+                    }
                 }
+                System.out.println("\n");
             }
-            System.out.println("\n");
         }
+
 
     }
 

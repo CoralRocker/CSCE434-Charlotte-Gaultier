@@ -25,6 +25,11 @@ public class RegisterInteferenceGraph {
         }
 
         @Override
+        public String toString() {
+            return String.format("%s -- %s -- %s", n1, type, n2);
+        }
+
+        @Override
         public boolean equals(Object other) {
             if( !(other instanceof Edge) ) {
                 return false;
@@ -34,6 +39,17 @@ public class RegisterInteferenceGraph {
 
             return (n1.hashCode() == edge.n1.hashCode() && n2.hashCode() == edge.n2.hashCode())
                 || (n2.hashCode() == edge.n1.hashCode() && n1.hashCode() == edge.n2.hashCode());
+        }
+
+        @Override
+        public int hashCode() {
+            int h1 = n1.hashCode(), h2 = n2.hashCode();
+            if( h1 < h2 ) {
+                return String.format("%d%d", h1, h2).hashCode();
+            }
+            else {
+                return String.format("%d%d", h2, h1).hashCode();
+            }
         }
     }
 
@@ -68,10 +84,13 @@ public class RegisterInteferenceGraph {
 
         while( iter.hasNext() ) {
             Assignable var = iter.next();
-            var node = nodeResovler.getOrDefault(var, null);
+            var node = nodeResovler.getOrDefault(new VariableNode(var), null);
             if( node == null ) {
-                node = new VariableNode(nodeNum++, var);
+                node = new VariableNode(var);
                 nodeResovler.put(node, node);
+                if( nodes.containsKey(node) ) {
+                    throw new RuntimeException("OOOPS");
+                }
                 nodes.put(node, new HashSet<>());
             }
 
@@ -87,12 +106,22 @@ public class RegisterInteferenceGraph {
     public String asDotGraph() {
         StringBuilder sb = new StringBuilder();
         sb.append("graph Reg {\n");
+        sb.append("node [colorscheme=accent8];\n");
 
         for( var entry : nodes.entrySet() ) {
             VariableNode node = entry.getKey();
-            sb.append(String.format("%s [shape=oval];\n", node.var));
+            if( node.exclude ) continue;
+
+            sb.append(String.format("%s [shape=circle style=filled", node.var));
+            if( node.assignedRegister != null ) {
+                sb.append(String.format(" color=%d", node.assignedRegister+1));
+            }
+            else {
+                sb.append(" colorscheme=x11 color=red");
+            }
+            sb.append("];\n");
             for( Edge edge : entry.getValue() ) {
-                if( edge.n1.equals(node) ) {
+                if( edge.n1.equals(node) && !edge.n2.exclude ) {
                     sb.append(String.format("%s -- %s;\n", edge.n1.var, edge.n2.var));
                 }
             }
@@ -102,4 +131,52 @@ public class RegisterInteferenceGraph {
         return sb.toString();
     }
 
+    public boolean isEmpty() {
+        for( VariableNode node : nodes.keySet() ) {
+            if( !node.exclude ) return false;
+        }
+        return true;
+    }
+
+    public VariableNode nodeDegreeLessThan( int k ) {
+        for( var entry : nodes.entrySet() ) {
+            if( entry.getKey().exclude ) continue;
+
+            if( entry.getValue().size() < k ) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
+    }
+
+    public VariableNode getNode() {
+        for( VariableNode node : nodes.keySet() ) {
+            if( !node.exclude ) return node;
+        }
+
+        return null;
+    }
+
+    public int degree( VariableNode node ) {
+        return nodes.get(node).size();
+    }
+    public Set<Integer> connections( VariableNode node ) {
+        var degree = new HashSet<Integer>();
+        for( Edge edge : nodes.get(node) ) {
+            VariableNode other;
+            if( !edge.n1.equals(node) ) {
+                other = edge.n1;
+            }
+            else {
+                other = edge.n2;
+            }
+
+            if( other.assignedRegister != null ) {
+                degree.add( other.assignedRegister );
+            }
+        }
+
+        return degree;
+    }
 }

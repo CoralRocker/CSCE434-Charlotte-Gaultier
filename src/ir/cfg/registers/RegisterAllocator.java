@@ -7,8 +7,9 @@ import ir.tac.TAC;
 import ir.tac.TacID;
 import ir.tac.Variable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 class LiveRange {
 
@@ -33,19 +34,12 @@ public class RegisterAllocator {
         numRegisters = n;
     }
 
-    public void allocateRegisters(CFG cfg) {
-
-        rig = new RegisterInteferenceGraph();
-
-        ProgramPointLiveness liveness = new ProgramPointLiveness(cfg);
-
+    public HashMap<Assignable, ArrayList<LiveRange>> calculateLiveRange(CFG cfg) {
         HashMap<Assignable, ArrayList<LiveRange>> liveRanges = new HashMap<>();
         HashMap<Assignable, TacID> openRanges = new HashMap<>();
 
         for( var blk : cfg.allNodes ) {
             for (TAC tac : blk.getInstructions()) {
-
-                rig.addVariables(tac.liveAfterPP);
 
                 tac.liveAfterPP.forEach(var -> {
                     if (!openRanges.containsKey(var)) {
@@ -73,7 +67,63 @@ public class RegisterAllocator {
             }
         }
 
+        return liveRanges;
+    }
+
+    public RegisterInteferenceGraph calculateRIG(CFG cfg) {
+        RegisterInteferenceGraph rig = new RegisterInteferenceGraph();
+        for( var blk : cfg.allNodes ) {
+            for (TAC tac : blk.getInstructions()) {
+
+                rig.addVariables(tac.liveAfterPP);
+            }
+        }
+        return rig;
+    }
+
+
+    public HashMap<Assignable, Integer> allocateRegisters(CFG cfg) {
+
+
+        ProgramPointLiveness liveness = new ProgramPointLiveness(cfg, false);
+
+        rig = calculateRIG(cfg);
+
+
+        TreeSet<Integer> registers = new TreeSet<>(IntStream.range(0, numRegisters).boxed().collect(Collectors.toSet()));
+        HashMap<Assignable, Integer> allocation = new HashMap<>();
+        Stack<VariableNode> popped = new Stack<>();
+
+        while( !rig.isEmpty() ) {
+            VariableNode ltK = rig.nodeDegreeLessThan(numRegisters);
+            if( ltK == null ) {
+                ltK = rig.getNode();
+                if( ltK == null )
+                    throw new RuntimeException("NEED TO SPILL!");
+            }
+
+            ltK.exclude = true;
+            popped.push(ltK);
+        }
+
+        while( !popped.isEmpty() ) {
+            VariableNode node = popped.pop();
+
+            node.exclude = false;
+            var connections = rig.connections(node);
+            TreeSet<Integer> available = (TreeSet<Integer>) registers.clone();
+            available.removeAll(connections);
+            if( available.size() >= 1 ) {
+                node.assignedRegister = available.first();
+            }
+            else {
+                node.spill = true;
+            }
+
+        }
+
         System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
 
+        return allocation;
     }
 }
