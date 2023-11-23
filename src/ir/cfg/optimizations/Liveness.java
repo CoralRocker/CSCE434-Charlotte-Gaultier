@@ -94,17 +94,6 @@ public class Liveness extends CFGVisitor{
 //        });
 
         if(do_dce){
-            // loop thru basic blocks
-            // run kill
-
-            //code deletion
-            //
-            //find unused variables:
-            //
-            //use flag = false
-
-            //
-
 
             cfg.breadthFirst((BasicBlock b) -> {
                 boolean use = false;
@@ -167,7 +156,6 @@ public class Liveness extends CFGVisitor{
                             //
                             j++;
                         }
-
 
                         //if use flag = false and instr not in liveOut:
                         //	add instr to kill set

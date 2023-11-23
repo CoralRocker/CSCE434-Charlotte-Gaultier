@@ -170,7 +170,7 @@ public class CompilerTesterPA7 {
         }
 
         // //PA 8
-        // c.regAlloc(numRegs);
+//         c.regAlloc(numRegs);
 
         // //PA 9
         // int[] program = c.genCode();

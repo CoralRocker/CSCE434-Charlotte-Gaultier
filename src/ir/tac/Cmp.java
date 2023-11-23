@@ -24,6 +24,8 @@ public class Cmp extends Assign implements Visitable{
         return String.format("cmp%s %s %s %s", op, target, rhs, lhs);
     }
 
+    public String getOp() {return op;}
+
 
     @Override
     public Literal calculate() {
