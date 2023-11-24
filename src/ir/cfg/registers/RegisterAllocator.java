@@ -68,14 +68,20 @@ public class RegisterAllocator {
     }
 
     public RegisterInteferenceGraph calculateRIG(CFG cfg) {
-        RegisterInteferenceGraph rig = new RegisterInteferenceGraph();
+        RegisterInteferenceGraph newRIG = new RegisterInteferenceGraph();
         for( var blk : cfg.allNodes ) {
             for (TAC tac : blk.getInstructions()) {
 
-                rig.addVariables(tac.liveAfterPP);
+                newRIG.addVariables(tac.liveAfterPP);
             }
         }
-        return rig;
+
+        if( rig != null ) {
+            // Copy over old node metadata
+            newRIG.mergeNodeInfo(rig);
+        }
+
+        return newRIG;
     }
 
 
@@ -96,9 +102,9 @@ public class RegisterAllocator {
         while( !rig.isEmpty() ) {
             VariableNode ltK = rig.nodeDegreeLessThan(K);
             if( ltK == null ) {
-                ltK = rig.getNode();
+                ltK = rig.getNodeHighDegree();
                 if( ltK == null )
-                    throw new RuntimeException("NEED TO SPILL!");
+                    throw new RuntimeException("No spillable nodes???");
             }
 
             ltK.exclude = true;
@@ -128,6 +134,7 @@ public class RegisterAllocator {
             }
 
         }
+
 
         System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
         System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());

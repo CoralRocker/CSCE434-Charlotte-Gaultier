@@ -51,6 +51,10 @@ public class RegisterInteferenceGraph {
                 return String.format("%d%d", h2, h1).hashCode();
             }
         }
+
+        public boolean isExcluded() {
+            return n1.exclude || n2.exclude;
+        }
     }
 
     private HashMap<VariableNode, HashSet<Edge>> nodes;
@@ -116,7 +120,7 @@ public class RegisterInteferenceGraph {
             if( node.assignedRegister != null ) {
                 sb.append(String.format(" color=%d", node.assignedRegister+1));
             }
-            else {
+            else if( node.spill ) {
                 sb.append(" colorscheme=x11 color=red");
             }
             sb.append("];\n");
@@ -142,7 +146,13 @@ public class RegisterInteferenceGraph {
         for( var entry : nodes.entrySet() ) {
             if( entry.getKey().exclude ) continue;
 
-            if( entry.getValue().size() < k ) {
+            int degree = 0;
+            for( var edge : entry.getValue() ) {
+                if(edge.isExcluded()) continue;
+                degree++;
+            }
+
+            if( degree < k ) {
                 return entry.getKey();
             }
         }
@@ -156,6 +166,28 @@ public class RegisterInteferenceGraph {
         }
 
         return null;
+    }
+
+    public VariableNode getNodeHighDegree() {
+        VariableNode res = null;
+        int maxDegree = -1;
+
+        for( var entry : nodes.entrySet() ) {
+            if( entry.getKey().exclude ) continue;
+
+            int degree = 0;
+            for( var edge : entry.getValue() ) {
+                if(edge.isExcluded()) continue;
+                degree++;
+            }
+
+            if( degree > maxDegree ) {
+                res = entry.getKey();
+                maxDegree = degree;
+            }
+        }
+
+        return res;
     }
 
     public int degree( VariableNode node ) {
@@ -178,5 +210,22 @@ public class RegisterInteferenceGraph {
         }
 
         return degree;
+    }
+
+    public void resetExclusion() {
+        for( VariableNode var : nodes.keySet() ) {
+            var.exclude = false;
+        }
+    }
+
+    public void mergeNodeInfo( RegisterInteferenceGraph other ) {
+        for( VariableNode var : other.nodes.keySet() ) {
+            if( nodes.containsKey(var) ) {
+                VariableNode ourNode = nodeResovler.get(var);
+                ourNode.assignedRegister = var.assignedRegister;
+                ourNode.spill = var.spill;
+                ourNode.exclude = var.exclude;
+            }
+        }
     }
 }
