@@ -115,6 +115,7 @@ public class RegisterAllocator {
             available.removeAll(connections);
             if( !available.isEmpty() ) {
                 node.assignedRegister = available.first();
+                allocation.put(node.var, node.assignedRegister);
             }
             else {
                 node.spill = true;
@@ -122,12 +123,16 @@ public class RegisterAllocator {
                 spiller.generateLoadStores();
                 liveness.calculate(false);
                 rig = calculateRIG(cfg);
+
+                allocation.put(node.var, -1);
             }
 
         }
 
         System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
         System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());
+
+        System.out.printf("Allocation Map: %s\n", allocation);
 
         return allocation;
     }
