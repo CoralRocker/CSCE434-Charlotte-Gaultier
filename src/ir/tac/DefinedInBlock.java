@@ -84,6 +84,11 @@ public class DefinedInBlock extends TACVisitor<List<Variable>> {
     }
 
     @Override
+    public List<Variable> visit(LoadStack lstack) {
+        return null;
+    }
+
+    @Override
     public List<Variable> visit(Branch bra) {
         return null;
     }
@@ -96,6 +101,11 @@ public class DefinedInBlock extends TACVisitor<List<Variable>> {
     @Override
     public List<Variable> visit(Store store) {
         return store.dest.accept(this);
+    }
+
+    @Override
+    public List<Variable> visit(StoreStack sstack) {
+        return null;
     }
 
     @Override

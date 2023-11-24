@@ -12,6 +12,7 @@ import ir.IRGenerator;
 import ir.cfg.CodeGenerator;
 import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
+import ir.cfg.registers.RegisterAllocator;
 import org.apache.commons.cli.CommandLine;
 import types.TypeChecker;
 
@@ -134,6 +135,12 @@ public class Compiler {
         numDataRegisters = numRegs;
         instructions = new ArrayList<>();
         ast = null;
+    }
+
+    public void allocateRegisters(int n) {
+        CFG main = flowGraphs.get(flowGraphs.size()-1);
+        RegisterAllocator allocator = new RegisterAllocator(n);
+        allocator.allocateRegisters(main);
     }
 
     public SymbolTable symbolTable(){

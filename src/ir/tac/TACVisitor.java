@@ -15,12 +15,15 @@ public abstract class TACVisitor<E> {
     public abstract E visit(Mod mod);
     public abstract E visit(Mul mul);
     public abstract E visit(Sub sub);
+    public abstract E visit(LoadStack lstack);
 
     public abstract E visit(Branch bra);
 
     public abstract E visit(Cmp cmp);
 
     public abstract E visit(Store store);
+
+    public abstract E visit(StoreStack sstack);
 
     public abstract E visit(Phi phi);
 

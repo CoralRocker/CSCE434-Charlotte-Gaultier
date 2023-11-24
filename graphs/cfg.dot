@@ -1,72 +1,55 @@
 digraph G {
 bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
-	1: store a 7 
-|	2: store b 30 
-|	3: store x true 
-|	4: mul _t0 a b 
-|	5: add c _t0 23 
-|	6: store _t0 c 
-|	7: call _t0 printInt 
-|	8: cmpeq _t0 x true 
-|	9: beq _t0 BB2 
-|<exit>	10: bra BB3 
+	1: call a readInt 
+|	2: call b readInt 
+|	3: mul _t0 b a 
+|	4: add c _t0 d 
+|	5: mul b b a 
+|	6: add d b a 
+|	7: cmplt _t0 d a 
+|	8: cmpeq _t1 _t0 false 
+|	9: beq _t1 BB6 
+|<exit>	10: bra BB2 
 }"];
 bb1:exit -> bb2:entry
-bb1:exit -> bb3:entry
-bb2 [shape=record, label="<B> If \n BB2 | {<entry>
-	11: add c c 3 
-|<exit>	12: bra BB4 
-}"];
-bb2:exit -> bb4:entry
-bb1:B -> bb2:B [style=dotted, color=blue, label=idom];
-bb3 [shape=record, label="<B> Else \n BB3 | {<entry>
-	13: sub c c 3 
+bb1:exit -> bb6:entry
+bb2 [shape=record, label="<B> While \n BB2 | {<entry>
+	11: mul c b a 
+|	12: cmpeq _t0 x true 
+|	13: beq _t0 BB3 
 |<exit>	14: bra BB4 
 }"];
-bb3:exit -> bb4:entry
-bb1:B -> bb3:B [style=dotted, color=blue, label=idom];
-bb4 [shape=record, label="<B> Post-If \n BB4 | {<entry>
-	15: add _t0 c a 
-|	16: add c _t0 b 
+bb2:exit -> bb3:entry
+bb2:exit -> bb4:entry
+bb1:B -> bb2:B [style=dotted, color=blue, label=idom];
+bb6 [shape=record, label="<B> Post-While \n BB6 | {<entry>
+	25: store _t0 d 
+|	26: call _t0 printInt 
+|	27: store _t0 b 
+|<exit>	28: call _t0 printInt 
+}"];
+bb1:B -> bb6:B [style=dotted, color=blue, label=idom];
+bb3 [shape=record, label="<B> If \n BB3 | {<entry>
+	15: add c b a 
+|	16: mul d c b 
 |<exit>	17: bra BB5 
 }"];
+bb3:exit -> bb5:entry
+bb2:B -> bb3:B [style=dotted, color=blue, label=idom];
+bb4 [shape=record, label="<B> Else \n BB4 | {<entry>
+	18: add c a d 
+|	19: mul a c b 
+|<exit>	20: bra BB5 
+}"];
 bb4:exit -> bb5:entry
-bb1:B -> bb4:B [style=dotted, color=blue, label=idom];
-bb5 [shape=record, label="<B> Repeat \n BB5 | {<entry>
-	18: cmpeq _t0 x true 
-|	19: beq _t0 BB6 
-|<exit>	20: bra BB7 
+bb2:B -> bb4:B [style=dotted, color=blue, label=idom];
+bb5 [shape=record, label="<B> Post-If \n BB5 | {<entry>
+	21: cmplt _t0 d a 
+|	22: cmpeq _t1 _t0 false 
+|	23: beq _t1 BB2 
+|<exit>	24: bra BB6 
 }"];
+bb5:exit -> bb2:entry
 bb5:exit -> bb6:entry
-bb5:exit -> bb7:entry
-bb4:B -> bb5:B [style=dotted, color=blue, label=idom];
-bb6 [shape=record, label="<B> If \n BB6 | {<entry>
-	21: add a b 1 
-|<exit>	22: bra BB8 
-}"];
-bb6:exit -> bb8:entry
-bb5:B -> bb6:B [style=dotted, color=blue, label=idom];
-bb7 [shape=record, label="<B> Else \n BB7 | {<entry>
-	23: sub b a 1 
-|<exit>	24: bra BB8 
-}"];
-bb7:exit -> bb8:entry
-bb5:B -> bb7:B [style=dotted, color=blue, label=idom];
-bb8 [shape=record, label="<B> Post-If \n BB8 | {<entry>
-	25: sub _t0 1 a 
-|	26: cmpgt x _t0 0 
-|	27: cmpgt _t0 b a 
-|	28: bne _t0 BB5 
-|<exit>	29: bra BB9 
-}"];
-bb8:exit -> bb5:entry
-bb8:exit -> bb9:entry
-bb5:B -> bb8:B [style=dotted, color=blue, label=idom];
-bb9 [shape=record, label="<B>  \n BB9 | {<entry>
-	30: add c b a 
-|	31: store _t0 c 
-|	32: call _t0 printInt 
-|<exit>	33: call _t0 println 
-}"];
-bb8:B -> bb9:B [style=dotted, color=blue, label=idom];
+bb2:B -> bb5:B [style=dotted, color=blue, label=idom];
 }

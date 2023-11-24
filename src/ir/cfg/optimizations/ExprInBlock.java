@@ -138,6 +138,11 @@ public class ExprInBlock extends TACVisitor<Expression> {
     }
 
     @Override
+    public Expression visit(LoadStack lstack) {
+        return null;
+    }
+
+    @Override
     public Expression visit(Branch bra) {
         return null;
     }
@@ -158,6 +163,11 @@ public class ExprInBlock extends TACVisitor<Expression> {
             retval = contained;
         kill(expr.dest);
         return retval;
+    }
+
+    @Override
+    public Expression visit(StoreStack sstack) {
+        return null;
     }
 
     @Override

@@ -83,6 +83,27 @@ public class CFG implements Visitable<Object> {
         markUnvisited();
     }
 
+    public void reverseBreadthFirst( Consumer<BasicBlock> function ) {
+        Queue<BasicBlock> queue = new LinkedList<>();
+
+        queue.add( allNodes.get(allNodes.size()-1) );
+        queue.peek().markVisited();
+        while( !queue.isEmpty() ) {
+            BasicBlock node = queue.remove();
+
+            function.accept(node);
+
+            for( BasicBlock parent : node.getPredecessors() ) {
+                if( !parent.visited() ) {
+                    queue.add( parent );
+                    parent.markVisited();
+                }
+            }
+        }
+
+        markUnvisited();
+    }
+
     public void depthFirst( Consumer<BasicBlock> function ) {
         Stack<BasicBlock> stack = new Stack<>();
 

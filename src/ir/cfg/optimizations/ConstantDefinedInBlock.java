@@ -218,6 +218,11 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
     }
 
     @Override
+    public SymbolVal visit(LoadStack lstack) {
+        return null;
+    }
+
+    @Override
     public SymbolVal visit(Branch bra) {
         return null;
     }
@@ -238,6 +243,11 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
         else {
             return new SymbolVal( store.dest.name(), store.getId() );
         }
+    }
+
+    @Override
+    public SymbolVal visit(StoreStack sstack) {
+        return null;
     }
 
     @Override

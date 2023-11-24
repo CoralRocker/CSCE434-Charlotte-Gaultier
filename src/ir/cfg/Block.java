@@ -1,5 +1,6 @@
 package ir.cfg;
 
+import ir.tac.Assignable;
 import ir.tac.TAC;
 import ir.tac.Variable;
 
@@ -12,8 +13,8 @@ public abstract class Block implements Visitable<Object> {
     public Object entry;
     public Object exit;
 
-    public HashSet<Variable> live_in;
-    public HashSet<Variable> live_out;
+    public HashSet<Assignable> live_in;
+    public HashSet<Assignable> live_out;
 
     boolean visited;
 

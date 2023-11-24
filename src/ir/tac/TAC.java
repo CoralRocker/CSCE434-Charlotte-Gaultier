@@ -1,12 +1,12 @@
 package ir.tac;
 
-import java.util.List;
+import java.util.HashSet;
 
 public abstract class TAC implements Visitable{
     
     private TacID id; // instruction id
 
-    public List<Variable> liveAtPP;
+    public HashSet<Assignable> liveBeforePP, liveAfterPP;
 
     private boolean eliminated; 
 

@@ -1,69 +1,10 @@
 package ir.cfg.registers;
 
+import ir.tac.Assignable;
 import ir.tac.Variable;
 
 import java.util.*;
 
-
-class AdjacencyGraph<E> {
-
-    private ArrayList<E> matrix;
-    private int N;
-
-    public int getSize() {
-        return (N * (N-1)) / 2;
-    }
-
-    private int index(int i, int j) {
-        if( i <= j ) {
-            throw new IllegalArgumentException(String.format("Cannot get index at (row: %d, col: %d): Row number must be greater than Column number"));
-        }
-
-        return (i * (i - 1) / 2) + j;
-    }
-
-    public E get(int i, int j) {
-        return matrix.get( index(i, j) );
-    }
-
-    public AdjacencyGraph(int numNodes) {
-        N = numNodes;
-        matrix = new ArrayList<>(getSize());
-        for( int i = 0; i < getSize(); i++ ) {
-            matrix.set(i, null );
-        }
-    }
-
-    public AdjacencyGraph(int numNodes, E defaultval) {
-        N = numNodes;
-        matrix = new ArrayList<>(getSize());
-        for( int i = 0; i < getSize(); i++ ) {
-            matrix.set(i, defaultval );
-        }
-    }
-
-    public void setEdge( int i, int j, E val ) {
-        matrix.set(index(i, j), val);
-    }
-
-    public void addNode() {
-        N++;
-        int size = getSize();
-        while( matrix.size() < size ) {
-            matrix.add(null);
-        }
-    }
-
-    public void addNodes(int n) {
-        if( n < 0 ) throw new IllegalArgumentException("Cannot add negative amount of nodes");
-        N += n;
-        int size = getSize();
-        while( matrix.size() < size ) {
-            matrix.add(null);
-        }
-    }
-
-}
 
 public class RegisterInteferenceGraph {
 
@@ -73,48 +14,84 @@ public class RegisterInteferenceGraph {
         MOVE_RELATED;
     }
 
-    private AdjacencyGraph<EdgeType> adjacency;
-    private HashMap<VariableNode, VariableNode> nodes;
+    class Edge {
+        public RegisterInteferenceGraph.EdgeType type;
+        public VariableNode n1, n2;
+
+        public Edge(RegisterInteferenceGraph.EdgeType t, VariableNode n1, VariableNode n2) {
+            this.type = t;
+            this.n1 = n1;
+            this.n2 = n2;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s -- %s -- %s", n1, type, n2);
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if( !(other instanceof Edge) ) {
+                return false;
+            }
+
+            Edge edge = (Edge) other;
+
+            return (n1.hashCode() == edge.n1.hashCode() && n2.hashCode() == edge.n2.hashCode())
+                || (n2.hashCode() == edge.n1.hashCode() && n1.hashCode() == edge.n2.hashCode());
+        }
+
+        @Override
+        public int hashCode() {
+            int h1 = n1.hashCode(), h2 = n2.hashCode();
+            if( h1 < h2 ) {
+                return String.format("%d%d", h1, h2).hashCode();
+            }
+            else {
+                return String.format("%d%d", h2, h1).hashCode();
+            }
+        }
+    }
+
+    private HashMap<VariableNode, HashSet<Edge>> nodes;
+    private HashMap<VariableNode, VariableNode> nodeResovler;
     private int nodeNum;
 
 
-    public RegisterInteferenceGraph(List<Variable> nodes) {
-        adjacency = new AdjacencyGraph<>(nodes.size(), EdgeType.NONE);
+    public RegisterInteferenceGraph() {
         this.nodes = new HashMap<>();
+        this.nodeResovler = new HashMap<>();
         nodeNum = 0;
-
-        addVariables(nodes);
     }
 
     public void addEdge(VariableNode n1, VariableNode n2 ) {
-        if( n1.ID < n2.ID ) {
-            adjacency.setEdge(n2.ID, n1.ID, EdgeType.INTERFERE );
-        }
-        else {
-            adjacency.setEdge(n1.ID, n2.ID, EdgeType.INTERFERE );
-        }
+        Edge edge = new Edge(EdgeType.INTERFERE, n1, n2);
+
+        nodes.get(n1).add(edge);
+        nodes.get(n2).add(edge);
     }
     public void addMoveEdge(VariableNode n1, VariableNode n2 ) {
-        if( n1.ID < n2.ID ) {
-            adjacency.setEdge(n2.ID, n1.ID, EdgeType.MOVE_RELATED );
-        }
-        else {
-            adjacency.setEdge(n1.ID, n2.ID, EdgeType.MOVE_RELATED );
-        }
+        Edge edge = new Edge(EdgeType.MOVE_RELATED, n1, n2);
+
+        nodes.get(n1).add(edge);
+        nodes.get(n2).add(edge);
     }
 
-    public void addVariables( List<Variable> vars ) {
-        var iter = vars.listIterator();
+    public void addVariables( Collection<Assignable> vars ) {
+        var iter = vars.iterator();
 
         List<VariableNode> added = new ArrayList<>(vars.size());
 
         while( iter.hasNext() ) {
-            Variable var = iter.next();
-            var node = nodes.getOrDefault(var, null);
+            Assignable var = iter.next();
+            var node = nodeResovler.getOrDefault(new VariableNode(var), null);
             if( node == null ) {
-                node = new VariableNode(nodeNum++, var);
-                adjacency.addNode();
-                nodes.put( node, node );
+                node = new VariableNode(var);
+                nodeResovler.put(node, node);
+                if( nodes.containsKey(node) ) {
+                    throw new RuntimeException("OOOPS");
+                }
+                nodes.put(node, new HashSet<>());
             }
 
             for( VariableNode n : added ) {
@@ -126,4 +103,80 @@ public class RegisterInteferenceGraph {
 
     }
 
+    public String asDotGraph() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("graph Reg {\n");
+        sb.append("node [colorscheme=accent8];\n");
+
+        for( var entry : nodes.entrySet() ) {
+            VariableNode node = entry.getKey();
+            if( node.exclude ) continue;
+
+            sb.append(String.format("%s [shape=circle style=filled", node.var));
+            if( node.assignedRegister != null ) {
+                sb.append(String.format(" color=%d", node.assignedRegister+1));
+            }
+            else {
+                sb.append(" colorscheme=x11 color=red");
+            }
+            sb.append("];\n");
+            for( Edge edge : entry.getValue() ) {
+                if( edge.n1.equals(node) && !edge.n2.exclude ) {
+                    sb.append(String.format("%s -- %s;\n", edge.n1.var, edge.n2.var));
+                }
+            }
+        }
+
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    public boolean isEmpty() {
+        for( VariableNode node : nodes.keySet() ) {
+            if( !node.exclude ) return false;
+        }
+        return true;
+    }
+
+    public VariableNode nodeDegreeLessThan( int k ) {
+        for( var entry : nodes.entrySet() ) {
+            if( entry.getKey().exclude ) continue;
+
+            if( entry.getValue().size() < k ) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
+    }
+
+    public VariableNode getNode() {
+        for( VariableNode node : nodes.keySet() ) {
+            if( !node.exclude ) return node;
+        }
+
+        return null;
+    }
+
+    public int degree( VariableNode node ) {
+        return nodes.get(node).size();
+    }
+    public Set<Integer> connections( VariableNode node ) {
+        var degree = new HashSet<Integer>();
+        for( Edge edge : nodes.get(node) ) {
+            VariableNode other;
+            if( !edge.n1.equals(node) ) {
+                other = edge.n1;
+            }
+            else {
+                other = edge.n2;
+            }
+
+            if( other.assignedRegister != null ) {
+                degree.add( other.assignedRegister );
+            }
+        }
+
+        return degree;
+    }
 }
