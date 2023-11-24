@@ -172,13 +172,14 @@ public class CompilerTesterPA7 {
         // //PA 8
 //         c.regAlloc(numRegs);
 
-        // //PA 9
-        // int[] program = c.genCode();
-        // if (c.hasError()) {
-        //     System.err.println("Error compiling file");
-        //     System.err.println(c.errorReport());
-        //     System.exit(-4);
-        // }
+         //PA 9
+//         int[] program = c.genCode();
+         String program = c.genCode();
+         if (c.hasError()) {
+             System.err.println("Error compiling file");
+             System.err.println(c.errorReport());
+             System.exit(-4);
+         }
 
         // if (cmd.hasOption("asm")) {
 

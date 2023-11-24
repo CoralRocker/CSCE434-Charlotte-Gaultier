@@ -28,6 +28,12 @@ public class DLX {
         this.opcode = opcode;
         this.regC = regC;
     }
+
+    @Override
+    public String toString() {
+        // todo: add registers to this once they're linked
+        return this.opcode + "\t";
+    }
 }
 
 

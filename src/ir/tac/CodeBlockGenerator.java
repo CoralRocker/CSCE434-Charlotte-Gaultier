@@ -1,8 +1,26 @@
 package ir.tac;
 
-import java.util.List;
+import ir.cfg.BasicBlock;
 
-public class CodeGenerator extends TACVisitor<DLX> {
+public class CodeBlockGenerator extends TACVisitor<DLX> {
+
+
+    public static String generate(BasicBlock blk) {
+        boolean changed = false;
+
+        CodeBlockGenerator visitor = new CodeBlockGenerator();
+
+        String toReturn = "";
+        int ctr = -1;
+        for( var instr : blk.getInstructions() ) {
+            ctr++;
+            DLX line = instr.accept(visitor);
+            if( line != null ) {
+                toReturn = toReturn + line.toString() + "\n";
+            }
+        }
+        return toReturn;
+    }
     @Override
     public DLX visit(Return ret) {
         return new DLX("ret", 0);

@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 import ast.*;
 import ir.IRGenerator;
+import ir.cfg.CodeGenerator;
 import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
 import org.apache.commons.cli.CommandLine;
@@ -184,6 +185,14 @@ public class Compiler {
             errorBuffer.append("[Could not complete parsing.]");
             return new ArrayList<Integer>().stream().mapToInt(Integer::intValue).toArray();
         }
+    }
+
+    public String genCode(){
+        // todo: make this return int[]
+        String instrs = new CodeGenerator(flowGraphs.get(0)).getInstrList();
+        System.out.println(instrs);
+        // todo: make this go thru all functions
+        return instrs;
     }
 
     // SymbolTable Management =====================================================
