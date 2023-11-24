@@ -17,36 +17,46 @@ public class DLX {
     private FORMAT format;
 
 
-    public DLX(String opcode, int regA, int regB, int regC, int immediate) {
-        this.opcode = opcode;
-        this.regA = regA;
-        this.regB = regB;
-        this.regC = regC;
-        this.immediate = immediate;
+    public static DLX immediateOp(String opcode, int regA, int regB, int regC, int immediate) {
+        DLX dlx = new DLX();
 
-        format = FORMAT.F1;
+        dlx.opcode = opcode;
+        dlx.regA = regA;
+        dlx.regB = regB;
+        dlx.immediate = immediate;
+
+        dlx.format = FORMAT.F2;
+
+        return dlx;
     }
 
-    public DLX(String opcode, int regA, int regB, int regC) {
-        this.opcode = opcode;
-        this.regA = regA;
-        this.regB = regB;
-        this.regC = regC;
+    public static DLX regOp(String opcode, int regA, int regB, int regC) {
+        DLX dlx = new DLX();
 
-        format = FORMAT.F2;
+        dlx.opcode = opcode;
+        dlx.regA = regA;
+        dlx.regB = regB;
+        dlx.regC = regC;
+
+        dlx.format = FORMAT.F1;
+
+        return dlx;
     }
 
-    public DLX(String opcode, int regC) {
-        this.opcode = opcode;
-        this.regC = regC;
+    public static DLX jumpOp(String opcode, int regC) {
+        DLX dlx = new DLX();
 
-        format = FORMAT.F3;
+        dlx.opcode = opcode;
+        dlx.regC = regC;
+
+        dlx.format = FORMAT.F3;
+
+        return dlx;
     }
 
     @Override
     public String toString() {
-        // todo: add registers to this once they're linked
-        return this.opcode + "\t";
+        return this.generateAssembly();
     }
 
     private String opName() {
@@ -58,11 +68,13 @@ public class DLX {
     }
 
     public String generateAssembly() {
-
+        // todo: add registers to this once they're linked
+        return this.opcode + "\t";
     }
 
-    public int generateInstruction() {
-
+    public int[] generateInstruction() {
+        // TODO translate DLX object into machine code
+        return new int[]{};
     }
 }
 
