@@ -95,7 +95,7 @@ public class RegisterAllocator {
 
         int K = numRegisters - 2; // Reserve Last 2 registers for spilling
 
-        TreeSet<Integer> registers = new TreeSet<>(IntStream.range(0, K).boxed().collect(Collectors.toSet()));
+        TreeSet<Integer> registers = new TreeSet<>(IntStream.range(1, K+1).boxed().collect(Collectors.toSet()));
         HashMap<Assignable, Integer> allocation = new HashMap<>();
         Stack<VariableNode> popped = new Stack<>();
 

@@ -5,18 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Stack;
-import java.util.function.Function;
 
 import ast.*;
 import ir.IRGenerator;
-import ir.cfg.CodeGenerator;
 import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
 import ir.cfg.registers.RegisterAllocator;
+import ir.tac.CodeGenerator;
+import ir.tac.DLX;
 import org.apache.commons.cli.CommandLine;
-import types.TypeChecker;
-
-import javax.accessibility.AccessibleValue;
 
 public class Compiler {
 
@@ -194,12 +191,16 @@ public class Compiler {
         }
     }
 
-    public String genCode(){
-        // todo: make this return int[]
-        String instrs = new CodeGenerator(flowGraphs.get(0)).getInstrList();
-        System.out.println(instrs);
-        // todo: make this go thru all functions
-        return instrs;
+    public int[] genCode(){
+
+        List<DLX>  assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters);
+        int ops[] = new int[assembly.size()];
+
+        for( int i = 0; i < ops.length; i++ ) {
+            ops[i] = assembly.get(i).generateInstruction();
+        }
+
+        return ops;
     }
 
     // SymbolTable Management =====================================================
