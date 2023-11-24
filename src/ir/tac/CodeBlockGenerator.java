@@ -72,6 +72,11 @@ public class CodeBlockGenerator extends TACVisitor<DLX> {
     }
 
     @Override
+    public DLX visit(LoadStack lstack) {
+        return null;
+    }
+
+    @Override
     public DLX visit(Branch bra) {
         return null;
     }
@@ -84,6 +89,11 @@ public class CodeBlockGenerator extends TACVisitor<DLX> {
     @Override
     public DLX visit(Store store) {
         return new DLX("stx", 0, 0,0 );
+    }
+
+    @Override
+    public DLX visit(StoreStack sstack) {
+        return null;
     }
 
     @Override
