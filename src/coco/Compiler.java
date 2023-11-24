@@ -178,10 +178,11 @@ public class Compiler {
         return flowGraphs;
     }
 
+    // WARNING: Assumption is that AST, SSA, and Optimizations have been performed
     public int[] compile () {
         initSymbolTable();
         try {
-            computation();
+            genCode();
             return instructions.stream().mapToInt(Integer::intValue).toArray();
         }
         catch (QuitParseException q) {
@@ -191,16 +192,19 @@ public class Compiler {
         }
     }
 
-    public int[] genCode(){
+    public List<Integer> genCode(){
 
         List<DLX>  assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters);
-        int ops[] = new int[assembly.size()];
 
-        for( int i = 0; i < ops.length; i++ ) {
-            ops[i] = assembly.get(i).generateInstruction();
+        instructions = new ArrayList<>();
+
+        System.out.printf("Instructions: \n");
+        for( int i = 0; i < assembly.size(); i++ ) {
+            System.out.printf("%3d : %32s => %16d", i, assembly.get(i).generateAssembly(), assembly.get(i).generateInstruction());
+            instructions.add( assembly.get(i).generateInstruction() );
         }
 
-        return ops;
+        return instructions;
     }
 
     // SymbolTable Management =====================================================

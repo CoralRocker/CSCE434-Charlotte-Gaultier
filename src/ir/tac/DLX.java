@@ -83,6 +83,15 @@ public class DLX {
                 if( immediate >= 65536 ) throw new RuntimeException(String.format("Immediate is out of range: %d\n", immediate));
                 if( regC != 0 ) throw new RuntimeException(String.format("Register C should be 0: %d\n", regC));
             }
+            case F2 -> {
+                if( regA >= 32 ) throw new RuntimeException(String.format("Register A is out of range: %d\n", regA));
+                if( regB >= 32 ) throw new RuntimeException(String.format("Register B is out of range: %d\n", regB));
+                if( immediate != 0 ) throw new RuntimeException(String.format("Immediate should be 0: %d\n", immediate));
+                if( regC >= 32 ) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
+            }
+            case F3 -> {
+                if( regC >= (Math.pow(2, 26))) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
+            }
         }
     }
 
@@ -144,27 +153,38 @@ public class DLX {
     }
 
     public String generateAssembly() {
-        // todo: add registers to this once they're linked
-        return this.opcode + "\t";
+        switch( format ) {
+            case F1 -> {
+                return String.format("%s R%d, R%d, %d", opcode.name(), regA, regB, immediate);
+            }
+            case F2 -> {
+                return String.format("%s R%d, R%d, R%d", opcode.name(), regA, regB, regC);
+            }
+
+            case F3 -> {
+                return String.format("%s R%d", opcode.name(), regC);
+            }
+        }
+        throw new RuntimeException("Unknown DLX format?");
     }
 
     public int generateInstruction() {
 
-        int opcode = 0;
         int instruction = 0;
 
         switch( format ) {
             case F1 -> {
+                instruction = opcode.opcode + (regA >> 6) + (regB >> 11) + (immediate >> 16);
             }
             case F2 -> {
-
+                instruction = opcode.opcode + (regA >> 6) + (regB >> 11) + (regC >> 27);
             }
             case F3 -> {
-
+                instruction = opcode.opcode + (regC >> 6);
             }
         }
 
-        return 0;
+        return instruction;
     }
 }
 

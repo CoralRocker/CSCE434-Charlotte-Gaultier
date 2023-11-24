@@ -1,14 +1,16 @@
 package coco;
 
-import java.io.*;
-import java.util.*;
-
-
 import ir.cfg.CFG;
 import org.apache.commons.cli.*;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+
 //PA 7 generates 2 digraphs, one un-optimized, one optimized.
-public class CompilerTesterPA7 {
+public class CompilerTesterPA89 {
 
     public static void main(String[] args) {
         Options options = new Options();

@@ -30,6 +30,7 @@ public class CodeGenerator extends TACVisitor<DLX> {
             }
         }
 
+        return instructions;
     }
 
     public static String generate(BasicBlock blk) {
@@ -60,6 +61,11 @@ public class CodeGenerator extends TACVisitor<DLX> {
 
     @Override
     public DLX visit(Call call) {
+        switch( call.function.name() ) {
+            case "printInt" -> {
+                return DLX.regOp(DLX.OPCODE.WRI, 0, 0, 0);
+            }
+        }
         return null;
     }
 
@@ -169,7 +175,12 @@ public class CodeGenerator extends TACVisitor<DLX> {
 
     @Override
     public DLX visit(Store store) {
-        return new DLX("stx", 0, 0,0 );
+        if( store.source instanceof Literal ) {
+            // DEST = R0(always 0) + literal
+            return DLX.immediateOp(DLX.OPCODE.ADDI, registers.get(store.dest), 0, ((Literal) store.source).getInt());
+        }
+
+        return DLX.regOp(DLX.OPCODE.ADD, registers.get(store.dest), 0, registers.get((Assignable)store.source));
     }
 
     @Override
