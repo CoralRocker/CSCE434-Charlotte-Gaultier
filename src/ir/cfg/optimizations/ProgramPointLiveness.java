@@ -4,6 +4,7 @@ import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.tac.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -14,6 +15,10 @@ public class ProgramPointLiveness {
 
     public ProgramPointLiveness(CFG cfg) {
         this.cfg = cfg;
+    }
+
+    public boolean doDCE(boolean do_print) {
+        return DeadCode.doDCE(cfg, do_print);
     }
 
     public void calculate(boolean do_print) {
@@ -261,5 +266,130 @@ class TACLiveness extends TACVisitor<LiveData> {
     @Override
     public LiveData visit(Temporary temporary) {
         return null;
+    }
+}
+
+class DeadCode extends TACVisitor<Boolean> {
+
+    private boolean do_print;
+    private TAC curTac;
+
+    public static boolean doDCE(CFG cfg, boolean do_print) {
+        DeadCode dce = new DeadCode();
+        dce.do_print = do_print;
+
+        List<TacID> removed = new ArrayList<>();
+
+        boolean changed = false;
+        for( BasicBlock blk : cfg.allNodes ) {
+            var iter = blk.getInstructions().listIterator();
+            while( iter.hasNext() ) {
+                var instr = iter.next();
+                dce.curTac = instr;
+                boolean dead = instr.accept(dce);
+                changed |= dead;
+                if( dead ) {
+                    iter.remove();
+                    removed.add(instr.getIdObj());
+                }
+            }
+        }
+
+        cfg.instrNumberer.removeAll(removed);
+
+        return changed;
+    }
+
+    @Override
+    public Boolean visit(Return ret) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Literal lit) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Call call) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Variable var) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Add add) {
+        return visit((Assign) add);
+    }
+
+    @Override
+    public Boolean visit(Assign asn) {
+        // Return whether the destination is live after the instruction
+        if( !curTac.liveAfterPP.contains(asn.dest) ) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Div div) {
+        return visit((Assign) div);
+    }
+
+    @Override
+    public Boolean visit(Mod mod) {
+        return visit((Assign) mod);
+    }
+
+    @Override
+    public Boolean visit(Mul mul) {
+        return visit((Assign) mul);
+    }
+
+    @Override
+    public Boolean visit(Sub sub) {
+        return visit((Assign) sub);
+    }
+
+    @Override
+    public Boolean visit(LoadStack lstack) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Branch bra) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Cmp cmp) {
+        return visit((Assign) cmp);
+    }
+
+    @Override
+    public Boolean visit(Store store) {
+        // Return whether the destination is live after the instruction
+        if( !curTac.liveAfterPP.contains(store.dest) ) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Boolean visit(StoreStack sstack) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Phi phi) {
+        return false;
+    }
+
+    @Override
+    public Boolean visit(Temporary temporary) {
+        return false;
     }
 }

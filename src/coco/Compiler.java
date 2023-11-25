@@ -67,23 +67,17 @@ public class Compiler {
                     while( changed ) {
                         changed = false;
 
-                        ReachingDefinition def = new ReachingDefinition(main, true, true, false, false);
+                        ReachingDefinition def = new ReachingDefinition(main, true, true, true, false);
                         changed |= def.cfgchanged;
-                        while ( def.cfgchanged ) {
-                            def = new ReachingDefinition(main, true, true, true, false);
-                        }
 
                         AvailableExpression avail = new AvailableExpression(main, true, true);
                         changed |= avail.isChanged();
-                        while( avail.isChanged() ) {
-                            avail = new AvailableExpression(main, true, true);
-                        }
 
-                        Liveness lvanal = new Liveness(main, false, true);
-                        changed |= lvanal.isChanged();
-                        while( lvanal.isChanged() ) {
-                            lvanal = new Liveness(main, false, true);
-                        }
+                        ProgramPointLiveness lvanal = new ProgramPointLiveness(main);
+                        lvanal.calculate(false);
+                        changed |= lvanal.doDCE(false);
+                        // Liveness lvanal = new Liveness(main, false, true);
+                        // changed |= lvanal.isChanged();
 
                     }
                 }

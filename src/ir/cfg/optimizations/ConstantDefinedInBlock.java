@@ -156,13 +156,15 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
     public SymbolVal visit(Assign asn) {
 
         if( asn.left instanceof Assignable ) {
+            boolean made_const = false;
             if ( do_prop ) {
                 SymbolVal val = get((Assignable) asn.left);
                 if (val.isConstant()) {
                     asn.left = val.val; // Set to Constant
+                    made_const = true;
                 }
             }
-            if( do_copy_prop ) {
+            if( do_copy_prop && !made_const ) {
                 SymbolVal cpy = get((Assignable) asn.left);
                 if( cpy != null && cpy.isCopied() ) {
                     asn.left = cpy.copy;
@@ -171,14 +173,20 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
         }
 
         if ( asn.right instanceof Assignable ) {
+            boolean made_const = false;
             if (do_prop ) {
                 SymbolVal val = get((Assignable) asn.right);
                 if (val.isConstant()) {
                     asn.right = val.val; // Set to Constant
+                    made_const = true;
                 }
             }
-
-
+            if( do_copy_prop && !made_const ) {
+                SymbolVal cpy = get((Assignable) asn.right);
+                if( cpy != null && cpy.isCopied() ) {
+                    asn.right = cpy.copy;
+                }
+            }
         }
 
         Literal retVal = null;
@@ -238,6 +246,13 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
             return new SymbolVal( store.dest.name(), store.getId(), (Literal) store.source);
         }
         else if ( store.source instanceof Assignable ) {
+            if( do_prop ) {
+                SymbolVal constprop = get((Assignable) store.source);
+                if( constprop.isConstant() ) {
+                    store.source = constprop.val;
+                    return  new SymbolVal( store.dest.name(), store.getId(), (Literal) store.source);
+                }
+            }
             return  new SymbolVal( store.dest.name(), store.getId(), (Assignable) store.source);
         }
         else {

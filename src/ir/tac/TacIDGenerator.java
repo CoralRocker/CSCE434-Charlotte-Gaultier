@@ -2,14 +2,39 @@ package ir.tac;
 
 import ir.cfg.BasicBlock;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
+
+class BiHashMap<K, V> {
+    private HashMap<K, V> forward = new HashMap<>();
+    private HashMap<V, K> inverse = new HashMap<>();
+
+    public void put(K k, V v) {
+        forward.put(k, v);
+        inverse.put(v, k);
+    }
+
+    public K getInverse(V v) {
+        return inverse.get(v);
+    }
+
+    public V get(K k) {
+        return forward.get(k);
+    }
+
+    public boolean contains(K k) {
+        return forward.containsKey(k);
+    }
+
+    public boolean containsInverse(V v) {
+        return inverse.containsKey(v);
+    }
+
+}
 
 public class TacIDGenerator {
 
     private LinkedList< TacID > ids = new LinkedList<>();
-    private Map<Integer, TacID> blockMap = new HashMap<>();
+    private BiHashMap<Integer, TacID> blockMap = new BiHashMap<>();
 
     private int markNewBlock = -1;
 
@@ -95,21 +120,53 @@ public class TacIDGenerator {
         return newID;
     }
     public TacID pushBefore(TacID id) {
-        int blkId = -1;
-        for( var entry : blockMap.entrySet() ) {
-            if( entry.getValue() == id ) {
-                blkId = entry.getKey();
-                break;
-            }
-        }
+        Integer blkId = blockMap.getInverse(id);
 
         TacID newID = new TacID(this);
         ids.add( id.getNum()-1, newID );
 
         genNum();
-        if( blkId != -1 ) {
+        if( blkId != null ) {
             blockMap.put(blkId, newID);
         }
         return newID;
+    }
+
+    // Require that the list in cont is in order
+    public <C extends Collection<TacID>> void removeAll( C cont ) {
+        if( cont.isEmpty() ) return;
+
+        var genIter = ids.listIterator();
+        var contIter = cont.iterator();
+
+        TacID genID = null, contID = null;
+        while( genIter.hasNext() ) {
+            if( genID == null ) genID = genIter.next();
+            if( contID == null ) contID = contIter.next();
+
+            if( genID == contID ) {
+                contID = null;
+                genIter.remove();
+                if( blockMap.containsInverse(genID) ) {
+                    Integer blk = blockMap.getInverse(genID);
+                    if( genIter.hasNext() ) genID = genIter.next();
+                    else genID = null;
+
+                    if( !(genID != null && blockMap.containsInverse(genID)) )
+                        blockMap.put(blk, genID);
+
+                }
+                if( !contIter.hasNext() ) {
+                    genNum();
+                    return;
+                }
+            }
+            else {
+                genID = null;
+            }
+        }
+
+        if( contID != null ) throw new RuntimeException("Not all TacIDs given existed!");
+
     }
 }
