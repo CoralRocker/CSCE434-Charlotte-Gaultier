@@ -5,6 +5,7 @@ import ir.cfg.CFG;
 import ir.tac.*;
 
 import java.util.HashSet;
+import java.util.List;
 
 public class ProgramPointLiveness {
 
@@ -67,10 +68,13 @@ class LiveData {
     public final Assignable dest;
     public final Assignable use1, use2;
 
+    public final List<Assignable> funcArgs;
+
     public LiveData(Assignable d, Assignable u1, Assignable u2) {
         dest = d;
         use1 = u1;
         use2 = u2;
+        funcArgs = null;
     }
 
     public LiveData(Assignable d, Value v1, Value v2) {
@@ -92,6 +96,8 @@ class LiveData {
             use1 = null;
             use2 = null;
         }
+
+        funcArgs = null;
     }
 
     public LiveData(Assignable d, Value v) {
@@ -103,6 +109,15 @@ class LiveData {
         else {
             use1 = null;
         }
+
+        funcArgs = null;
+    }
+
+    public LiveData(Assignable d, List<Assignable> args) {
+        dest = d;
+        use1 = null;
+        use2 = null;
+        funcArgs = args;
     }
 
 }
@@ -131,11 +146,16 @@ class TACLiveness extends TACVisitor<LiveData> {
                 if (atPoint.dest != null) {
                     tac.liveBeforePP.remove(atPoint.dest);
                 }
-                if (atPoint.use1 != null) {
-                    tac.liveBeforePP.add(atPoint.use1);
+                if( atPoint.funcArgs != null ) {
+                    tac.liveBeforePP.addAll(atPoint.funcArgs);
                 }
-                if (atPoint.use2 != null) {
-                    tac.liveBeforePP.add(atPoint.use2);
+                else {
+                    if (atPoint.use1 != null) {
+                        tac.liveBeforePP.add(atPoint.use1);
+                    }
+                    if (atPoint.use2 != null) {
+                        tac.liveBeforePP.add(atPoint.use2);
+                    }
                 }
             }
 
@@ -170,7 +190,7 @@ class TACLiveness extends TACVisitor<LiveData> {
 
     @Override
     public LiveData visit(Call call) {
-        return new LiveData(call.dest, null, null);
+        return new LiveData(call.dest, call.args);
     }
 
     @Override

@@ -1,12 +1,7 @@
 digraph G {
 bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
-	1: store x 51 
-|	2: mul _t0 2 x 
-|	3: add y _t0 y 
-|	4: mul _t1 y 2 
-|	5: add _t0 x _t1 
-|	6: add x _t0 z 
-|	7: store _t0 y 
-|<exit>	8: call _t0 printInt 
+	1: store y 3 
+|	2: store _t0 y 
+|<exit>	3: call _t0 printInt 
 }"];
 }

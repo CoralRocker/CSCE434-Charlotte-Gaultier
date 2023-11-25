@@ -194,13 +194,14 @@ public class Compiler {
 
     public List<Integer> genCode(){
 
-        List<DLX>  assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters);
+        // TODO Generate code for functions (add below main code)
+        List<DLX>  assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters, true);
 
         instructions = new ArrayList<>();
 
         System.out.printf("Instructions: \n");
         for( int i = 0; i < assembly.size(); i++ ) {
-            System.out.printf("%3d : %-32s => %16d\n", i, assembly.get(i).generateAssembly(), assembly.get(i).generateInstruction());
+            System.out.printf("%3d : %-32s => 0x%08x\n", i, assembly.get(i).generateAssembly(), assembly.get(i).generateInstruction());
             instructions.add( assembly.get(i).generateInstruction() );
         }
 

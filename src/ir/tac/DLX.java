@@ -1,6 +1,8 @@
 package ir.tac;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public class DLX {
 
@@ -68,6 +70,9 @@ public class DLX {
         F3;
     }
     private OPCODE opcode;
+    public OPCODE getOpcode() {
+        return opcode;
+    }
     private int regA;
     private int regB;
     private int regC;
@@ -76,21 +81,31 @@ public class DLX {
     private FORMAT format;
 
     private void verifyValues() {
+
+        Function<OPCODE, Boolean> isImmediate = (OPCODE oc) -> {
+            return (oc.opcode <= 26 && oc.opcode >= 20) || (oc.opcode <= 39 && oc.opcode >= 33);
+        };
+
         switch(format) {
             case F1 -> {
                 if( regA >= 32 ) throw new RuntimeException(String.format("Register A is out of range: %d\n", regA));
                 if( regB >= 32 ) throw new RuntimeException(String.format("Register B is out of range: %d\n", regB));
                 if( immediate >= 65536 ) throw new RuntimeException(String.format("Immediate is out of range: %d\n", immediate));
                 if( regC != 0 ) throw new RuntimeException(String.format("Register C should be 0: %d\n", regC));
+
+                if( !isImmediate.apply(opcode) ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for format 1!", opcode.name(), opcode.opcode));
             }
             case F2 -> {
                 if( regA >= 32 ) throw new RuntimeException(String.format("Register A is out of range: %d\n", regA));
                 if( regB >= 32 ) throw new RuntimeException(String.format("Register B is out of range: %d\n", regB));
                 if( immediate != 0 ) throw new RuntimeException(String.format("Immediate should be 0: %d\n", immediate));
                 if( regC >= 32 ) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
+                if( isImmediate.apply(opcode) || opcode.name().equals("JSR") ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for format 2!", opcode.name(), opcode.opcode));
+
             }
             case F3 -> {
                 if( regC >= (Math.pow(2, 26))) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
+                if( !opcode.name().equals("JSR") ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for format 3!", opcode.name(), opcode.opcode));
             }
         }
     }
@@ -152,6 +167,8 @@ public class DLX {
         return null;
     }
 
+
+
     public String generateAssembly() {
         switch( format ) {
             case F1 -> {
@@ -174,13 +191,13 @@ public class DLX {
 
         switch( format ) {
             case F1 -> {
-                instruction = opcode.opcode + (regA >> 6) + (regB >> 11) + (immediate >> 16);
+                instruction = (opcode.opcode << 26) + (regA << 21) + (regB << 16) + (immediate);
             }
             case F2 -> {
-                instruction = opcode.opcode + (regA >> 6) + (regB >> 11) + (regC >> 27);
+                instruction = (opcode.opcode << 26) + (regA << 21) + (regB << 16) + (regC);
             }
             case F3 -> {
-                instruction = opcode.opcode + (regC >> 6);
+                instruction = (opcode.opcode << 26) + (regC);
             }
         }
 

@@ -196,14 +196,14 @@ public class CompilerTesterPA89 {
         //     }
         // }
 
-        // DLX.load(program);
-        // try {
-        //     DLX.execute(in);
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        //     System.err.println("IOException inside DLX");
-        //     System.exit(-6);
-        // }
+        DLX.load(c.compile());
+        try {
+            DLX.execute(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("IOException inside DLX");
+            System.exit(-6);
+        }
 
 
     }

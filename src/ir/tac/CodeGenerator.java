@@ -12,7 +12,7 @@ public class CodeGenerator extends TACVisitor<DLX> {
 
     private Map<Assignable, Integer> registers;
 
-    public static List<DLX> generate(CFG cfg, int nRegs) {
+    public static List<DLX> generate(CFG cfg, int nRegs, boolean isMain) {
         CodeGenerator visitor = new CodeGenerator();
 
         RegisterAllocator allocator = new RegisterAllocator(nRegs);
@@ -28,6 +28,10 @@ public class CodeGenerator extends TACVisitor<DLX> {
                 }
                 instructions.add(dlx);
             }
+        }
+
+        if( !instructions.get(instructions.size()-1).getOpcode().equals(DLX.OPCODE.RET) ) {
+            instructions.add( DLX.regOp(DLX.OPCODE.RET, 0, 0, 0));
         }
 
         return instructions;
@@ -88,7 +92,7 @@ public class CodeGenerator extends TACVisitor<DLX> {
                 return DLX.immediateOp(DLX.OPCODE.ADDI, dest, registers.get(add.left), ((Literal) add.right).getInt());
             }
         }
-        return DLX.immediateOp(DLX.OPCODE.ADD, dest, registers.get(add.left), registers.get(add.right));
+        return DLX.regOp(DLX.OPCODE.ADD, dest, registers.get(add.left), registers.get(add.right));
     }
 
     @Override
@@ -107,7 +111,7 @@ public class CodeGenerator extends TACVisitor<DLX> {
                 return DLX.immediateOp(DLX.OPCODE.DIVI, dest, registers.get(div.left), ((Literal) div.right).getInt());
             }
         }
-        return DLX.immediateOp(DLX.OPCODE.DIV, dest, registers.get(div.left), registers.get(div.right));
+        return DLX.regOp(DLX.OPCODE.DIV, dest, registers.get(div.left), registers.get(div.right));
     }
 
     @Override
@@ -121,7 +125,7 @@ public class CodeGenerator extends TACVisitor<DLX> {
                 return DLX.immediateOp(DLX.OPCODE.MODI, dest, registers.get(mod.left), ((Literal) mod.right).getInt());
             }
         }
-        return DLX.immediateOp(DLX.OPCODE.MOD, dest, registers.get(mod.left), registers.get(mod.right));
+        return DLX.regOp(DLX.OPCODE.MOD, dest, registers.get(mod.left), registers.get(mod.right));
     }
 
     @Override
@@ -135,7 +139,7 @@ public class CodeGenerator extends TACVisitor<DLX> {
                 return DLX.immediateOp(DLX.OPCODE.MULI, dest, registers.get(mul.left), ((Literal) mul.right).getInt());
             }
         }
-        return DLX.immediateOp(DLX.OPCODE.MUL, dest, registers.get(mul.left), registers.get(mul.right));
+        return DLX.regOp(DLX.OPCODE.MUL, dest, registers.get(mul.left), registers.get(mul.right));
     }
 
     @Override
@@ -149,7 +153,7 @@ public class CodeGenerator extends TACVisitor<DLX> {
                 return DLX.immediateOp(DLX.OPCODE.SUBI, dest, registers.get(sub.left), ((Literal) sub.right).getInt());
             }
         }
-        return DLX.immediateOp(DLX.OPCODE.SUB, dest, registers.get(sub.left), registers.get(sub.right));
+        return DLX.regOp(DLX.OPCODE.SUB, dest, registers.get(sub.left), registers.get(sub.right));
     }
 
     @Override
@@ -173,7 +177,7 @@ public class CodeGenerator extends TACVisitor<DLX> {
                 return DLX.immediateOp(DLX.OPCODE.CMPI, dest, registers.get(cmp.left), ((Literal) cmp.right).getInt());
             }
         }
-        return DLX.immediateOp(DLX.OPCODE.CMP, dest, registers.get(cmp.left), registers.get(cmp.right));
+        return DLX.regOp(DLX.OPCODE.CMP, dest, registers.get(cmp.left), registers.get(cmp.right));
     }
 
     @Override
