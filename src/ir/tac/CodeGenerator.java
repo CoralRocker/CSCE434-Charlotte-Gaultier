@@ -61,9 +61,12 @@ public class CodeGenerator extends TACVisitor<DLX> {
 
     @Override
     public DLX visit(Call call) {
+
+        // TODO: Generate Code To Save Registers and Whatnot
+
         switch( call.function.name() ) {
             case "printInt" -> {
-                return DLX.regOp(DLX.OPCODE.WRI, 0, 0, 0);
+                return DLX.regOp(DLX.OPCODE.WRI, 0, registers.get(call.args.get(0)), 0);
             }
         }
         return null;

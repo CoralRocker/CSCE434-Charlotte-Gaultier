@@ -1,13 +1,16 @@
 package ast;
 
 import coco.Token;
+import ir.tac.Assignable;
 import types.Type;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ArgList extends AST implements Visitable {
 
     private ArrayList<AST> args;
+    public List<Assignable> argTAC = null;
 
     public ArgList(Token tkn) {
         super(tkn);

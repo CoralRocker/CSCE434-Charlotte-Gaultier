@@ -200,7 +200,7 @@ public class Compiler {
 
         System.out.printf("Instructions: \n");
         for( int i = 0; i < assembly.size(); i++ ) {
-            System.out.printf("%3d : %32s => %16d", i, assembly.get(i).generateAssembly(), assembly.get(i).generateInstruction());
+            System.out.printf("%3d : %-32s => %16d\n", i, assembly.get(i).generateAssembly(), assembly.get(i).generateInstruction());
             instructions.add( assembly.get(i).generateInstruction() );
         }
 

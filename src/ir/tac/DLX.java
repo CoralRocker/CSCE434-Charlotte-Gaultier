@@ -155,14 +155,14 @@ public class DLX {
     public String generateAssembly() {
         switch( format ) {
             case F1 -> {
-                return String.format("%s R%d, R%d, %d", opcode.name(), regA, regB, immediate);
+                return String.format("%-4s R%d, R%d, %d", opcode.name(), regA, regB, immediate);
             }
             case F2 -> {
-                return String.format("%s R%d, R%d, R%d", opcode.name(), regA, regB, regC);
+                return String.format("%-4s R%d, R%d, R%d", opcode.name(), regA, regB, regC);
             }
 
             case F3 -> {
-                return String.format("%s R%d", opcode.name(), regC);
+                return String.format("%-4s R%d", opcode.name(), regC);
             }
         }
         throw new RuntimeException("Unknown DLX format?");
