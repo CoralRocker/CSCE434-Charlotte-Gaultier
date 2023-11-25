@@ -8,6 +8,14 @@ import ir.tac.*;
 import javax.swing.plaf.basic.BasicViewportUI;
 import java.util.*;
 
+// TODO: Available Expression Converts
+// store a 2
+// store _t0 2
+//
+// TODO: to the incorrect
+// store a 2
+// store _t0 a
+//
 public class AvailableExpression extends CFGVisitor {
 
     // Perform a set intersection
