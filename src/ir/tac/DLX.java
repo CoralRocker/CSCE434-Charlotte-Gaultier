@@ -83,7 +83,24 @@ public class DLX {
     private void verifyValues() {
 
         Function<OPCODE, Boolean> isImmediate = (OPCODE oc) -> {
-            return (oc.opcode <= 26 && oc.opcode >= 20) || (oc.opcode <= 39 && oc.opcode >= 33);
+            boolean miscImm;
+            switch( oc ) {
+                case LDW:
+                case POP:
+                case STW:
+                case PSH:
+                case WRL:
+                    miscImm = true;
+                    break;
+                default:
+                    miscImm = false;
+                    break;
+            }
+
+            return (oc.opcode <= 26 && oc.opcode >= 20)
+                || (oc.opcode <= 39 && oc.opcode >= 33)
+                || (oc.opcode <= 53 && oc.opcode >= 47)
+                || miscImm;
         };
 
         switch(format) {

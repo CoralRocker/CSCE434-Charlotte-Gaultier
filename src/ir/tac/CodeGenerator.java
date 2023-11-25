@@ -72,6 +72,9 @@ public class CodeGenerator extends TACVisitor<DLX> {
             case "printInt" -> {
                 return DLX.regOp(DLX.OPCODE.WRI, 0, registers.get(call.args.get(0)), 0);
             }
+            case "println" -> {
+                return DLX.immediateOp(DLX.OPCODE.WRL, 0, 0, 0);
+            }
         }
         return null;
     }
