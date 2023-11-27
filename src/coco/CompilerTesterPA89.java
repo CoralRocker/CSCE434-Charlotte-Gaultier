@@ -172,12 +172,9 @@ public class CompilerTesterPA89 {
             System.exit(-6);
         }
 
-        // //PA 8
-        c.compile();
-         c.regAlloc(numRegs);
 
-        // //PA 9
-         int[] program = c.genCode();
+         // //PA 9
+         int[] program = c.compile();
          if (c.hasError()) {
              System.err.println("Error compiling file");
              System.err.println(c.errorReport());
@@ -197,7 +194,7 @@ public class CompilerTesterPA89 {
         //     }
         // }
 
-        DLX.load(c.compile());
+        DLX.load(program);
         try {
             DLX.execute(in);
         } catch (IOException e) {
