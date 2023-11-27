@@ -57,7 +57,10 @@ public class Compiler {
                         AvailableExpression expr = new AvailableExpression(cfg, false, true);
                     }
                     case "dce" -> {
-                        Liveness live = new Liveness(cfg, true, true);
+                        // Liveness live = new Liveness(cfg, true, true);
+                        ProgramPointLiveness lvanal = new ProgramPointLiveness(cfg);
+                        lvanal.calculate(false);
+                        lvanal.doDCE(false);
                     }
                     case "max" -> {
                         boolean changed = true;

@@ -90,7 +90,7 @@ public class RegisterAllocator {
 
         rig = calculateRIG(cfg);
 
-        int K = numRegisters - 2; // Reserve Last 2 registers for spilling
+        int K = numRegisters;
 
         TreeSet<Integer> registers = new TreeSet<>(IntStream.range(1, K+1).boxed().collect(Collectors.toSet()));
         HashMap<Assignable, Integer> allocation = new HashMap<>();
