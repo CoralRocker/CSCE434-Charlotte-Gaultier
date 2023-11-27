@@ -53,6 +53,23 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         }
 
         // Set the address of all branches properly
+        var iter = instructions.listIterator();
+        int counter = 0;
+        while( iter.hasNext() ) {
+            var asm = iter.next();
+
+            if( asm.getFormat().equals(DLXCode.FORMAT.UNRESOLVED_BRANCH) ) {
+                int bb = visitor.labels.get(asm.immediate);
+                int c = bb - counter;
+                if( c == 1 ) {
+                    iter.remove();
+                } else {
+                    iter.set(DLXCode.immediateOp(asm.opcode, asm.regA, asm.regB, c));
+                }
+            }
+
+            counter++;
+        }
 
 
         return instructions;
@@ -272,6 +289,12 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
 
     @Override
     public List<DLXCode> visit(Cmp cmp) {
+
+        //
+        // NOTE! The LHS and RHS are flipped here for a reason:
+        // The CMP instruction performs R.b - R.c, followed
+        //
+
         int dest = registers.get(cmp.dest);
         if( cmp.hasImmediate() ) {
             boolean lit_lhs = cmp.left instanceof Literal,

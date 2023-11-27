@@ -69,14 +69,18 @@ public class DLXCode {
 
         UNRESOLVED_BRANCH;
     }
-    private OPCODE opcode;
+    protected OPCODE opcode;
     public OPCODE getOpcode() {
         return opcode;
     }
-    private int regA;
-    private int regB;
-    private int regC;
-    private int immediate;
+    protected int regA;
+    protected int regB;
+    protected int regC;
+    protected int immediate;
+
+    public FORMAT getFormat() {
+        return format;
+    }
 
     private FORMAT format;
 
