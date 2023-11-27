@@ -149,12 +149,24 @@ public class RegisterSpiller extends TACVisitor<TacPair> {
 
     @Override
     public TacPair visit(Store store) {
+        StoreStack after = null;
+        LoadStack before = null;
         if( store.dest.equals(toSpill) ) {
             TacID newId = store.getIdObj().pushNext();
-            var instr = new StoreStack(newId, store.dest, new Spill(loc, Spill.Register.DEST));
-            return new TacPair(null, instr);
+            after = new StoreStack(newId, store.dest, new Spill(loc, Spill.Register.DEST));
         }
-        return null;
+
+        if( store.source.equals(toSpill) ) {
+            TacID newId = store.getIdObj().pushPrevious();
+            before = new LoadStack(newId, store.dest, new Spill(loc, Spill.Register.DEST));
+        }
+
+        if( after == null && before == null ) {
+            return null;
+        }
+        else {
+            return new TacPair(before, after);
+        }
     }
 
     @Override
@@ -170,5 +182,37 @@ public class RegisterSpiller extends TACVisitor<TacPair> {
     @Override
     public TacPair visit(Temporary temporary) {
         return null;
+    }
+
+    @Override
+    public TacPair visit(Not not) {
+        StoreStack after = null;
+        LoadStack before = null;
+        if( not.dest.equals(toSpill) ) {
+            TacID newId = not.getIdObj().pushNext();
+            after = new StoreStack(newId, not.dest, new Spill(loc, Spill.Register.DEST));
+        }
+
+        if( not.src.equals(toSpill) ) {
+            TacID newId = not.getIdObj().pushPrevious();
+            before = new LoadStack(newId, not.dest, new Spill(loc, Spill.Register.DEST));
+        }
+
+        if( after == null && before == null ) {
+            return null;
+        }
+        else {
+            return new TacPair(before, after);
+        }
+    }
+
+    @Override
+    public TacPair visit(And and) {
+        return visit((Assign) and);
+    }
+
+    @Override
+    public TacPair visit(Or or) {
+        return visit((Assign) or);
     }
 }

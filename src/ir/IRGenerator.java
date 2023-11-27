@@ -98,6 +98,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = dst;
         src = astSource.accept(this);
+        if( src == null ) {
+            throw new RuntimeException(String.format("%s does not work!", astSource));
+        }
         asnDest = null;
 
 
@@ -306,20 +309,56 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(LogicalAnd la) {
+        Assignable tmpdest = asnDest;
 
-        return null;
+        asnDest = null;
+        Value lval = la.getLvalue().accept(this);
+        tempNum += 1;
+        Value rval = la.getRvalue().accept(this);
+        tempNum -= 1;
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
+
+        And tac = new And(curCFG.instrNumberer.push(), target, lval, rval);
+        curBlock.add(tac);
+
+        return target;
     }
 
     @Override
     public Value visit(LogicalNot ln) {
+        Assignable tmpdest = asnDest;
 
-        return null;
+        asnDest = null;
+        Value val = ln.getRvalue().accept(this);
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
+
+        Not tac = new Not(curCFG.instrNumberer.push(), target, val);
+        curBlock.add(tac);
+
+        return target;
     }
 
     @Override
     public Value visit(LogicalOr lo) {
+        Assignable tmpdest = asnDest;
 
-        return null;
+        asnDest = null;
+        Value lval = lo.getLvalue().accept(this);
+        tempNum += 1;
+        Value rval = lo.getRvalue().accept(this);
+        tempNum -= 1;
+        asnDest = tmpdest;
+
+        Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
+
+        Or tac = new Or(curCFG.instrNumberer.push(), target, lval, rval);
+        curBlock.add(tac);
+
+        return target;
     }
 
     @Override

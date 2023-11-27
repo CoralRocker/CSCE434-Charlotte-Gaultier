@@ -174,4 +174,22 @@ public class ArithmeticSimplification extends TACVisitor<TAC> {
     public TAC visit(Temporary temporary) {
         return null;
     }
+
+    @Override
+    public TAC visit(Not not) {
+        // TODO
+        return null;
+    }
+
+    @Override
+    public TAC visit(And and) {
+        // TOOD
+        return null;
+    }
+
+    @Override
+    public TAC visit(Or or) {
+        // TODO
+        return null;
+    }
 }

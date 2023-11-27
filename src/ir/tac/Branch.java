@@ -3,11 +3,24 @@ package ir.tac;
 import ir.cfg.BasicBlock;
 
 public class Branch extends TAC {
+    public String getRel() {
+        return rel;
+    }
+
     private String rel;
+
+    public Value getVal() {
+        return val;
+    }
+
     private Value val = null;
 
     public void setRel(String rel) {
         this.rel = rel;
+    }
+
+    public BasicBlock getJumpTo() {
+        return jumpTo;
     }
 
     private BasicBlock jumpTo;

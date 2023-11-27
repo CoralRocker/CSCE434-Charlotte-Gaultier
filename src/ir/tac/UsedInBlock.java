@@ -126,6 +126,23 @@ public class UsedInBlock extends TACVisitor<List<Assignable>> {
     public List<Assignable> visit(Temporary temporary) {
         return emptyList();
     }
+
+    @Override
+    public List<Assignable> visit(Not not) {
+        return not.src.accept(this);
+    }
+
+    @Override
+    public List<Assignable> visit(And and) {
+        Stream<Assignable> ret = Stream.concat((and.left.accept(this)).stream(), and.right.accept(this).stream());
+        return ret.toList();
+    }
+
+    @Override
+    public List<Assignable> visit(Or or) {
+        Stream<Assignable> ret = Stream.concat((or.left.accept(this)).stream(), or.right.accept(this).stream());
+        return ret.toList();
+    }
 }
 
 

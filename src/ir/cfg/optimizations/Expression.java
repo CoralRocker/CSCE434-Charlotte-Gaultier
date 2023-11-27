@@ -31,6 +31,14 @@ public class Expression {
         this.args[0] = store;
     }
 
+    public Expression(Assignable dest, Not op, Value store) {
+        this.dest = dest;
+        this.op = op;
+        this.args = new Value[1];
+        this.args[0] = store;
+    }
+
+
     public Expression(Assignable dest, Assign op, Value lhs, Value rhs) {
         this.dest = dest;
         this.op = op;

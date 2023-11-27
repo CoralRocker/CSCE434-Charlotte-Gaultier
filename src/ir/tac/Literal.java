@@ -31,7 +31,7 @@ public class Literal extends Value implements Cloneable{
         return new Literal(new FloatLiteral( Token.FLOAT_VAL(String.valueOf(f), 0, 0)));
     }
 
-    private final AST val;
+    public final AST val;
 
     private <E> E apply( E b, E i, E f ) {
         if (val instanceof ast.BoolLiteral) {
@@ -45,15 +45,15 @@ public class Literal extends Value implements Cloneable{
     }
 
     public float getFloat() {
-        return ((FloatLiteral)val).getFloatLiteral();
+        return val.getFloatLiteral();
     }
 
     public int getInt() {
-        return ((IntegerLiteral)val).getIntLiteral();
+        return val.getIntLiteral();
     }
 
     public boolean getBool() {
-        return ((BoolLiteral)val).getBoolLiteral();
+        return val.getBoolLiteral();
     }
 
     @Override

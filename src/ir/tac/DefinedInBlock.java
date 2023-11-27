@@ -117,4 +117,19 @@ public class DefinedInBlock extends TACVisitor<List<Variable>> {
     public List<Variable> visit(Temporary temporary) {
         return null;
     }
+
+    @Override
+    public List<Variable> visit(Not not) {
+        return not.dest.accept(this);
+    }
+
+    @Override
+    public List<Variable> visit(And and) {
+        return and.dest.accept(this);
+    }
+
+    @Override
+    public List<Variable> visit(Or or) {
+        return or.dest.accept(this);
+    }
 }

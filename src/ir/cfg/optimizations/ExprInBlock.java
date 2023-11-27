@@ -179,4 +179,27 @@ public class ExprInBlock extends TACVisitor<Expression> {
     public Expression visit(Temporary temporary) {
         return null;
     }
+
+    @Override
+    public Expression visit(Not not) {
+        Expression expr = new Expression(not.dest, not, not.src);
+        Expression contained = contains(expr);
+        Expression retval = null;
+        if (contained == null)
+            avail.put(expr, expr);
+        else
+            retval = contained;
+        kill(expr.dest);
+        return retval;
+    }
+
+    @Override
+    public Expression visit(And and) {
+        return visit((Assign) and);
+    }
+
+    @Override
+    public Expression visit(Or or) {
+        return visit((Assign) or);
+    }
 }

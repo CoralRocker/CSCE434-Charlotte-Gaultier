@@ -28,4 +28,8 @@ public abstract class TACVisitor<E> {
     public abstract E visit(Phi phi);
 
     public abstract E visit(Temporary temporary);
+
+    public abstract E visit(Not not);
+    public abstract E visit(And and);
+    public abstract E visit(Or or);
 }

@@ -65,7 +65,9 @@ public class DLXCode {
     enum FORMAT {
         F1,
         F2,
-        F3;
+        F3,
+
+        UNRESOLVED_BRANCH;
     }
     private OPCODE opcode;
     public OPCODE getOpcode() {
@@ -122,6 +124,16 @@ public class DLXCode {
                 if( regC >= (Math.pow(2, 26))) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
                 if( !opcode.name().equals("JSR") ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for format 3!", opcode.name(), opcode.opcode));
             }
+
+            case UNRESOLVED_BRANCH -> {
+                if( regA >= 32 ) throw new RuntimeException(String.format("Register A is out of range: %d\n", regA));
+                if( regB >= 32 ) throw new RuntimeException(String.format("Register B is out of range: %d\n", regB));
+                if( immediate >= 65536 ) throw new RuntimeException(String.format("Immediate is out of range: %d\n", immediate));
+                if( regC != 0 ) throw new RuntimeException(String.format("Register C should be 0: %d\n", regC));
+
+                if( (opcode.opcode > 53) || (opcode.opcode < 47) ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for unresolved branch!", opcode.name(), opcode.opcode));
+
+            }
         }
     }
 
@@ -169,19 +181,22 @@ public class DLXCode {
         return dlx;
     }
 
+    public static DLXCode unresolvedBranch(OPCODE opcode, int regA, int C) {
+        DLXCode dlx = new DLXCode();
+        dlx.format = FORMAT.UNRESOLVED_BRANCH;
+        dlx.opcode = opcode;
+        dlx.regA = regA;
+        dlx.regB = 0;
+        dlx.immediate = C;
+        dlx.verifyValues();
+
+        return dlx;
+    }
+
     @Override
     public String toString() {
         return this.generateAssembly();
     }
-
-    private String opName() {
-        switch(opcode) {
-
-        };
-
-        return null;
-    }
-
 
 
     public String generateAssembly() {

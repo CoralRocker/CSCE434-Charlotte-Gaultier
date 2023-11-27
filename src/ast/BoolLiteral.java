@@ -20,6 +20,11 @@ public class BoolLiteral extends AST {
         return literal;
     }
 
+    @Override
+    public int getIntLiteral() {
+        if( literal ) return 1; else return 0;
+    }
+
     public BoolLiteral(Token tkn) {
         super(tkn);
         literal = Boolean.parseBoolean(tkn.lexeme());

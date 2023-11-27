@@ -240,7 +240,7 @@ class TACLiveness extends TACVisitor<LiveData> {
 
     @Override
     public LiveData visit(Branch bra) {
-        return null;
+        return new LiveData(null, bra.getVal());
     }
 
     @Override
@@ -266,6 +266,21 @@ class TACLiveness extends TACVisitor<LiveData> {
     @Override
     public LiveData visit(Temporary temporary) {
         return null;
+    }
+
+    @Override
+    public LiveData visit(Not not) {
+        return new LiveData(not.dest, not.getSrc());
+    }
+
+    @Override
+    public LiveData visit(And and) {
+        return new LiveData(and.dest, and.left, and.right);
+    }
+
+    @Override
+    public LiveData visit(Or or) {
+        return new LiveData(or.dest, or.left, or.right);
     }
 }
 
@@ -391,5 +406,23 @@ class DeadCode extends TACVisitor<Boolean> {
     @Override
     public Boolean visit(Temporary temporary) {
         return false;
+    }
+
+    @Override
+    public Boolean visit(Not not) {
+        if( !curTac.liveAfterPP.contains(not.dest) ) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Boolean visit(And and) {
+        return visit((Assign) and);
+    }
+
+    @Override
+    public Boolean visit(Or or) {
+        return visit((Assign)or);
     }
 }

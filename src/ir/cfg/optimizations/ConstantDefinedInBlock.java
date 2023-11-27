@@ -253,4 +253,34 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
     public SymbolVal visit(Temporary temporary) {
         return null;
     }
+
+    @Override
+    public SymbolVal visit(Not not) {
+        if (not.getSrc() instanceof Literal) {
+            return new SymbolVal( not.dest.name(), not.getId(), (Literal) not.getSrc());
+        }
+        else if ( not.getSrc() instanceof Assignable ) {
+            if( do_prop ) {
+                SymbolVal constprop = get((Assignable) not.getSrc());
+                if( constprop.isConstant() ) {
+                    not.src = constprop.val;
+                    return  new SymbolVal( not.dest.name(), not.getId(), (Literal) not.src);
+                }
+            }
+            return  new SymbolVal( not.dest.name(), not.getId(), (Assignable) not.src);
+        }
+        else {
+            return new SymbolVal( not.dest.name(), not.getId() );
+        }
+    }
+
+    @Override
+    public SymbolVal visit(And and) {
+        return visit((Assign) and);
+    }
+
+    @Override
+    public SymbolVal visit(Or or) {
+        return visit((Assign) or);
+    }
 }
