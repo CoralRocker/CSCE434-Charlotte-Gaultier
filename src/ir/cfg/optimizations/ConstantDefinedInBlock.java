@@ -5,14 +5,16 @@ import coco.VariableSymbol;
 import ir.cfg.BasicBlock;
 import ir.tac.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeSet;
 
 // Perform Constant Propagation Within A Basic Block
 // Also perform copy propagation
 public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
 
-    protected TreeSet<SymbolVal> defined = new TreeSet<>();
+    protected HashMap<SymbolVal, SymbolVal> defined = new HashMap<>();
     protected HashMap<String, Literal> temporaries = new HashMap<>();
 
     private SymbolVal get(Assignable key) {
@@ -20,7 +22,11 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
     }
 
     private SymbolVal get(SymbolVal key) {
-        return defined.subSet(key, true, key, true).first();
+        SymbolVal smv = defined.get(key);
+        if( smv == null ) {
+            throw new RuntimeException(String.format("%s does not exist", key));
+        }
+        return smv;
     }
 
     protected boolean do_prop = false, do_fold = false, do_copy_prop = false;
@@ -30,9 +36,10 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
         visitor.do_prop = do_prop; // Whether to perform constant propagation
         visitor.do_fold = do_fold; // Whether to perform constant folding
         visitor.do_copy_prop = do_copy_prop;
-        visitor.defined = new TreeSet<>();
-        for (SymbolVal sym : (TreeSet<SymbolVal>) blk.entry) {
-            visitor.defined.add(sym.clone());
+        visitor.defined = new HashMap<>();
+        for (SymbolVal sym : ((HashMap<SymbolVal, SymbolVal>) blk.entry).values() ) {
+            SymbolVal cpy = sym.clone();
+            visitor.defined.put(cpy, cpy);
         }
 
         boolean changed = false;
@@ -42,18 +49,18 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
             ctr++;
             SymbolVal sym = tac.accept(visitor);
             if (sym != null) {
-                if (visitor.defined.contains(sym)) {
+                if (visitor.defined.containsKey(sym)) {
                     // Merge into the set
-                    visitor.defined.subSet(sym, true, sym, true) // Fetch the element in range [sym, sym) (so whatever is equal to sym)
-                                        .first() // Get the first (and only) piece of the list
-                                        .assign(sym); // Merge in our slightly different version
+                    visitor.defined.get(sym).assign(sym); // Merge in our slightly different version
                 } else if (sym.isTemporary()) {
                     visitor.defined.remove(sym);
-                    visitor.defined.add(sym);
+                    visitor.defined.put(sym, sym);
                 } else {
-                    throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s", sym));
+                    throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s (from #%d %s)", sym, tac.getId(), tac.genDot()));
                 }
+
             }
+
 
             // Must replace Assign with Store
             if (do_fold && sym != null && sym.isConstant() && tac instanceof Assign) {
@@ -70,8 +77,8 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
             }
         }
 
-        if (blk.exit != null && ((TreeSet<SymbolVal>) blk.exit).size() == visitor.defined.size()) {
-            for (SymbolVal sym : ((TreeSet<SymbolVal>) blk.exit)) {
+        if (blk.exit != null && ((HashMap<SymbolVal, SymbolVal>) blk.exit).size() == visitor.defined.size()) {
+            for (SymbolVal sym : ((HashMap<SymbolVal, SymbolVal>) blk.exit).values() ) {
                 SymbolVal val = visitor.get(sym);
 
                 boolean diff;
@@ -89,42 +96,14 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
             }
         }
 
-        visitor.defined.removeIf(SymbolVal::isTemporary);
+        // visitor.defined.keySet().removeIf(SymbolVal::isTemporary);
         blk.exit = visitor.defined;
+        if( changed && do_print && (do_copy_prop || do_prop) ) {
+            System.err.printf("CFG was changed by ConstDefInBlock for BB%d\n", blk.getNum());
+        }
         return changed;
     }
 
-    public static TreeSet<SymbolVal> defInBlock(BasicBlock blk) {
-        ConstantDefinedInBlock visitor = new ConstantDefinedInBlock();
-
-        visitor.defined = new TreeSet<>();
-        for (SymbolVal sym : (TreeSet<SymbolVal>) blk.entry) {
-            visitor.defined.add(sym.clone());
-        }
-
-        boolean changed = false;
-
-        int ctr = -1;
-        for (final TAC tac : blk.getInstructions()) {
-            ctr++;
-            SymbolVal sym = (SymbolVal) tac.accept(visitor);
-            if (sym != null) {
-                if (visitor.defined.contains(sym)) {
-                    // Merge into the set
-                    visitor.defined.subSet(sym, true, sym, true) // Fetch the element in range [sym, sym) (so whatever is equal to sym)
-                            .first() // Get the first (and only) piece of the list
-                            .assign(sym); // Merge in our slightly different version
-                } else if (sym.isTemporary()) {
-                    visitor.defined.remove(sym);
-                    visitor.defined.add(sym);
-                } else {
-                    throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s", sym));
-                }
-            }
-        }
-
-        return visitor.defined;
-    }
     @Override
     public SymbolVal visit(Return ret) {
         return null;

@@ -13,7 +13,7 @@ public class LoadStack extends TAC {
 
     @Override
     public String genDot() {
-        return String.format("LoadStack %s, #%d", val, loc.spillNo);
+        return String.format("LoadStack[%d] %s", loc.spillNo, val);
     }
 
     @Override

@@ -1,25 +1,21 @@
 package ir.cfg;
 
 
-import coco.Symbol;
-import coco.Variable;
 import coco.VariableSymbol;
 import ir.tac.TacIDGenerator;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public class CFG implements Visitable<Object> {
 
     public TacIDGenerator instrNumberer = new TacIDGenerator();
 
-    protected TreeSet<VariableSymbol> symbols;
+    protected HashMap<VariableSymbol, VariableSymbol> symbols;
 
-    public TreeSet<VariableSymbol> getSymbols() { return symbols; }
-    public void setSymbols(TreeSet<VariableSymbol> syms) { symbols = syms; }
+    public HashMap<VariableSymbol, VariableSymbol> getSymbols() { return symbols; }
+    public void setSymbols(HashMap<VariableSymbol, VariableSymbol> syms) { symbols = syms; }
 
     private BasicBlock head;
     public List<BasicBlock> allNodes = null;

@@ -71,7 +71,7 @@ public class RegisterSpiller extends TACVisitor<TacPair> {
     public TacPair visit(Call call) {
         if( call.dest.equals(toSpill) ) {
             TacID newId = call.getIdObj().pushNext();
-            var instr = new StoreStack(newId, call.dest);
+            var instr = new StoreStack(newId, call.dest, loc);
             return new TacPair(null, instr);
         }
         return null;
@@ -94,16 +94,16 @@ public class RegisterSpiller extends TACVisitor<TacPair> {
 
         if( asn.left.equals(toSpill) ) {
             TacID newId = asn.getIdObj().pushPrevious();
-            load = new LoadStack(newId, (Assignable)asn.left, loc);
+            load = new LoadStack(newId, (Assignable)asn.left, new Spill(loc, Spill.Register.LHS));
         }
         else if( asn.right.equals(toSpill) ) {
             TacID newId = asn.getIdObj().pushPrevious();
-            load = new LoadStack(newId, (Assignable)asn.right, loc);
+            load = new LoadStack(newId, (Assignable)asn.right, new Spill(loc, Spill.Register.RHS));
         }
 
         if( asn.dest.equals(toSpill) ) {
             TacID newId = asn.getIdObj().pushNext();
-            store = new StoreStack(newId, asn.dest);
+            store = new StoreStack(newId, asn.dest, new Spill(loc, Spill.Register.DEST));
         }
 
         if( load == null && store == null )
@@ -151,7 +151,7 @@ public class RegisterSpiller extends TACVisitor<TacPair> {
     public TacPair visit(Store store) {
         if( store.dest.equals(toSpill) ) {
             TacID newId = store.getIdObj().pushNext();
-            var instr = new StoreStack(newId, store.dest);
+            var instr = new StoreStack(newId, store.dest, new Spill(loc, Spill.Register.DEST));
             return new TacPair(null, instr);
         }
         return null;

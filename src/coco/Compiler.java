@@ -8,11 +8,11 @@ import java.util.Stack;
 
 import ast.*;
 import ir.IRGenerator;
+import ir.cfg.CodeGen.CodeGenerator;
+import ir.cfg.CodeGen.DLX;
 import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
 import ir.cfg.registers.RegisterAllocator;
-import ir.tac.CodeGenerator;
-import ir.tac.DLX;
 import org.apache.commons.cli.CommandLine;
 
 public class Compiler {
@@ -41,52 +41,55 @@ public class Compiler {
     }
 
     public String optimization(List<String> optArguments, CommandLine cmd) {
-        CFG main = flowGraphs.get(flowGraphs.size()-1);
-        for( String opt : optArguments ) {
-            System.out.printf("Running opt: %s\n", opt);
-            switch( opt ) {
-                case "cf" -> {
-                    ReachingDefinition def = new ReachingDefinition(main, false, true, false, false);
-                }
-                case "cp" -> {
-                    ReachingDefinition def = new ReachingDefinition(main, true, false, false, false);
-                }
-                case "cse" -> {
-                    AvailableExpression expr = new AvailableExpression(main, true, false);
-                }
+        for( CFG cfg : flowGraphs ) {
+            for (String opt : optArguments) {
+                System.out.printf("Running opt: %s\n", opt);
+                switch (opt) {
+                    case "cf" -> {
+                        ReachingDefinition def = new ReachingDefinition(cfg, false, true, false, false);
+                    }
+                    case "cp" -> {
+                        ReachingDefinition def = new ReachingDefinition(cfg, true, false, false, false);
+                    }
+                    case "cse" -> {
+                        AvailableExpression expr = new AvailableExpression(cfg, true, false);
+                    }
 
-                case "cpp" -> {
-                    ReachingDefinition def = new ReachingDefinition(main, false, false, true, true);
-                }
-                case "dce" -> {
-                    Liveness live = new Liveness(main, true, true);
-                }
-                case "max" -> {
-                    boolean changed = true;
+                    case "cpp" -> {
+                        // ReachingDefinition def = new ReachingDefinition(cfg, false, false, true, true);
+                        AvailableExpression expr = new AvailableExpression(cfg, false, true);
+                    }
+                    case "dce" -> {
+                        Liveness live = new Liveness(cfg, true, true);
+                    }
+                    case "max" -> {
+                        boolean changed = true;
 
-                    while( changed ) {
-                        changed = false;
+                        int iter = 1;
+                        while (changed) {
+                            changed = false;
 
-                        ReachingDefinition def = new ReachingDefinition(main, true, true, true, false);
-                        changed |= def.cfgchanged;
+                            ProgramPointLiveness lvanal = new ProgramPointLiveness(cfg);
+                            lvanal.calculate(false);
+                            changed |= lvanal.doDCE(false);
 
-                        AvailableExpression avail = new AvailableExpression(main, true, true);
-                        changed |= avail.isChanged();
+                            ReachingDefinition def = new ReachingDefinition(cfg, true, true, false, false);
+                            changed |= def.cfgchanged;
 
-                        ProgramPointLiveness lvanal = new ProgramPointLiveness(main);
-                        lvanal.calculate(false);
-                        changed |= lvanal.doDCE(false);
-                        // Liveness lvanal = new Liveness(main, false, true);
-                        // changed |= lvanal.isChanged();
+                            AvailableExpression avail = new AvailableExpression(cfg, true, true);
+                            changed |= avail.isChanged();
 
+                            // Liveness lvanal = new Liveness(cfg, false, true);
+                            // changed |= lvanal.isChanged();
+
+                        }
                     }
                 }
+                System.out.println("Post Optimization:");
+                System.out.println(cfg.asDotGraph());
             }
-            System.out.println("Post Optimization:");
-            System.out.println(main.asDotGraph());
         }
-
-        return main.asDotGraph();
+        return flowGraphs.get(flowGraphs.size()-1).asDotGraph();
     }
 
     private class QuitParseException extends RuntimeException {
@@ -189,7 +192,7 @@ public class Compiler {
     public List<Integer> genCode(){
 
         // TODO Generate code for functions (add below main code)
-        List<DLX>  assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters, true);
+        List<DLX> assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters, true);
 
         instructions = new ArrayList<>();
 

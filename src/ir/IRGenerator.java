@@ -9,10 +9,7 @@ import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.tac.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 //Traverse the AST - generate a CFG for each function
 public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG> {
@@ -125,8 +122,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             throw new RuntimeException("Symbols list already made for CFG " + curCFG.toString());
         }
         else if( list.getContained().get(0) instanceof VariableDeclaration ) {
-            TreeSet<VariableSymbol> vars = new TreeSet<>();
-            curCFG.setSymbols(vars);
+            curCFG.setSymbols(new HashMap<>());
         }
 
         for( AST decl : list.getContained() ) {
@@ -522,7 +518,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(VariableDeclaration var) {
-        curCFG.getSymbols().add((VariableSymbol) var.symbol());
+        curCFG.getSymbols().put((VariableSymbol) var.symbol(), (VariableSymbol) var.symbol());
         return null;
     }
 

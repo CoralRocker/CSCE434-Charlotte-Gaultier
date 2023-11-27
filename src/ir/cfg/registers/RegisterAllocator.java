@@ -108,7 +108,7 @@ public class RegisterAllocator {
             popped.push(ltK);
         }
 
-        int spillNo = 0;
+        int spillNo = 1;
         while( !popped.isEmpty() ) {
             VariableNode node = popped.pop();
 
@@ -122,7 +122,7 @@ public class RegisterAllocator {
             }
             else {
                 node.spill = true;
-                RegisterSpiller spiller = new RegisterSpiller(cfg, node.var, new Spill(spillNo++));
+                RegisterSpiller spiller = new RegisterSpiller(cfg, node.var, new Spill(spillNo++, Spill.Register.NONE));
                 spiller.generateLoadStores();
                 liveness.calculate(false);
                 rig = calculateRIG(cfg);

@@ -11,13 +11,12 @@ import java.util.TreeSet;
 
 public class ReachingDefinition extends CFGVisitor {
 
-    protected static boolean mergeSymbolList(TreeSet<SymbolVal> dest, TreeSet<SymbolVal> src, boolean do_print) {
+    protected static boolean mergeSymbolList(HashMap<SymbolVal, SymbolVal> dest, HashMap<SymbolVal, SymbolVal> src, boolean do_print) {
         boolean changed = false;
-        for( SymbolVal sym : src ) {
-            if( dest.contains(sym) ) {
+        for( SymbolVal sym : src.keySet() ) {
+            if( dest.containsKey(sym) ) {
                 // Merge into the set
-                SymbolVal o = dest.subSet(sym, true, sym, true)
-                                  .first();
+                SymbolVal o = dest.get(sym);
                 SymbolVal cpy = o.clone();
                 boolean isChg = o.merge( sym );
 
@@ -28,7 +27,13 @@ public class ReachingDefinition extends CFGVisitor {
                 }
             }
             else {
-                throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s", sym));
+                // Merge in temporaries found
+                if( sym.isTemporary() ) {
+                    dest.put( sym, sym );
+                }
+                else {
+                    throw new RuntimeException(String.format("Given destination does not contain SymbolVal %s", sym));
+                }
             }
         }
 
@@ -46,12 +51,14 @@ public class ReachingDefinition extends CFGVisitor {
         cfg.markUnvisited();
         // Set Every Block's Entry/Exit to be null for all variables
         cfg.breadthFirst((BasicBlock b) -> {
-            b.entry = new TreeSet<SymbolVal>();
-            b.exit = new TreeSet<SymbolVal>();
+            b.entry = new HashMap<SymbolVal, SymbolVal>();
+            b.exit = new HashMap<SymbolVal, SymbolVal>();
 
-            cfg.getSymbols().forEach((VariableSymbol sym)->{
-                ((TreeSet<SymbolVal>)b.entry).add( new SymbolVal(sym.name(), -1));
-                ((TreeSet<SymbolVal>)b.exit).add( new SymbolVal(sym.name(), -1));
+            cfg.getSymbols().keySet().forEach((VariableSymbol sym)->{
+                SymbolVal symval = new SymbolVal(sym.name(), -1);
+                ((HashMap<SymbolVal, SymbolVal>)b.entry).put( symval, symval);
+                symval = new SymbolVal(sym.name(), -1);
+                ((HashMap<SymbolVal, SymbolVal>)b.exit).put( symval, symval);
             });
         });
 
@@ -70,7 +77,7 @@ public class ReachingDefinition extends CFGVisitor {
                         // Merge the incoming changes from "ABOVE"
                         if( do_print )
                             System.out.printf(" -> Merging BB%d -> BB%d\n", finalIters, p.getNum(), b.getNum() );
-                        changed.b |= ReachingDefinition.mergeSymbolList((TreeSet<SymbolVal>) b.entry, (TreeSet<SymbolVal>) p.exit, do_print);
+                        changed.b |= ReachingDefinition.mergeSymbolList((HashMap<SymbolVal, SymbolVal>) b.entry, (HashMap<SymbolVal, SymbolVal>) p.exit, do_print);
                     }
                 }
 
@@ -91,8 +98,14 @@ public class ReachingDefinition extends CFGVisitor {
 
         for (BasicBlock allNode : cfg.allNodes) {
             cfgchanged |= ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_print);
+            if( cfgchanged ) {
+                System.err.println("CFG Changed");
+            }
             if( do_fold ) {
                 cfgchanged |= ArithmeticSimplification.MathSimplify(allNode);
+                if( cfgchanged ) {
+                    System.err.println("CFG Changed");
+                }
             }
         }
     }

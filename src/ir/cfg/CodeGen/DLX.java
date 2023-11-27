@@ -1,4 +1,4 @@
-package ir.tac;
+package ir.cfg.CodeGen;
 
 import java.util.List;
 import java.util.function.Function;
@@ -6,7 +6,7 @@ import java.util.function.UnaryOperator;
 
 public class DLX {
 
-    enum OPCODE {
+    public enum OPCODE {
         ADD(0),
         SUB(1),
         MUL(2),
