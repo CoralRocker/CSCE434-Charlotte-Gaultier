@@ -60,10 +60,8 @@ public class RegisterAllocator {
                     liveRanges.get(remove).add(new LiveRange(openRanges.get(remove), tac.getIdObj()));
                     openRanges.remove(remove);
                 }
-
             }
         }
-
         return liveRanges;
     }
 
@@ -71,7 +69,6 @@ public class RegisterAllocator {
         RegisterInteferenceGraph newRIG = new RegisterInteferenceGraph();
         for( var blk : cfg.allNodes ) {
             for (TAC tac : blk.getInstructions()) {
-
                 newRIG.addVariables(tac.liveAfterPP);
             }
         }

@@ -8,17 +8,30 @@ public abstract class Assign extends TAC{
 
     protected Assign(TacID id, Assignable dest, Value left, Value right) {
         super(id);
-        this.dest = dest;
         if( dest == null ) {
             throw new NullPointerException();
         }
+        if(dest instanceof Variable){
+            ((Variable) dest).setInitialized(true);
+        }
+        this.dest = dest;
         this.left = left;
         if( left == null ) {
-            throw new NullPointerException();
+            if(left instanceof Variable && !((Variable)left).isInitialized()){
+                ((Variable) left).getSym().setNullValue();
+                this.left = left;
+            }else{
+                throw new NullPointerException();
+            }
         }
         this.right = right;
         if( right == null ) {
-            throw new NullPointerException();
+            if(right instanceof Variable && !((Variable)right).isInitialized()){
+                ((Variable) left).getSym().setNullValue();
+                this.right = right;
+            }else{
+                throw new NullPointerException();
+            }
         }
     }
 

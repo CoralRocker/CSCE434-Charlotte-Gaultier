@@ -13,6 +13,12 @@ public class Variable extends Assignable implements Visitable {
     protected int asnNum = -1;
     private boolean isConstant = false;
 
+    private boolean isInitialized = false;
+
+    public void setInitialized(boolean val){
+        this.isInitialized = val;
+    }
+
     public Variable(Symbol sym) {
         this.sym = sym;
     }
@@ -31,6 +37,10 @@ public class Variable extends Assignable implements Visitable {
     @Override
     public int hashCode() {
         return sym.name().hashCode();
+    }
+
+    public boolean isInitialized() {
+        return isInitialized;
     }
 
     @Override

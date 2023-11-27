@@ -19,6 +19,9 @@ public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>
         value = val;
     }
 
+    public void setNullValue(){
+        value = 0;
+    }
 
     @Override
     public ArrayType type() {

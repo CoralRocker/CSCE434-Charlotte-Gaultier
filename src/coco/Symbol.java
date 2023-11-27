@@ -20,6 +20,8 @@ public abstract class Symbol {
 
     public abstract boolean hasType();
 
+    public abstract void setNullValue();
+
     @Override
     public boolean equals(Object other) {
         if( !(other instanceof Symbol) )

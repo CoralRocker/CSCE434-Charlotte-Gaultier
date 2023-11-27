@@ -11,6 +11,9 @@ public class FunctionSymbol extends Symbol {
     protected Token declTok;
     protected Token.Kind returnType;
 
+    private Object value;
+
+
     protected Type realReturnType;
     private ArrayList<ArrayType> types;
 
@@ -62,12 +65,14 @@ public class FunctionSymbol extends Symbol {
         super(name.lexeme());
         this.types = new ArrayList<>();
         this.declTok = name;
+        this.value = types;
     }
     public FunctionSymbol(Token name, ArrayType retType) {
         super(name.lexeme());
         this.types = new ArrayList<>();
         this.declTok = name;
         this.returnType = retType.getType();
+        this.value = types;
     }
     public FunctionSymbol(String name, ArrayList<ArrayType> types) {
         super(name);
@@ -100,11 +105,13 @@ public class FunctionSymbol extends Symbol {
         return false;
     }
 
-
+    public void setNullValue(){
+        value = 0;
+    }
 
     @Override
     public Object value() {
-        return types;
+        return value;
     }
 
     @Override
