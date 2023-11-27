@@ -11,11 +11,13 @@ public class ArithmeticSimplification implements TACVisitor<TAC> {
         ArithmeticSimplification visitor = new ArithmeticSimplification();
 
         int ctr = -1;
-        for( var instr : blk.getInstructions() ) {
+        var iter = blk.getInstructions().listIterator();
+        while( iter.hasNext() ) {
             ctr++;
+            TAC instr = iter.next();
             TAC ntac = instr.accept(visitor);
             if( ntac != null ) {
-                blk.getInstructions().set(instr.getId(), ntac);
+                iter.set(ntac);
                 changed = true;
             }
         }

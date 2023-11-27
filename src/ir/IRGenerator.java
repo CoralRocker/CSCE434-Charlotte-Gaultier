@@ -269,7 +269,13 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             bra.setVal( storage );
         }
         else {
-            bra.setVal(val);
+            if( !(val instanceof Assignable) ) {
+                var temp = new Temporary(tempNum++);
+                curBlock.add( new Store(curCFG.instrNumberer.push(), temp, val ));
+                val = temp;
+                bra.setRel(("!="));
+            }
+            bra.setVal((Assignable) val);
         }
 
         bra.getIdObj().moveToEnd();
@@ -525,7 +531,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         postRep.setNum(blockNo++);
         Branch braEnd = new Branch(curCFG.instrNumberer.push(), op);
         bra = new Branch(curCFG.instrNumberer.push(), "");
-        braEnd.setVal(val);
+        braEnd.setVal((Assignable) val); // TODO: Make work for boolean var / literal
         braEnd.setDestination(repBlk);
         bra.setDestination(postRep);
         curBlock.add( braEnd );

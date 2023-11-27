@@ -23,6 +23,9 @@ public class BasicBlock extends Block implements Iterable<TAC> {
 
 
     public List<BasicBlock> getSuccessors() {
+        if( successors.size() > 2 ) {
+            throw new RuntimeException("Basic Block has more than 2 direct successors!");
+        }
         return successors;
     }
 

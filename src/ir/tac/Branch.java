@@ -9,11 +9,11 @@ public class Branch extends TAC {
 
     private String rel;
 
-    public Value getVal() {
+    public Assignable getVal() {
         return val;
     }
 
-    private Value val = null;
+    private Assignable val = null;
 
     public void setRel(String rel) {
         this.rel = rel;
@@ -50,7 +50,7 @@ public class Branch extends TAC {
         }
     }
 
-    public void setVal( Value val ) {
+    public void setVal( Assignable val ) {
         this.val = val;
     }
 
@@ -84,6 +84,37 @@ public class Branch extends TAC {
         if( val == null )
             return String.format("%s BB%d", jumpType, jumpTo.getNum());
         return String.format("%s %s BB%d", jumpType, val.toString(), jumpTo.getNum());
+    }
+
+    /**
+     * Given the output from a cmp, return the decision made
+     *
+     * @return true if branch is always taken, false if always not, null if it cannot be determined
+     */
+    public Boolean calculate( int v ) {
+        switch( rel ) {
+            case ">" -> {
+                return v > 0;
+            }
+            case ">=" -> {
+                return v >= 0;
+            }
+            case "==" -> {
+                return v == 0;
+            }
+            case "!=" -> {
+                return v != 0;
+            }
+            case "<" -> {
+                return v < 0;
+            }
+            case "<=" -> {
+                return v <= 0;
+            }
+            default -> {
+                throw new RuntimeException("Uknown branch type: " + rel);
+            }
+        }
     }
 
     @Override

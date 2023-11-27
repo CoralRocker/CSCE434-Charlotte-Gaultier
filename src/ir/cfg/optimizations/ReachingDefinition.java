@@ -90,10 +90,11 @@ public class ReachingDefinition extends CFGVisitor {
                     System.out.println();
             });
 
-            if( do_print )
+            if( do_print ) {
                 System.out.printf("Post Iteration %2d:\n", iters);
-            // System.out.println(cfg.asDotGraph());
-            // System.out.println("\n");
+                System.out.println(cfg.asDotGraph());
+                System.out.println("\n");
+            }
         }
 
         for (BasicBlock allNode : cfg.allNodes) {

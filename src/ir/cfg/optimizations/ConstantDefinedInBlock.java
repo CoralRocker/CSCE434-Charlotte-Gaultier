@@ -48,7 +48,7 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
         for (final TAC tac : blk.getInstructions()) {
             ctr++;
             SymbolVal sym = tac.accept(visitor);
-            if (sym != null) {
+            if (sym != null && !sym.isUndefined()) { // Sym is only undefined if returned as marker
                 if (visitor.defined.containsKey(sym)) {
                     // Merge into the set
                     visitor.defined.get(sym).assign(sym); // Merge in our slightly different version
@@ -63,9 +63,22 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
 
             // Must replace Assign with Store
-            if (do_fold && sym != null && sym.isConstant() && tac instanceof Assign) {
-                blk.getInstructions().set(ctr, new Store(tac.getIdObj(), ((Assign) tac).dest, sym.val));
-                changed = true;
+            if (do_fold && sym != null ){
+                if( sym.isConstant() && tac instanceof Assign){
+                    blk.getInstructions().set(ctr, new Store(tac.getIdObj(), ((Assign) tac).dest, sym.val));
+                    changed = true;
+                }
+                else if( tac instanceof Branch ) {
+                    SymbolVal cnst = visitor.get( sym );
+                    if( cnst.isConstant() ) {
+                        int v = cnst.val.getInt();
+                        var br = ((Branch) tac).calculate(v);
+                        BasicBlock dest, other;
+                        dest = ((Branch)tac).getJumpTo();
+
+
+                    }
+                }
             }
 
             if( do_copy_prop && sym != null && sym.isCopied() && tac instanceof Store ) {
@@ -211,7 +224,9 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Branch bra) {
-        return null;
+        if( bra.getVal() == null ) return null;
+
+        return new SymbolVal(((Assignable)bra.getVal()).name(), -1 ); // Return the symbol as undefined
     }
 
     @Override

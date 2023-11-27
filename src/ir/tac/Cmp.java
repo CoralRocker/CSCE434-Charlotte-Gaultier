@@ -21,7 +21,7 @@ public class Cmp extends Assign implements Visitable{
 
     @Override
     public String toString() {
-        return String.format("cmp%s %s %s %s", op, target, lhs, rhs);
+        return String.format("cmp %s %s %s", target, lhs, rhs);
     }
 
     public String getOp() {return op;}
@@ -33,42 +33,12 @@ public class Cmp extends Assign implements Visitable{
             return null;
         }
 
-        Literal rhs = (Literal) right, lhs = (Literal) left;
+        int rhs = ((Literal) right).getInt(), lhs = ((Literal) left).getInt();
 
+        if( lhs > rhs ) return Literal.get(1);
+        if( lhs < rhs ) return Literal.get(-1);
 
-        switch ( op ) {
-            case ">=" -> {
-                return Literal.get( lhs.getInt() >= rhs.getInt() );
-            }
-            case ">" -> {
-                return Literal.get( lhs.getInt() > rhs.getInt() );
-            }
-            case "<=" -> {
-                return Literal.get( lhs.getInt() <= rhs.getInt() );
-            }
-            case "<" -> {
-                return Literal.get( lhs.getInt() < rhs.getInt() );
-            }
-            case "=="-> {
-                if( lhs.typeString().equals("bool") ) {
-                    return Literal.get( lhs.getBool() == rhs.getBool() );
-                }
-                else {
-                    return Literal.get( lhs.getInt() == rhs.getInt() );
-                }
-            }
-            case "!="-> {
-                if( lhs.typeString().equals("bool") ) {
-                    return Literal.get( lhs.getBool() != rhs.getBool() );
-                }
-                else {
-                    return Literal.get( lhs.getInt() != rhs.getInt() );
-                }
-            }
-        }
-
-
-        return null;
+        return Literal.get(0);
     }
 
     @Override
