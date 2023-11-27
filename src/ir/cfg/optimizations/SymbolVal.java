@@ -3,7 +3,7 @@ package ir.cfg.optimizations;
 import ir.tac.Assignable;
 import ir.tac.Literal;
 
-public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
+public class SymbolVal implements Cloneable {
 
     public final String sym; // Symbol with type
     public int instr; // Where the literal is assigned. Start at -1 and never reset. -1 indicates undefined
@@ -125,11 +125,6 @@ public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
         return String.format("%s(%s:%s:%d)", sym, val, copy, instr);
     }
 
-    @Override
-    public int compareTo(SymbolVal symbolVal) {
-        return sym.compareTo(symbolVal.sym);
-    }
-
     public boolean isConstant() {
         return instr != -1 && val != null;
     }
@@ -164,5 +159,10 @@ public class SymbolVal implements Comparable<SymbolVal>, Cloneable {
             return false;
 
         return sym.equals(((SymbolVal) o).sym);
+    }
+
+    @Override
+    public int hashCode() {
+        return sym.hashCode();
     }
 }

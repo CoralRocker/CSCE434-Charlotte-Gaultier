@@ -134,12 +134,13 @@ public class CompilerTesterPA89 {
 
         String dotgraph_text = "";
         try {
-            Iterator<CFG> iterator = c.genSSA(ast).iterator();
-            while (iterator.hasNext()) {
-                CFG curCFG = iterator.next();
-                dotgraph_text += curCFG.asDotGraph();
-            }
-            System.out.println(dotgraph_text);
+            c.genSSA(ast).asDotGraph();
+//            Iterator<CFG> iterator = c.genSSA(ast).iterator();
+//            while (iterator.hasNext()) {
+//                CFG curCFG = iterator.next();
+//                dotgraph_text += curCFG.asDotGraph();
+//            }
+//            System.out.println(dotgraph_text);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error caught - see stderr for stack trace " + e.getMessage());
@@ -173,15 +174,15 @@ public class CompilerTesterPA89 {
 
         // //PA 8
         c.compile();
-        // c.regAlloc(numRegs);
+         c.regAlloc(numRegs);
 
         // //PA 9
-        // int[] program = c.genCode();
-        // if (c.hasError()) {
-        //     System.err.println("Error compiling file");
-        //     System.err.println(c.errorReport());
-        //     System.exit(-4);
-        // }
+         int[] program = c.genCode();
+         if (c.hasError()) {
+             System.err.println("Error compiling file");
+             System.err.println(c.errorReport());
+             System.exit(-4);
+         }
 
         // if (cmd.hasOption("asm")) {
 

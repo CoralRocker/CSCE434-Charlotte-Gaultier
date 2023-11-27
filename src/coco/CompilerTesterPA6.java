@@ -95,18 +95,19 @@ public class CompilerTesterPA6 {
             System.exit(-4);
         }
 
-        List<CFG> cfgs = c.genSSA(ast);
-        Iterator<CFG> iterator = cfgs.iterator();
-        while (iterator.hasNext()) {
-            CFG ssa = iterator.next();
-            ssa.calculateDOMSets();
-            System.out.println(ssa.asDotGraph());
-        }
+//        List<CFG> cfgs = c.genSSA(ast);
+//        Iterator<CFG> iterator = cfgs.iterator();
+//        while (iterator.hasNext()) {
+//            CFG ssa = iterator.next();
+//            ssa.calculateDOMSets();
+//            System.out.println(ssa.asDotGraph());
+//        }
+        c.genSSA(ast).asDotGraph();
 
         for( int i = 0; i < 2; i++ ) {
             System.out.printf("Running GCP + CF: %2d\n", i);
-            ReachingDefinition gcp = new ReachingDefinition(cfgs.get(0), true, true, false, true);
-            System.out.println(cfgs.get(0).asDotGraph());
+            ReachingDefinition gcp = new ReachingDefinition(c.genSSA(ast), true, true, false, true);
+            System.out.println(c.genSSA(ast).asDotGraph());
         }
     }
 }
