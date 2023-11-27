@@ -82,8 +82,8 @@ public class Compiler {
                         }
                     }
                 }
-                System.out.println("Post Optimization:");
-                System.out.println(cfg.asDotGraph());
+//                System.out.println("Post Optimization:");
+//                System.out.println(cfg.asDotGraph());
             }
         }
         return flowGraphs.get(flowGraphs.size()-1).asDotGraph();
