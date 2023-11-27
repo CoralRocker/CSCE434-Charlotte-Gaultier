@@ -17,6 +17,8 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
 
     private boolean isMain;
 
+    private int instrnum;
+
     public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain) {
         CodeGenerator visitor = new CodeGenerator();
 
@@ -24,6 +26,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         visitor.registers = allocator.allocateRegisters(cfg);
         visitor.labels = new HashMap<>();
         visitor.isMain = isMain;
+        visitor.instrnum = 0;
 
         List<DLXCode> instructions = new ArrayList<>();
 
@@ -45,6 +48,8 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
                     throw new RuntimeException("DLXCode generation returned null for instruction " + instr);
                 }
                 instructions.addAll(dlx);
+
+                visitor.instrnum = instructions.size();
             }
         }
 
@@ -278,6 +283,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
             }
         }
         else {
+            dest = labels.get(dest) - instrnum;
             if( bra.isConditional() ) {
                 return List.of(DLXCode.immediateOp(opcode, registers.get((Assignable) bra.getVal()), 0, dest));
             }

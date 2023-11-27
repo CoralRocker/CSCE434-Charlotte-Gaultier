@@ -433,17 +433,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
 
-        String op = null;
-        switch( rel.token().kind() ) {
-            case GREATER_EQUAL -> { op = "ge"; }
-            case GREATER_THAN -> { op = "gt"; }
-            case LESS_EQUAL -> { op = "le"; }
-            case LESS_THAN -> { op = "lt"; }
-            case EQUAL_TO -> { op = "eq"; }
-            case NOT_EQUAL -> { op = "ne"; }
-        }
 
-        Cmp cmp = new Cmp(curCFG.instrNumberer.push(), lval, rval, target, op );
+        Cmp cmp = new Cmp(curCFG.instrNumberer.push(), lval, rval, target, "" );
         curBlock.add(cmp);
 
         return target;
@@ -467,8 +458,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Value val = rep.getRelation().accept(this);
 
+        // Get the inverse of the relation (to restart loop)
+        String op = null;
+        switch( rep.getRelation().token().kind() ) {
+            case GREATER_EQUAL -> { op = "<"; }
+            case GREATER_THAN -> { op = "<="; }
+            case LESS_EQUAL -> { op = ">"; }
+            case LESS_THAN -> { op = ">="; }
+            case EQUAL_TO -> { op = "!="; }
+            case NOT_EQUAL -> { op = "=="; }
+        }
         postRep.setNum(blockNo++);
-        Branch braEnd = new Branch(curCFG.instrNumberer.push(), "!=");
+        Branch braEnd = new Branch(curCFG.instrNumberer.push(), op);
         bra = new Branch(curCFG.instrNumberer.push(), "");
         braEnd.setVal(val);
         braEnd.setDestination(repBlk);

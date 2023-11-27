@@ -693,7 +693,7 @@ public class DLX {
             // error or unknown
             case ERR:
             default:
-                System.err.println("Illegal instruction: (" + PC + ")!");
+                System.err.println("Illegal instruction: (" + PC + ")! " + op );
                 break;
         }
     }
