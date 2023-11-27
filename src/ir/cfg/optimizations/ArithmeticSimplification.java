@@ -3,7 +3,7 @@ package ir.cfg.optimizations;
 import ir.cfg.BasicBlock;
 import ir.tac.*;
 
-public class ArithmeticSimplification extends TACVisitor<TAC> {
+public class ArithmeticSimplification implements TACVisitor<TAC> {
 
     public static boolean MathSimplify(BasicBlock blk) {
         boolean changed = false;

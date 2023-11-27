@@ -14,4 +14,9 @@ public class Or extends Assign {
     public String genDot() {
         return String.format("OR %s %s %s", dest, left, right);
     }
+
+    @Override
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
+    }
 }

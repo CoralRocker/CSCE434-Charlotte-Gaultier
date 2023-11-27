@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-public class DefinedInBlock extends TACVisitor<List<Variable>> {
+public class DefinedInBlock implements TACVisitor<List<Variable>> {
 
     public List<Variable> defined = new ArrayList<>();
 

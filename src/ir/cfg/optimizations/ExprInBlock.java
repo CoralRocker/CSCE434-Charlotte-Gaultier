@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class ExprInBlock extends TACVisitor<Expression> {
+public class ExprInBlock implements TACVisitor<Expression> {
 
     private HashMap<Expression, Expression> avail;
     private boolean do_cse = false;

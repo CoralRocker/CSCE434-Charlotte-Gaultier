@@ -14,4 +14,9 @@ public class And extends Assign {
     public String genDot() {
         return String.format("AND %s %s %s", dest, left, right);
     }
+
+    @Override
+    public <E> E accept(TACVisitor<E> visitor) {
+        return visitor.visit(this);
+    }
 }

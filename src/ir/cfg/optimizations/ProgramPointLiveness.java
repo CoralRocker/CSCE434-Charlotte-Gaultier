@@ -127,7 +127,7 @@ class LiveData {
 
 }
 
-class TACLiveness extends TACVisitor<LiveData> {
+class TACLiveness implements TACVisitor<LiveData> {
 
     public static boolean BlockLiveness(BasicBlock blk) {
         TACLiveness analysis = new TACLiveness();
@@ -264,6 +264,11 @@ class TACLiveness extends TACVisitor<LiveData> {
     }
 
     @Override
+    public LiveData visit(Pow pow) {
+        return visit(((Assign) pow));
+    }
+
+    @Override
     public LiveData visit(Temporary temporary) {
         return null;
     }
@@ -284,7 +289,7 @@ class TACLiveness extends TACVisitor<LiveData> {
     }
 }
 
-class DeadCode extends TACVisitor<Boolean> {
+class DeadCode implements TACVisitor<Boolean> {
 
     private boolean do_print;
     private TAC curTac;
@@ -401,6 +406,11 @@ class DeadCode extends TACVisitor<Boolean> {
     @Override
     public Boolean visit(Phi phi) {
         return false;
+    }
+
+    @Override
+    public Boolean visit(Pow pow) {
+        return visit((Assign) pow);
     }
 
     @Override

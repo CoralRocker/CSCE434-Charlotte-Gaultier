@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 
 
-public class UsedInBlock extends TACVisitor<List<Assignable>> {
+public class UsedInBlock implements TACVisitor<List<Assignable>> {
 
     public List<Assignable> used = new ArrayList<>();
 
@@ -120,6 +120,12 @@ public class UsedInBlock extends TACVisitor<List<Assignable>> {
     @Override
     public List<Assignable> visit(Phi phi) {
         return emptyList();
+    }
+
+    @Override
+    public List<Assignable> visit(Pow pow) {
+        Stream<Assignable> ret = Stream.concat((pow.left.accept(this)).stream(), pow.right.accept(this).stream());
+        return ret.toList();
     }
 
     @Override

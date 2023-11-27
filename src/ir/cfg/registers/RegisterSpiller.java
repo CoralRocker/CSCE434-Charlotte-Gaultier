@@ -16,7 +16,7 @@ class TacPair {
     }
 }
 
-public class RegisterSpiller extends TACVisitor<TacPair> {
+public class RegisterSpiller implements TACVisitor<TacPair> {
 
     private Assignable toSpill;
     private Spill loc;

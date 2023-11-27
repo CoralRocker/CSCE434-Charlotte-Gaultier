@@ -12,7 +12,7 @@ import java.util.TreeSet;
 
 // Perform Constant Propagation Within A Basic Block
 // Also perform copy propagation
-public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
+public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
     protected HashMap<SymbolVal, SymbolVal> defined = new HashMap<>();
     protected HashMap<String, Literal> temporaries = new HashMap<>();
@@ -247,6 +247,11 @@ public class ConstantDefinedInBlock extends TACVisitor<SymbolVal> {
     @Override
     public SymbolVal visit(Phi phi) {
         return null;
+    }
+
+    @Override
+    public SymbolVal visit(Pow pow) {
+        return visit((Assign) pow);
     }
 
     @Override

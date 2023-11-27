@@ -9,7 +9,7 @@ import ir.tac.*;
 
 import java.util.*;
 
-public class CodeGenerator extends TACVisitor<List<DLXCode>> {
+public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     public static final int STACK_PTR = 29, FRAME_PTR = 28, SPILL_DEST = 27, SPILL_LHS = 26, SPILL_RHS = 25, GLOB_VAR = 30, PREV_PC = 31;
 
@@ -227,7 +227,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
 
     @Override
     public List<DLXCode> visit(Assign asn) {
-        return null;
+        throw new RuntimeException("Cannot generate ASM by polymorphic assign! : " + asn );
     }
 
     @Override
@@ -484,6 +484,60 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
             }
         }
         return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.OR, dest, registers.get(or.left), registers.get(or.right)));
+    }
+
+    @Override
+    public List<DLXCode> visit(Pow pow) {
+        List<DLXCode> code = new ArrayList<>();
+        int dest = registers.get(pow.dest);
+        if( dest == -1 ) {
+            dest = SPILL_DEST;
+        }
+        int lhs;
+        int rhs;
+
+        if( pow.hasImmediate() ) {
+            boolean lit_lhs = pow.left instanceof Literal;
+            boolean lit_rhs = pow.right instanceof Literal;
+
+            if( lit_rhs && lit_lhs ) {
+               lhs = SPILL_LHS;
+               rhs = SPILL_RHS;
+
+               int exp = ((Literal) pow.right).getInt();
+               code.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, lhs, 0, ((Literal) pow.left).getInt()));
+               code.add( DLXCode.immediateOp(DLXCode.OPCODE.POWI, dest, lhs, exp));
+
+            }
+            else if( lit_rhs ) {
+                lhs = registers.get((Assignable) pow.left);
+                rhs = SPILL_RHS;
+
+                int exp = ((Literal) pow.right).getInt();
+
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.POWI, dest, lhs, exp));
+
+            }
+            else {
+                lhs = SPILL_LHS;
+                rhs = registers.get((Assignable) pow.right);
+
+                int base = ((Literal) pow.left).getInt();
+
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, lhs, 0, base));
+                code.add( DLXCode.regOp(DLXCode.OPCODE.POW, dest, lhs, rhs));
+
+            }
+        }
+        else {
+            lhs = registers.get(pow.left);
+            if( lhs < 0 ) lhs = SPILL_LHS;
+            rhs = registers.get(pow.right);
+            if( rhs < 0 ) rhs = SPILL_RHS;
+
+            code.add( DLXCode.regOp(DLXCode.OPCODE.POW, dest, lhs, rhs));
+        }
+        return code;
     }
 }
 
