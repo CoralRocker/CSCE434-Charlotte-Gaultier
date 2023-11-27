@@ -2,7 +2,7 @@ package ir.tac;
 
 public class Return extends TAC{
     
-    private Value var;
+    public Value var;
 
     public Return(TacID id, Value var) {
         super(id);

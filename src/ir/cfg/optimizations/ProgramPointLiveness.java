@@ -185,7 +185,7 @@ class TACLiveness extends TACVisitor<LiveData> {
 
     @Override
     public LiveData visit(Return ret) {
-        return new LiveData(null, ret.dest, null);
+        return new LiveData(null, ret.var, null);
     }
 
     @Override

@@ -40,7 +40,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         // if is main, generate the necessary start of stack bullshit
         if( isMain ) {
 
-            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, -2 * cfg.getSymbols().size() ) );
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, 2 * cfg.getSymbols().size() ) );
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0) );
 
         }
@@ -130,13 +130,15 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
 
         List<DLXCode> callCode = new ArrayList<>();
 
+        int numSaved = 8;
+
         // Save Each Register
-        for( int i = 1; i <= 24; i++ ) {
+        for( int i = 1; i <= numSaved; i++ ) {
             callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, i, FRAME_PTR, -1 * (numSpills+i)) );
         }
         // Save the current SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * (numSpills + 25)) );
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * (numSpills + 26)) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * (numSpills + numSaved + 1)) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * (numSpills + numSaved + 2)) );
 
         for ( int arg = 0; arg < call.args.size(); arg++ ) {
             int srcReg = registers.get(call.args.get(arg));
@@ -146,7 +148,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         }
 
         // Set the new SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, numSpills+26) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, numSpills+numSaved+2) );
         callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 1)); // TODO: Stack spilled args
 
         callCode.add(DLXCode.unresolvedCall(DLXCode.OPCODE.JSR, ((FunctionSymbol)call.function).typeSignatures()));

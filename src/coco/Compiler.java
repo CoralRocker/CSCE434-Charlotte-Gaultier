@@ -209,7 +209,7 @@ public class Compiler {
             DLXCode asm = iter.next();
 
             if( asm.getFormat() == DLXCode.FORMAT.UNRESOLVED_CALL ) {
-                iter.set( DLXCode.jumpOp(DLXCode.OPCODE.JSR, funcMap.get(asm.getFuncSig())));
+                iter.set( DLXCode.jumpOp(DLXCode.OPCODE.JSR, 4*funcMap.get(asm.getFuncSig())));
             }
         }
 
