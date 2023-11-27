@@ -1,10 +1,7 @@
 package coco;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Stack;
+import java.util.*;
 
 import ast.*;
 import ir.IRGenerator;
@@ -192,9 +189,30 @@ public class Compiler {
     public int[] genCode(){
 
         // TODO Generate code for functions (add below main code)
-        List<DLXCode> assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters, true);
+        List<DLXCode> assembly = CodeGenerator.generate(flowGraphs.get(flowGraphs.size()-1), numDataRegisters, true);
 
         instructions = new ArrayList<>();
+        HashMap<String, Integer> funcMap = new HashMap<>();
+
+
+        for( int cfg = 0; cfg < (flowGraphs.size()-1); cfg++ ) {
+            CFG graph = flowGraphs.get(cfg);
+            funcMap.put(graph.cfgID, assembly.size());
+            List<DLXCode> func = CodeGenerator.generate(graph, numDataRegisters, false);
+
+            assembly.addAll(func);
+        }
+
+        // Todo Resolve Functions
+        var iter = assembly.listIterator();
+        while( iter.hasNext() ) {
+            DLXCode asm = iter.next();
+
+            if( asm.getFormat() == DLXCode.FORMAT.UNRESOLVED_CALL ) {
+                iter.set( DLXCode.jumpOp(DLXCode.OPCODE.JSR, funcMap.get(asm.getFuncSig())));
+            }
+        }
+
 
         System.out.printf("Instructions: \n");
         for( int i = 0; i < assembly.size(); i++ ) {

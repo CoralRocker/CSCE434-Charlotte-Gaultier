@@ -199,13 +199,15 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         // update curCFG to ths func
         // unsure if this is the right way to deal w block
         curBlock = new BasicBlock(blockNo++, fd.funcName());
-        curCFG = new CFG(curBlock);
+        curCFG = new CFG(curBlock, fd.getSymbol().typeSignatures());
         curCFG.instrNumberer.newBlock(curBlock.getNum());
         funcs.add(curCFG);
         // add curCFG to funcs list
 
         // visit function body
         fd.getBody().accept(this);
+
+        curCFG.genAllNodes();
 
         // reset curCFG to parent
         curCFG = parent;
@@ -493,6 +495,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(Return ret) {
 
+        Value v = ret.getReturn().accept(this);
+        curBlock.add( new ir.tac.Return(curCFG.instrNumberer.push(), v) );
+
         return null;
     }
 
@@ -500,7 +505,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     public Value visit(RootAST root) {
 
         BasicBlock tmpBlk = new BasicBlock(0, "Main");
-        CFG tmpCFG = new CFG(tmpBlk);
+        CFG tmpCFG = new CFG(tmpBlk, "main");
 
 
         curCFG = tmpCFG;
@@ -523,6 +528,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curCFG.instrNumberer.newBlock(tmpBlk.getNum());
 
         root.getSeq().accept(this);
+
+        curCFG.genAllNodes();
 
         return null;
     }

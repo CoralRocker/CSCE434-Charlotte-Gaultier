@@ -4,13 +4,14 @@ public class Return extends TAC{
     
     private Value var;
 
-    protected Return(TacID id) {
+    public Return(TacID id, Value var) {
         super(id);
+        this.var = var;
     }
 
     @Override
     public String genDot() {
-        return null;
+        return String.format("ret %s", var);
     }
 
     @Override

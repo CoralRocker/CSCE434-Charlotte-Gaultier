@@ -1,6 +1,7 @@
 package ir.cfg.CodeGen;
 
 import coco.DLX;
+import coco.FunctionSymbol;
 import ir.cfg.BasicBlock;
 import ir.cfg.*;
 import ir.cfg.registers.RegisterAllocator;
@@ -15,6 +16,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
     private Map<Assignable, Integer> registers;
     private Map<Integer, Integer> labels; // Associate label number to instruction number at start of label (relative to CFG numbering, not global)
 
+    private int numSpills;
     private boolean isMain;
 
     private int instrnum;
@@ -27,6 +29,11 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         visitor.labels = new HashMap<>();
         visitor.isMain = isMain;
         visitor.instrnum = 0;
+        visitor.numSpills = 0;
+
+        for( var entry : visitor.registers.entrySet() ) {
+            if( entry.getValue() == -1 ) visitor.numSpills++;
+        }
 
         List<DLXCode> instructions = new ArrayList<>();
 
@@ -36,6 +43,9 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, -2 * cfg.getSymbols().size() ) );
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0) );
 
+        }
+        else { // Generate Stack Frame Shit
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0 )); // Save return address
         }
 
         for( BasicBlock blk : cfg.allNodes ) {
@@ -82,7 +92,9 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
 
     @Override
     public List<DLXCode> visit(Return ret) {
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.RET, 0, 0, 0));
+        // if( isMain ) {
+            return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.RET, 0, 0, 0));
+        // }
     }
 
     @Override
@@ -95,6 +107,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
 
         // TODO: Generate Code To Save Registers and Whatnot
 
+        // Default Function Name
         switch( call.function.name() ) {
             case "printInt" -> {
                 return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.WRI, 0, registers.get(call.args.get(0)), 0));
@@ -114,7 +127,31 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
                 return List.of( DLXCode.regOp( DLXCode.OPCODE.RDB, registers.get(call.dest), 0, 0) );
             }
         }
-        return null;
+
+        List<DLXCode> callCode = new ArrayList<>();
+
+        // Save Each Register
+        for( int i = 1; i <= 24; i++ ) {
+            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, i, FRAME_PTR, -1 * (numSpills+i)) );
+        }
+        // Save the current SP and FP
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * (numSpills + 25)) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * (numSpills + 26)) );
+
+        for ( int arg = 0; arg < call.args.size(); arg++ ) {
+            int srcReg = registers.get(call.args.get(arg));
+            if( srcReg != (arg + 1) ) {
+                callCode.add( DLXCode.regOp(DLXCode.OPCODE.ADD, arg+1, 0, srcReg) );
+            }
+        }
+
+        // Set the new SP and FP
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, numSpills+26) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 1)); // TODO: Stack spilled args
+
+        callCode.add(DLXCode.unresolvedCall(DLXCode.OPCODE.JSR, ((FunctionSymbol)call.function).typeSignatures()));
+
+        return callCode;
     }
 
     @Override

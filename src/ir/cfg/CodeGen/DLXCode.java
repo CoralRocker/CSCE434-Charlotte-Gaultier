@@ -62,10 +62,11 @@ public class DLXCode {
         }
     }
 
-    enum FORMAT {
+    public enum FORMAT {
         F1,
         F2,
         F3,
+        UNRESOLVED_CALL,
 
         UNRESOLVED_BRANCH;
     }
@@ -77,6 +78,13 @@ public class DLXCode {
     protected int regB;
     protected int regC;
     protected int immediate;
+
+    public String getFuncSig() {
+        return funcSig;
+    }
+
+    protected String funcSig = null;
+
 
     public FORMAT getFormat() {
         return format;
@@ -124,7 +132,7 @@ public class DLXCode {
                 if( isImmediate.apply(opcode) || opcode.name().equals("JSR") ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for format 2!", opcode.name(), opcode.opcode));
 
             }
-            case F3 -> {
+            case F3, UNRESOLVED_CALL -> {
                 if( regC >= (Math.pow(2, 26))) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
                 if( !opcode.name().equals("JSR") ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for format 3!", opcode.name(), opcode.opcode));
             }
@@ -185,6 +193,17 @@ public class DLXCode {
         return dlx;
     }
 
+    public static DLXCode unresolvedCall(OPCODE opcode, String funcSig ) {
+        DLXCode dlx = new DLXCode();
+        dlx.opcode = opcode;
+        dlx.funcSig = funcSig;
+        dlx.format = FORMAT.UNRESOLVED_CALL;
+
+        dlx.verifyValues();
+
+        return dlx;
+    }
+
     public static DLXCode unresolvedBranch(OPCODE opcode, int regA, int C) {
         DLXCode dlx = new DLXCode();
         dlx.format = FORMAT.UNRESOLVED_BRANCH;
@@ -216,6 +235,10 @@ public class DLXCode {
             case F3 -> {
                 return String.format("%-4s R%d", opcode.name(), regC);
             }
+
+            case UNRESOLVED_CALL -> {
+                return String.format("%-4s -> %s", opcode.name(), funcSig);
+            }
         }
         throw new RuntimeException("Unknown DLX format?");
     }
@@ -233,6 +256,9 @@ public class DLXCode {
             }
             case F3 -> {
                 instruction = (opcode.opcode << 26) + (regC);
+            }
+            default -> {
+                throw new RuntimeException("Cannot generate code for format " + format.name());
             }
         }
 

@@ -12,6 +12,7 @@ public class CFG implements Visitable<Object> {
 
     public TacIDGenerator instrNumberer = new TacIDGenerator();
 
+    public final String cfgID;
     protected HashMap<VariableSymbol, VariableSymbol> symbols;
 
     public HashMap<VariableSymbol, VariableSymbol> getSymbols() { return symbols; }
@@ -21,14 +22,35 @@ public class CFG implements Visitable<Object> {
     public List<BasicBlock> allNodes = null;
     private DomTree tree = null;
 
+    public void genAllNodes() {
+        allNodes = new ArrayList<>();
+
+        Queue<BasicBlock> queue = new LinkedList<>();
+
+        queue.add(head);
+        while (!queue.isEmpty()) {
+            BasicBlock node = queue.remove();
+            node.resetVisited();
+
+            allNodes.add(node);
+
+            for (BasicBlock child : node.getSuccessors()) {
+                if (child.visited()) {
+                    queue.add(child);
+                }
+            }
+        }
+    }
+
     public String asDotGraph() {
         calculateDOMSets();
         CFGPrinter printer = new CFGPrinter(this);
         return printer.genDotGraph();
     }
 
-    public CFG(BasicBlock head) {
+    public CFG(BasicBlock head, String ID) {
         this.head = head;
+        this.cfgID = ID;
     }
 
     public BasicBlock getHead() {
