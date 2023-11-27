@@ -1,17 +1,16 @@
 main
 
-int a, b, c, d;
+int a, b;
 bool x;
 
 {
+  x = true;
 
-  a = call readInt();
-  b = call readInt();
+  if( x ) then
+    call printInt( 1 );
+  else
+    call printInt( 2 );
+  fi;
 
-  c = b * a + d; // ELIMINATE THIS
-  b = b * a;
-  d = b + a;
-
-  call printInt( b );
-  call printInt( d );
+  call printBool( x );
 }.
