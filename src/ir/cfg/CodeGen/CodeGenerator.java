@@ -32,7 +32,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         visitor.isMain = isMain;
         visitor.instrnum = 0;
         visitor.numSpills = 0;
-        visitor.numSavedRegisters = 8;
+        visitor.numSavedRegisters = 4;
 
         for( var entry : visitor.registers.entrySet() ) {
             if( entry.getValue() == -1 ) visitor.numSpills++;
@@ -43,7 +43,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         // if is main, generate the necessary start of stack bullshit
         if( isMain ) {
 
-            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, 2 * cfg.getSymbols().size() ) );
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, 4 * cfg.getSymbols().size() ) );
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0) );
 
         }
@@ -117,9 +117,9 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
 
             // Restore SP and FP
             // old SP is at [SP + 1] and old FP is at [SP]
-            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, STACK_PTR, FRAME_PTR, 2) );
+            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, STACK_PTR, FRAME_PTR, 8) );
 
-            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, FRAME_PTR, FRAME_PTR, 0) );
+            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, FRAME_PTR, FRAME_PTR, 4) );
 
             // Issue Return
             code.add( DLXCode.regOp(DLXCode.OPCODE.RET, 0, 0, 31));
@@ -164,12 +164,13 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
 
         // Save Each Register
         for( int i = 1; i <= numSavedRegisters; i++ ) {
-            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, i, FRAME_PTR, -1 * (numSpills+i)) );
+            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, i, FRAME_PTR, -1 * 4 * (numSpills+i)) );
         }
         // Save the current SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * (numSpills + numSavedRegisters + 1)) );
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * (numSpills + numSavedRegisters + 2)) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 1)) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 2)) );
 
+        // Set the arguments
         for ( int arg = 0; arg < call.args.size(); arg++ ) {
             int srcReg = registers.get(call.args.get(arg));
             if( srcReg != (arg + 1) ) {
@@ -178,16 +179,22 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         }
 
         // Set the new SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, numSpills+numSavedRegisters+2) );
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 1)); // TODO: Stack spilled args
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, 4 * (numSpills + numSavedRegisters + 2)) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 4)); // TODO: Stack spilled args
 
         callCode.add(DLXCode.unresolvedCall(DLXCode.OPCODE.JSR, ((FunctionSymbol)call.function).typeSignatures()));
+
+        // Restore Registers (but not R1)
+        for( int i = 2; i <= numSavedRegisters; i++ ) {
+            callCode.add( DLXCode.immediateOp( DLXCode.OPCODE.LDW, i, FRAME_PTR, -1 * 4  * ( numSpills + i ) ) );
+        }
 
         // Save Return to proper variable
         int dest = registers.get(call.dest);
         if( dest != 1 ) {
             callCode.add(DLXCode.regOp(DLXCode.OPCODE.ADD, dest, 1, 0));
         }
+
 
         return callCode;
     }
