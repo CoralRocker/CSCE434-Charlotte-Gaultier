@@ -11,6 +11,7 @@ import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
 import ir.cfg.registers.RegisterAllocator;
 import org.apache.commons.cli.CommandLine;
+import types.TypeChecker;
 
 public class Compiler {
 
@@ -1015,9 +1016,9 @@ public class Compiler {
         // System.err.println(visitor);
 
 //         TypeChecker usage
-//        TypeChecker visitor = new TypeChecker();
-//        visitor.visit(ast);
-//        System.err.println(visitor.errorReport());
+        TypeChecker visitor = new TypeChecker();
+        visitor.visit(ast);
+        System.err.println(visitor.errorReport());
 
         return ast;
     }
