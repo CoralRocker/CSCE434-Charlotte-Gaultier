@@ -9,7 +9,7 @@ import java.util.Stack;
 import ast.*;
 import ir.IRGenerator;
 import ir.cfg.CodeGen.CodeGenerator;
-import ir.cfg.CodeGen.DLX;
+import ir.cfg.CodeGen.DLXCode;
 import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
 import ir.cfg.registers.RegisterAllocator;
@@ -192,7 +192,7 @@ public class Compiler {
     public int[] genCode(){
 
         // TODO Generate code for functions (add below main code)
-        List<DLX> assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters, true);
+        List<DLXCode> assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters, true);
 
         instructions = new ArrayList<>();
 
