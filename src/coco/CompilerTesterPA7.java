@@ -132,12 +132,13 @@ public class CompilerTesterPA7 {
 
         String dotgraph_text = "";
         try {
-            Iterator<CFG> iterator = c.genSSA(ast).iterator();
-            while (iterator.hasNext()) {
-                CFG curCFG = iterator.next();
-                dotgraph_text += curCFG.asDotGraph();
-            }
-            System.out.println(dotgraph_text);
+            c.genSSA(ast).asDotGraph();
+//            Iterator<CFG> iterator = c.genSSA(ast).iterator();
+//            while (iterator.hasNext()) {
+//                CFG curCFG = iterator.next();
+//                dotgraph_text += curCFG.asDotGraph();
+//            }
+//            System.out.println(dotgraph_text);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error caught - see stderr for stack trace " + e.getMessage());

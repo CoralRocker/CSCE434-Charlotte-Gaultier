@@ -1,10 +1,8 @@
 package ir.tac;
 
-import java.util.List;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
-public class DLX {
+public class DLXCode {
 
     enum OPCODE {
         ADD(0),
@@ -128,8 +126,8 @@ public class DLX {
     }
 
 
-    public static DLX immediateOp(OPCODE opcode, int regA, int regB, int immediate) {
-        DLX dlx = new DLX();
+    public static DLXCode immediateOp(OPCODE opcode, int regA, int regB, int immediate) {
+        DLXCode dlx = new DLXCode();
 
         dlx.opcode = opcode;
         dlx.regA = regA;
@@ -143,8 +141,8 @@ public class DLX {
         return dlx;
     }
 
-    public static DLX regOp(OPCODE opcode, int regA, int regB, int regC) {
-        DLX dlx = new DLX();
+    public static DLXCode regOp(OPCODE opcode, int regA, int regB, int regC) {
+        DLXCode dlx = new DLXCode();
 
         dlx.opcode = opcode;
         dlx.regA = regA;
@@ -158,8 +156,8 @@ public class DLX {
         return dlx;
     }
 
-    public static DLX jumpOp(OPCODE opcode, int regC) {
-        DLX dlx = new DLX();
+    public static DLXCode jumpOp(OPCODE opcode, int regC) {
+        DLXCode dlx = new DLXCode();
 
         dlx.opcode = opcode;
         dlx.regC = regC;

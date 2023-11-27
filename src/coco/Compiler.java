@@ -12,7 +12,7 @@ import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
 import ir.cfg.registers.RegisterAllocator;
 import ir.tac.CodeGenerator;
-import ir.tac.DLX;
+import ir.tac.DLXCode;
 import org.apache.commons.cli.CommandLine;
 
 public class Compiler {
@@ -82,8 +82,8 @@ public class Compiler {
                     }
                 }
             }
-            System.out.println("Post Optimization:");
-            System.out.println(main.asDotGraph());
+//            System.out.println("Post Optimization:");
+//            System.out.println(main.asDotGraph());
         }
 
         return main.asDotGraph();
@@ -128,7 +128,7 @@ public class Compiler {
         ast = null;
     }
 
-    public void allocateRegisters(int n) {
+    public void regAlloc(int n) {
         CFG main = flowGraphs.get(flowGraphs.size()-1);
         RegisterAllocator allocator = new RegisterAllocator(n);
         allocator.allocateRegisters(main);
@@ -163,13 +163,13 @@ public class Compiler {
         return ast;
     }
 
-    public List<CFG> genSSA(AST root) {
+    public CFG genSSA(AST root) {
         IRGenerator gen = new IRGenerator();
 
         gen.visit((RootAST) root);
 
         flowGraphs = gen.getAllCFGs();
-        return flowGraphs;
+        return gen.getMainCFG();
     }
 
     // WARNING: Assumption is that AST, SSA, and Optimizations have been performed
@@ -186,10 +186,10 @@ public class Compiler {
         }
     }
 
-    public List<Integer> genCode(){
+    public int[] genCode(){
 
         // TODO Generate code for functions (add below main code)
-        List<DLX>  assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters, true);
+        List<DLXCode>  assembly = CodeGenerator.generate(flowGraphs.get(0), numDataRegisters, true);
 
         instructions = new ArrayList<>();
 
@@ -199,7 +199,13 @@ public class Compiler {
             instructions.add( assembly.get(i).generateInstruction() );
         }
 
-        return instructions;
+        // converting from List<Integer> to int[]. There has got to be a better way to do this...
+        int[] instrReturn = new int[instructions.size()];
+        for(int i = 0; i < instrReturn.length; i++) {
+            instrReturn[i] = instructions.get(i);
+        }
+
+        return instrReturn;
     }
 
     // SymbolTable Management =====================================================
