@@ -284,7 +284,7 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
         }
         else {
             dest = labels.get(dest) - instrnum;
-            if( bra.isConditional() ) {
+            if( !opcode.equals(DLXCode.OPCODE.BSR) ) {
                 return List.of(DLXCode.immediateOp(opcode, registers.get((Assignable) bra.getVal()), 0, dest));
             }
             else {

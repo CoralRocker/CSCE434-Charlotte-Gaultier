@@ -191,6 +191,7 @@ public class DLXCode {
         dlx.opcode = opcode;
         dlx.regA = regA;
         dlx.regB = 0;
+        dlx.regC = 0;
         dlx.immediate = C;
         dlx.verifyValues();
 
@@ -225,7 +226,7 @@ public class DLXCode {
 
         switch( format ) {
             case F1 -> {
-                instruction = (opcode.opcode << 26) + (regA << 21) + (regB << 16) + (immediate);
+                instruction = (opcode.opcode << 26) + (regA << 21) + (regB << 16) + (immediate & 0xFFFF);
             }
             case F2 -> {
                 instruction = (opcode.opcode << 26) + (regA << 21) + (regB << 16) + (regC);
