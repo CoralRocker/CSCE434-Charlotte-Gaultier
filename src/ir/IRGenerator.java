@@ -91,6 +91,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Designator dest = (Designator) asn.getTarget();
         Symbol destSym = dest.getSymbol();
+        if(destSym instanceof VariableSymbol){
+            ((VariableSymbol) destSym).isInitialized = true;
+        }
         Variable dst = new Variable(destSym, instr);
 
         AST astSource = asn.getRvalue();
@@ -137,23 +140,25 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(Designator des) {
-        if(des.getSymbol().value() == null){
-            // if variable is uninitialized
-            switch(des.type()){
-                case "int":
-                    Store tac = new Store(curCFG.instrNumberer.push(), new Variable(des.getSymbol()), new Literal(new IntegerLiteral(des.token(), 0)));
-                    curBlock.add(tac);
-                    break;
-                case "float":
-                    Store tac3 = new Store(curCFG.instrNumberer.push(), new Variable(des.getSymbol()), new Literal(new FloatLiteral(des.token(), 0)));
-                    curBlock.add(tac3);
-                    break;
-                case "bool":
-                    Store tac2 = new Store(curCFG.instrNumberer.push(), new Variable(des.getSymbol()), new Literal(new BoolLiteral(des.token(), false)));
-                    curBlock.add(tac2);
-                    break;
-            }
-        }
+        if(des.getSymbol() instanceof VariableSymbol){
+            if(!((VariableSymbol)(des.getSymbol())).isInitialized){
+                // if variable is uninitialized
+                switch(des.type()){
+                    case "int":
+                        Store tac = new Store(curCFG.instrNumberer.push(), new Variable(des.getSymbol()), new Literal(new IntegerLiteral(des.token(), 0)));
+                        curBlock.add(tac);
+                        break;
+                    case "float":
+                        Store tac3 = new Store(curCFG.instrNumberer.push(), new Variable(des.getSymbol()), new Literal(new FloatLiteral(des.token(), 0)));
+                        curBlock.add(tac3);
+                        break;
+                    case "bool":
+                        Store tac2 = new Store(curCFG.instrNumberer.push(), new Variable(des.getSymbol()), new Literal(new BoolLiteral(des.token(), false)));
+                        curBlock.add(tac2);
+                        break;
+                }
+                ((VariableSymbol)(des.getSymbol())).isInitialized = true;
+        }}
         return new Variable(des.getSymbol());
     }
 

@@ -5,6 +5,8 @@ public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>
     private final ArrayType type;
     private Object value;
 
+    public boolean isInitialized = false;
+
     public VariableSymbol(String name, ArrayType type) {
         super(name);
         this.type = type;
