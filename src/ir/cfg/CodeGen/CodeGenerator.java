@@ -73,6 +73,17 @@ public class CodeGenerator extends TACVisitor<List<DLXCode>> {
             case "println" -> {
                 return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.WRL, 0, 0, 0));
             }
+            case "printBool" -> {
+                return List.of( DLXCode.regOp(DLXCode.OPCODE.WRB, 0, registers.get(call.args.get(0)), 0) );
+            }
+
+            case "readInt" -> {
+                return List.of( DLXCode.regOp( DLXCode.OPCODE.RDI, registers.get(call.dest), 0, 0) );
+            }
+
+            case "readBool" -> {
+                return List.of( DLXCode.regOp( DLXCode.OPCODE.RDB, registers.get(call.dest), 0, 0) );
+            }
         }
         return null;
     }
