@@ -36,6 +36,19 @@ public class Branch extends TAC {
         this.jumpTo = block;
     }
 
+    public boolean isConditional() {
+        switch( rel ) {
+            case ">" :
+            case ">=":
+            case "==":
+            case "!=":
+            case "<" :
+            case "<=":
+                return true;
+            default  :
+                return false;
+        }
+    }
 
     public void setVal( Value val ) {
         this.val = val;
