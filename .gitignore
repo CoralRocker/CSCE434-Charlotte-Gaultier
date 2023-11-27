@@ -3,6 +3,11 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 /PA4/
+.idea/*
+production/*
+src/project.zip
+src/CSCE434-Charlotte-Gaultier.iml
+
 
 ### Eclipse ###
 .apt_generated
