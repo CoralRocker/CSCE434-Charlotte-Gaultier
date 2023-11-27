@@ -220,6 +220,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(IfStat is) {
 
+        if( is.getIfrel() instanceof Relation )
+            ((Relation) is.getIfrel()).isBranchRel = true;
+
         Value val = is.getIfrel().accept(this);
 
         BasicBlock nextBlock = new BasicBlock(-1, "Post-If");
@@ -438,6 +441,33 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Cmp cmp = new Cmp(curCFG.instrNumberer.push(), lval, rval, target, "" );
         curBlock.add(cmp);
+
+        if( !rel.isBranchRel ) {
+            switch( rel.token().kind() ) {
+                case EQUAL_TO -> {
+                    curBlock.add( new And(curCFG.instrNumberer.push(), target, target, Literal.get(1) ) );
+                    curBlock.add( new Xor(curCFG.instrNumberer.push(), target, target, Literal.get(1) ) );
+                }
+                case NOT_EQUAL -> {
+                    curBlock.add( new And(curCFG.instrNumberer.push(), target, target, Literal.get(1) ) );
+                }
+                case GREATER_EQUAL -> {
+                    curBlock.add( new Add(curCFG.instrNumberer.push(), target, target, Literal.get(2) ) );
+                    curBlock.add( new Lsh(curCFG.instrNumberer.push(), target, target, Literal.get(-1) ) );
+                }
+                case GREATER_THAN -> {
+                    curBlock.add( new Add(curCFG.instrNumberer.push(), target, target, Literal.get(1) ) );
+                    curBlock.add( new Lsh(curCFG.instrNumberer.push(), target, target, Literal.get(-1) ) );
+                }
+                case LESS_EQUAL -> {
+                    curBlock.add( new Sub(curCFG.instrNumberer.push(), target, target, Literal.get(1) ) );
+                    curBlock.add( new Lsh(curCFG.instrNumberer.push(), target, target, Literal.get(-31) ) );
+                }
+                case LESS_THAN -> {
+                    curBlock.add( new Lsh(curCFG.instrNumberer.push(), target, target, Literal.get(-31) ) );
+                }
+            }
+        }
 
         return target;
     }

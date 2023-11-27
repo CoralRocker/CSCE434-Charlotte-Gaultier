@@ -34,4 +34,8 @@ public interface TACVisitor<E> {
     E visit(Not not);
     default E visit(And and) { return visit((Assign) and); }
     default E visit(Or or) { return visit((Assign) or); }
+
+    default E visit(Xor xor) { return visit((Assign) xor); }
+    default E visit(Lsh lsh) { return visit((Assign) lsh); }
+    default E visit(Ash rsh) { return visit((Assign) rsh); }
 }

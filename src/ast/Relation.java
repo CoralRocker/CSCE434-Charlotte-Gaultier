@@ -9,6 +9,8 @@ public class Relation extends AST {
     private AST lvalue;
     private Token op;
 
+    public boolean isBranchRel = false;
+
     public Relation(Token tkn, AST lval, AST rval) {
         super(tkn);
         op = tkn;

@@ -487,6 +487,135 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     }
 
     @Override
+    public List<DLXCode> visit(Xor xor) {
+        int dest = registers.get(xor.dest);
+        boolean lit_lhs = xor.left instanceof Literal,
+                lit_rhs = xor.right instanceof Literal;
+        if( lit_rhs && lit_lhs ) {
+            return List.of(
+                    DLXCode.immediateOp(DLXCode.OPCODE.ADDI, SPILL_LHS, 0, ((Literal) xor.left).getInt()),
+                    DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, SPILL_LHS, ((Literal) xor.right).getInt())
+            );
+        }else if( lit_lhs ) {
+            return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, registers.get(xor.right), ((Literal) xor.left).getInt()));
+        }
+        else if( lit_rhs ) {
+            return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, registers.get(xor.left), ((Literal) xor.right).getInt()));
+        }
+        else {
+            return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.XOR, dest, registers.get(xor.left), registers.get(xor.right)));
+        }
+    }
+
+    @Override
+    public List<DLXCode> visit(Lsh lsh) {
+        List<DLXCode> code = new ArrayList<>();
+        int dest = registers.get(lsh.dest);
+        if( dest == -1 ) {
+            dest = SPILL_DEST;
+        }
+        int lhs;
+        int rhs;
+
+        if( lsh.hasImmediate() ) {
+            boolean lit_lhs = lsh.left instanceof Literal;
+            boolean lit_rhs = lsh.right instanceof Literal;
+
+            if( lit_rhs && lit_lhs ) {
+                lhs = SPILL_LHS;
+                rhs = SPILL_RHS;
+
+                int exp = ((Literal) lsh.right).getInt();
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, lhs, 0, ((Literal) lsh.left).getInt()));
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.LSHI, dest, lhs, exp));
+
+            }
+            else if( lit_rhs ) {
+                lhs = registers.get((Assignable) lsh.left);
+                rhs = SPILL_RHS;
+
+                int exp = ((Literal) lsh.right).getInt();
+
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.LSHI, dest, lhs, exp));
+
+            }
+            else {
+                lhs = SPILL_LHS;
+                rhs = registers.get((Assignable) lsh.right);
+
+                int base = ((Literal) lsh.left).getInt();
+
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, lhs, 0, base));
+                code.add( DLXCode.regOp(DLXCode.OPCODE.LSH, dest, lhs, rhs));
+
+            }
+        }
+        else {
+            lhs = registers.get(lsh.left);
+            if( lhs < 0 ) lhs = SPILL_LHS;
+            rhs = registers.get(lsh.right);
+            if( rhs < 0 ) rhs = SPILL_RHS;
+
+            code.add( DLXCode.regOp(DLXCode.OPCODE.LSH, dest, lhs, rhs));
+        }
+        return code;
+    }
+
+    @Override
+    public List<DLXCode> visit(Ash ash) {
+        List<DLXCode> code = new ArrayList<>();
+        int dest = registers.get(ash.dest);
+        if( dest == -1 ) {
+            dest = SPILL_DEST;
+        }
+        int lhs;
+        int rhs;
+
+        if( ash.hasImmediate() ) {
+            boolean lit_lhs = ash.left instanceof Literal;
+            boolean lit_rhs = ash.right instanceof Literal;
+
+            if( lit_rhs && lit_lhs ) {
+                lhs = SPILL_LHS;
+                rhs = SPILL_RHS;
+
+                int exp = ((Literal) ash.right).getInt();
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, lhs, 0, ((Literal) ash.left).getInt()));
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ASHI, dest, lhs, exp));
+
+            }
+            else if( lit_rhs ) {
+                lhs = registers.get((Assignable) ash.left);
+                rhs = SPILL_RHS;
+
+                int exp = ((Literal) ash.right).getInt();
+
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ASHI, dest, lhs, exp));
+
+            }
+            else {
+                lhs = SPILL_LHS;
+                rhs = registers.get((Assignable) ash.right);
+
+                int base = ((Literal) ash.left).getInt();
+
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, lhs, 0, base));
+                code.add( DLXCode.regOp(DLXCode.OPCODE.ASH, dest, lhs, rhs));
+
+            }
+        }
+        else {
+            lhs = registers.get(ash.left);
+            if( lhs < 0 ) lhs = SPILL_LHS;
+            rhs = registers.get(ash.right);
+            if( rhs < 0 ) rhs = SPILL_RHS;
+
+            code.add( DLXCode.regOp(DLXCode.OPCODE.ASH, dest, lhs, rhs));
+        }
+        return code;
+    }
+
+    @Override
     public List<DLXCode> visit(Pow pow) {
         List<DLXCode> code = new ArrayList<>();
         int dest = registers.get(pow.dest);
