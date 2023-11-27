@@ -14,6 +14,7 @@ public class Store extends TAC{
         if( source == null ) {
             throw new NullPointerException();
         }else if(source instanceof Variable && !((Variable)source).isInitialized()){
+            // add lines of init to TAC
             ((Variable) source).getSym().setNullValue();
             this.source = source;
         }

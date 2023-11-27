@@ -18,6 +18,8 @@ public class IntegerLiteral extends AST {
         literal = i;
     }
 
+
+
     @Override
     public String type() {
         return "IntegerLiteral";
