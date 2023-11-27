@@ -40,6 +40,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     }
 
     public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain) {
+        cfg.genAllNodes();
+
         CodeGenerator visitor = new CodeGenerator();
 
         RegisterAllocator allocator = new RegisterAllocator(nRegs);

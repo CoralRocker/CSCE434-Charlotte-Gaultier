@@ -3,6 +3,7 @@ package ir.tac;
 import ir.cfg.BasicBlock;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 class BiHashMap<K, V> {
     private HashMap<K, V> forward = new HashMap<>();
@@ -11,6 +12,13 @@ class BiHashMap<K, V> {
     public void put(K k, V v) {
         forward.put(k, v);
         inverse.put(v, k);
+
+    }
+
+    public V remove(K k) {
+        V v = forward.remove(k);
+        inverse.remove(v, k);
+        return v;
     }
 
     public K getInverse(V v) {
@@ -130,6 +138,15 @@ public class TacIDGenerator {
             blockMap.put(blkId, newID);
         }
         return newID;
+    }
+
+    public void removeBlock( BasicBlock blk ) {
+        int num = blk.getNum();
+        blockMap.remove(num);
+
+        ids.removeAll( blk.getInstructions().stream().map(TAC::getIdObj).toList() );
+
+        genNum();
     }
 
     // Require that the list in cont is in order

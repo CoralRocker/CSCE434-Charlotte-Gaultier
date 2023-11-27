@@ -31,7 +31,7 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
     protected boolean do_prop = false, do_fold = false, do_copy_prop = false;
 
-    public static boolean defInBlock(BasicBlock blk, boolean do_prop, boolean do_fold, boolean do_copy_prop, boolean do_print) {
+    public static boolean defInBlock(BasicBlock blk, boolean do_prop, boolean do_fold, boolean do_copy_prop, boolean do_branch_dce, boolean do_print) {
         ConstantDefinedInBlock visitor = new ConstantDefinedInBlock();
         visitor.do_prop = do_prop; // Whether to perform constant propagation
         visitor.do_fold = do_fold; // Whether to perform constant folding
@@ -45,7 +45,9 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
         boolean changed = false;
 
         int ctr = -1;
-        for (final TAC tac : blk.getInstructions()) {
+        var iter = blk.getInstructions().listIterator();
+        while( iter.hasNext() ) {
+            TAC tac = iter.next();
             ctr++;
             SymbolVal sym = tac.accept(visitor);
             if (sym != null && !sym.isUndefined()) { // Sym is only undefined if returned as marker
@@ -68,16 +70,53 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
                     blk.getInstructions().set(ctr, new Store(tac.getIdObj(), ((Assign) tac).dest, sym.val));
                     changed = true;
                 }
-                else if( tac instanceof Branch ) {
-                    SymbolVal cnst = visitor.get( sym );
-                    if( cnst.isConstant() ) {
-                        int v = cnst.val.getInt();
-                        var br = ((Branch) tac).calculate(v);
-                        BasicBlock dest, other;
-                        dest = ((Branch)tac).getJumpTo();
+            }
+            if( do_branch_dce && sym != null && tac instanceof Branch ) {
+                SymbolVal cnst = visitor.get( sym );
+                if( cnst.isConstant() ) {
+                    int v = cnst.val.getInt();
+                    var br = ((Branch) tac).calculate(v);
+                    List<BasicBlock> blks = blk.getSuccessors();
+                    BasicBlock dest, other;
+                    dest = ((Branch)tac).getJumpTo();
+                    if( blks.size() == 2 ) {
+                        other = (blks.get(0) == dest) ? blks.get(1) : blks.get(0);
+                    }
+                    else {
+                        other = null;
+                    }
 
+                    BasicBlock selected = (br) ? dest : other;
+
+                    System.out.printf("Processing CF for branch %s\n", tac);
+                    System.out.printf("Successors: %s %s\n", dest, other);
+                    System.out.printf("Select branch: %s\n\n", selected);
+
+                    if( br && other != null ) { // Other is Removed
+                        // Remove From Successors
+                        blks.remove(other);
+                        other.getPredecessors().remove(blk);
+
+                        ((Branch) tac).setVal(null);
+                        ((Branch) tac).setRel("");
+
+                        TAC nbranch = iter.next();
+                        iter.remove();
+                        nbranch.getIdObj().remove();
 
                     }
+                    else if( other != null ) { // Dest is removed
+                        blks.remove( dest );
+                        dest.getPredecessors().remove(blk);
+
+                        // Remove branch operation
+                        iter.remove();
+                        tac.getIdObj().remove();
+
+                        changed = true;
+                        continue;
+                    }
+
                 }
             }
 

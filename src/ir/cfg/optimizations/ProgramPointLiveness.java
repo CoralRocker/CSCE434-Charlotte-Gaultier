@@ -22,6 +22,8 @@ public class ProgramPointLiveness {
     }
 
     public void calculate(boolean do_print) {
+        cfg.genAllNodes();
+
         cfg.breadthFirst(blk -> {
             blk.live_in = new HashSet<>();  // Live in: Variable live at block entry
             blk.live_out = new HashSet<>(); // Live out: Variables live at block exit

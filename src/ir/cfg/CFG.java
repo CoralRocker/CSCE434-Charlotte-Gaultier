@@ -23,6 +23,11 @@ public class CFG implements Visitable<Object> {
     private DomTree tree = null;
 
     public void genAllNodes() {
+        if( allNodes != null ) {
+            for (BasicBlock blk : allNodes) {
+                if (blk != null) blk.markVisited();
+            }
+        }
         allNodes = new ArrayList<>();
 
         Queue<BasicBlock> queue = new LinkedList<>();
@@ -43,7 +48,8 @@ public class CFG implements Visitable<Object> {
     }
 
     public String asDotGraph() {
-        calculateDOMSets();
+        // calculateDOMSets();
+        genAllNodes();
         CFGPrinter printer = new CFGPrinter(this);
         return printer.genDotGraph();
     }
@@ -75,6 +81,9 @@ public class CFG implements Visitable<Object> {
         }
         else {
             allNodes.forEach(b -> {
+                if( b == null ) {
+                    throw new RuntimeException("A basic block is null?");
+                }
                 b.resetVisited();
             });
         }

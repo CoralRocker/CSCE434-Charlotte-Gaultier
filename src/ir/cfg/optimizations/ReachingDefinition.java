@@ -7,6 +7,7 @@ import ir.cfg.CFGVisitor;
 import ir.tac.*;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.TreeSet;
 
 public class ReachingDefinition extends CFGVisitor {
@@ -81,7 +82,7 @@ public class ReachingDefinition extends CFGVisitor {
                     }
                 }
 
-                changed.b |= ConstantDefinedInBlock.defInBlock(b, false, do_fold, false, do_print);
+                changed.b |= ConstantDefinedInBlock.defInBlock(b, false, do_fold, false, false, do_print);
                 if( do_fold ) {
                     changed.b |= ArithmeticSimplification.MathSimplify(b);
                 }
@@ -97,18 +98,33 @@ public class ReachingDefinition extends CFGVisitor {
             }
         }
 
-        for (BasicBlock allNode : cfg.allNodes) {
-            cfgchanged |= ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_print);
+        var iter = cfg.allNodes.listIterator();
+        while( iter.hasNext() ) {
+            BasicBlock allNode = iter.next();
+            cfgchanged |= ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_fold, do_print);
             if( cfgchanged ) {
                 System.err.println("CFG Changed");
             }
             if( do_fold ) {
-                cfgchanged |= ArithmeticSimplification.MathSimplify(allNode);
-                if( cfgchanged ) {
-                    System.err.println("CFG Changed");
+                if( allNode.getPredecessors().isEmpty() && allNode.getNum() != 1 ) {
+                    // Delete this block and renumber eveything
+                    System.out.printf("Block %s has no predecessors... removing\n", allNode);
+                    for( var succ : allNode.getSuccessors() ) {
+                        succ.getPredecessors().remove(allNode);
+                    }
+
+                    iter.set(null);
+                    cfgchanged = true;
+                }
+                else {
+                    cfgchanged |= ArithmeticSimplification.MathSimplify(allNode);
+                    if (cfgchanged) {
+                        System.err.println("CFG Changed");
+                    }
                 }
             }
         }
+        cfg.allNodes.removeIf(Objects::isNull);
     }
 
     @Override
