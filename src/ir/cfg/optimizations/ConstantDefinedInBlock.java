@@ -88,10 +88,6 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
                     BasicBlock selected = (br) ? dest : other;
 
-                    System.out.printf("Processing CF for branch %s\n", tac);
-                    System.out.printf("Successors: %s %s\n", dest, other);
-                    System.out.printf("Select branch: %s\n\n", selected);
-
                     if( br && other != null ) { // Other is Removed
                         // Remove From Successors
                         blks.remove(other);

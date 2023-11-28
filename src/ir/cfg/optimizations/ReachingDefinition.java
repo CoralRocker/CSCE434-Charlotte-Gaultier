@@ -102,13 +102,9 @@ public class ReachingDefinition extends CFGVisitor {
         while( iter.hasNext() ) {
             BasicBlock allNode = iter.next();
             cfgchanged |= ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_fold, do_print);
-            if( cfgchanged ) {
-                System.err.println("CFG Changed");
-            }
             if( do_fold ) {
                 if( allNode.getPredecessors().isEmpty() && allNode.getNum() != 1 ) {
                     // Delete this block and renumber eveything
-                    System.out.printf("Block %s has no predecessors... removing\n", allNode);
                     for( var succ : allNode.getSuccessors() ) {
                         succ.getPredecessors().remove(allNode);
                     }
@@ -118,9 +114,6 @@ public class ReachingDefinition extends CFGVisitor {
                 }
                 else {
                     cfgchanged |= ArithmeticSimplification.MathSimplify(allNode);
-                    if (cfgchanged) {
-                        System.err.println("CFG Changed");
-                    }
                 }
             }
         }

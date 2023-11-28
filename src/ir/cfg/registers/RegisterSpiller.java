@@ -37,11 +37,14 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
             while( i < instructions.size() ) {
                 TacPair ls = instructions.get(i).accept(this);
                 if( ls != null ) {
-                    if( ls.before != null ) {
+                    if( instructions.get(i) instanceof Store && ls.before != null && ls.after == null )  {
+                        instructions.set(i, ls.before);
+                    }
+                    else if( ls.before != null ) {
                         instructions.add(i++, ls.before);
                     }
 
-                    if( ls.after != null ) {
+                    else if( ls.after != null ) {
                         instructions.add(++i, ls.after);
                     }
                 }
@@ -56,7 +59,8 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
     public TacPair visit(Return ret) {
         if( ret.dest.equals(toSpill) ) {
             TacID newId = ret.getIdObj().pushPrevious();
-            var instr = new LoadStack(newId, ret.dest, loc);
+            var instr = new LoadStack(newId, ret.dest, new Spill(loc, Spill.Register.DEST));
+            ret.dest.spilled.reg = Spill.Register.DEST;
             return new TacPair(instr, null);
         }
         return null;
@@ -71,7 +75,7 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
     public TacPair visit(Call call) {
         if( call.dest.equals(toSpill) ) {
             TacID newId = call.getIdObj().pushNext();
-            var instr = new StoreStack(newId, call.dest, loc);
+            var instr = new StoreStack(newId, call.dest, new Spill(loc, Spill.Register.DEST));
             return new TacPair(null, instr);
         }
         return null;

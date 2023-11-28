@@ -342,7 +342,9 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     @Override
     public List<DLXCode> visit(LoadStack lstack) {
-        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.LDW, lstack.loc.reg.num, FRAME_PTR, -1 * lstack.loc.spillNo) );
+        int dest = registers.get( lstack.val );
+        if( dest == -1 ) throw new RuntimeException("Load stack into spill???");
+        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * lstack.loc.spillNo) );
     }
 
     @Override
@@ -424,17 +426,21 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     @Override
     public List<DLXCode> visit(Store store) {
+        int dest = registers.get(store.dest);
+        if( dest == -1 ) {
+            dest = SPILL_DEST;
+        }
         if( store.source instanceof Literal ) {
             // DEST = R0(always 0) + literal
-            return move( registers.get(store.dest), (Literal) store.source);
+            return move( dest, (Literal) store.source);
         }
 
-        return move( registers.get(store.dest), (Assignable) store.source);
+        return move( dest, (Assignable) store.source);
     }
 
     @Override
     public List<DLXCode> visit(StoreStack sstack) {
-        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -1 * sstack.loc.spillNo) );
+        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo) );
     }
 
     @Override

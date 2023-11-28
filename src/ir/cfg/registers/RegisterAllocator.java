@@ -122,7 +122,8 @@ public class RegisterAllocator {
             }
             else {
                 node.spill = true;
-                RegisterSpiller spiller = new RegisterSpiller(cfg, node.var, new Spill(spillNo++, Spill.Register.NONE));
+                node.var.spilled = new Spill(spillNo++, Spill.Register.NONE);
+                RegisterSpiller spiller = new RegisterSpiller(cfg, node.var, node.var.spilled);
                 spiller.generateLoadStores();
                 liveness.calculate(false);
                 rig = calculateRIG(cfg);
@@ -133,10 +134,10 @@ public class RegisterAllocator {
         }
 
 
-//        System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
-//        System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());
-//
-//        System.out.printf("Allocation Map: %s\n", allocation);
+        // System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
+        // System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());
+
+        // System.out.printf("Allocation Map: %s\n", allocation);
 
         return allocation;
     }

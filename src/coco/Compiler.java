@@ -46,7 +46,6 @@ public class Compiler {
                 switch (opt) {
                     case "cf" -> {
                         ReachingDefinition def = new ReachingDefinition(cfg, false, true, false, false);
-                        System.out.printf("No mo branches:\n%s\n", cfg.asDotGraph());
                     }
                     case "cp" -> {
                         ReachingDefinition def = new ReachingDefinition(cfg, true, false, false, false);

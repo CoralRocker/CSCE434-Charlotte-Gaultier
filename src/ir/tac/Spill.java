@@ -1,5 +1,7 @@
 package ir.tac;
 
+import ir.cfg.CodeGen.CodeGenerator;
+
 /**
  * Spill is used to denote a reserved location on the current stack. The spillNo, is the
  * index of the spill beneath the frame pointer. Must be positive and not 0.
@@ -9,9 +11,9 @@ public class Spill {
 
     public enum Register {
         NONE(0),
-        DEST(27),
-        LHS(26),
-        RHS(25);
+        DEST(CodeGenerator.SPILL_DEST),
+        LHS(CodeGenerator.SPILL_LHS),
+        RHS(CodeGenerator.SPILL_RHS);
 
         public final int num;
         private Register(int n) { num = n; }

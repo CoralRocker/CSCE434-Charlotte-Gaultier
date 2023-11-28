@@ -114,21 +114,20 @@ public class DLXCode {
                 || (oc.opcode <= 53 && oc.opcode >= 47)
                 || miscImm;
         };
+        if( regA >= 32 || regA < 0 ) throw new RuntimeException(String.format("Register A is out of range: %d\n", regA));
+        if( regB >= 32 || regB < 0 ) throw new RuntimeException(String.format("Register B is out of range: %d\n", regB));
 
         switch(format) {
             case F1 -> {
-                if( regA >= 32 ) throw new RuntimeException(String.format("Register A is out of range: %d\n", regA));
-                if( regB >= 32 ) throw new RuntimeException(String.format("Register B is out of range: %d\n", regB));
+                if( regC >= 32 || regC < 0 ) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
                 if( immediate >= 65536 ) throw new RuntimeException(String.format("Immediate is out of range: %d\n", immediate));
                 if( regC != 0 ) throw new RuntimeException(String.format("Register C should be 0: %d\n", regC));
 
                 if( !isImmediate.apply(opcode) ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for format 1!", opcode.name(), opcode.opcode));
             }
             case F2 -> {
-                if( regA >= 32 ) throw new RuntimeException(String.format("Register A is out of range: %d\n", regA));
-                if( regB >= 32 ) throw new RuntimeException(String.format("Register B is out of range: %d\n", regB));
+                if( regC >= 32 || regC < 0 ) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
                 if( immediate != 0 ) throw new RuntimeException(String.format("Immediate should be 0: %d\n", immediate));
-                if( regC >= 32 ) throw new RuntimeException(String.format("Register C is out of range: %d\n", regC));
                 if( isImmediate.apply(opcode) || opcode.name().equals("JSR") ) throw new RuntimeException(String.format("Opcode %s(%d) is not valid for format 2!", opcode.name(), opcode.opcode));
 
             }
@@ -138,8 +137,6 @@ public class DLXCode {
             }
 
             case UNRESOLVED_BRANCH -> {
-                if( regA >= 32 ) throw new RuntimeException(String.format("Register A is out of range: %d\n", regA));
-                if( regB >= 32 ) throw new RuntimeException(String.format("Register B is out of range: %d\n", regB));
                 if( immediate >= 65536 ) throw new RuntimeException(String.format("Immediate is out of range: %d\n", immediate));
                 if( regC != 0 ) throw new RuntimeException(String.format("Register C should be 0: %d\n", regC));
 

@@ -72,9 +72,9 @@ public class CompilerTesterPA89 {
                 System.err.println("reg num too large - setting to 24");
                 numRegs = 24;
             }
-            if (numRegs < 4) {
-                System.err.println("reg num too small - setting to 4");
-                numRegs = 4;
+            if (numRegs < 2) {
+                System.err.println("reg num too small - setting to 2");
+                numRegs = 2;
             }
         } catch (NumberFormatException e) {
             System.err.println("Error in option NumRegs -- reseting to 24 (default)");
