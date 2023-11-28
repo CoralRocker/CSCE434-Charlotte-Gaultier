@@ -1,5 +1,6 @@
 package ir.cfg.registers;
 
+import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.cfg.optimizations.ProgramPointLiveness;
 import ir.tac.*;
@@ -69,7 +70,14 @@ public class RegisterAllocator {
         RegisterInteferenceGraph newRIG = new RegisterInteferenceGraph();
         for( var blk : cfg.allNodes ) {
             for (TAC tac : blk.getInstructions()) {
-                newRIG.addVariables(tac.liveAfterPP);
+                List<Assignable> liveAtPoint = new ArrayList<>();
+                liveAtPoint.addAll( tac.liveAfterPP );
+
+                if( tac.dest != null && !tac.liveBeforePP.contains(tac.dest) ) {
+                    liveAtPoint.add( tac.dest );
+                }
+
+                newRIG.addVariables(liveAtPoint);
             }
         }
 
@@ -87,6 +95,13 @@ public class RegisterAllocator {
 
         ProgramPointLiveness liveness = new ProgramPointLiveness(cfg);
         liveness.calculate(false);
+
+        // System.out.printf("%-25s | %-20s | %-20s\n", "Instruction", "Live Before", "Live After");
+        // for(BasicBlock blk : cfg.allNodes ) {
+        //     for( TAC tac : blk.getInstructions() ) {
+        //         System.out.printf("%3d: %-20s | %-20s | %-20s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
+        //     }
+        // }
 
         rig = calculateRIG(cfg);
 

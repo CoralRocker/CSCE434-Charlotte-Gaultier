@@ -42,7 +42,7 @@ public class Compiler {
         for( CFG cfg : flowGraphs ) {
             // System.out.printf("Pre-optimization: \n%s\n", cfg.asDotGraph());
             for (String opt : optArguments) {
-                System.out.printf("Running opt: %s\n", opt);
+                // System.out.printf("Running opt: %s\n", opt);
                 switch (opt) {
                     case "cf" -> {
                         ReachingDefinition def = new ReachingDefinition(cfg, false, true, false, false);

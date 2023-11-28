@@ -181,18 +181,18 @@ public class CompilerTesterPA89 {
              System.exit(-4);
          }
 
-        // if (cmd.hasOption("asm")) {
+        if (cmd.hasOption("asm")) {
 
-        //     String asmFile = sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_asm.txt";
-        //     try (PrintStream out = new PrintStream(asmFile)) {
-        //         for (int i = 0; i < program.length; i++) {
-        //             out.print(i + ":\t" + DLX.instrString(program[i])); // \newline included in DLX.instrString()
-        //         }
-        //     } catch (IOException e) {
-        //         System.err.println("Error accessing the asm file: \"" + asmFile + "\"");
-        //         System.exit(-5);
-        //     }
-        // }
+            String asmFile = sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_asm.txt";
+            try (PrintStream out = new PrintStream(asmFile)) {
+                for (int i = 0; i < program.length; i++) {
+                    out.print(i + ":\t" + DLX.instrString(program[i])); // \newline included in DLX.instrString()
+                }
+            } catch (IOException e) {
+                System.err.println("Error accessing the asm file: \"" + asmFile + "\"");
+                System.exit(-5);
+            }
+        }
 
         DLX.load(program);
         try {
