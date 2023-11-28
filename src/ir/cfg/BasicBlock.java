@@ -2,9 +2,7 @@ package ir.cfg;
 
 import ir.tac.TAC;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class BasicBlock extends Block implements Iterable<TAC> {
 
@@ -23,14 +21,39 @@ public class BasicBlock extends Block implements Iterable<TAC> {
 
 
     public List<BasicBlock> getSuccessors() {
-        if( successors.size() > 2 ) {
-            throw new RuntimeException("Basic Block has more than 2 direct successors!");
-        }
-        return successors;
+        // if( successors.size() > 2 ) {
+        //     throw new RuntimeException("Basic Block has more than 2 direct successors!");
+        // }
+        return Collections.unmodifiableList(successors);
+    }
+
+    /**
+     * Connect the given block as a successor to this one
+     * @param blk
+     */
+    public void connectAfter( BasicBlock blk ) {
+        successors.add( blk );
+        // if( successors.size() > 2 ) {
+        //     throw new RuntimeException("A basic block cannot have more than two ancestors");
+        // }
+        blk.predecessors.add(this);
+    }
+
+    public boolean isSuccessor( BasicBlock blk ) {
+        return successors.contains(blk);
+    }
+
+    public boolean isPredecessor( BasicBlock blk ) {
+        return predecessors.contains(blk);
+    }
+
+    public void connectBefore( BasicBlock blk ) {
+        predecessors.add(blk);
+        blk.successors.add(this);
     }
 
     public List<BasicBlock> getPredecessors() {
-        return predecessors;
+        return Collections.unmodifiableList(predecessors);
     }
 
     // public BasicBlock(String name) {
@@ -54,20 +77,20 @@ public class BasicBlock extends Block implements Iterable<TAC> {
         instructions.add(tac);
     }
 
-    public void addPredecessor( BasicBlock block ) {
-        predecessors.add(block);
-    }
+    // public void addPredecessor( BasicBlock block ) {
+    //     predecessors.add(block);
+    // }
 
-    public void addSuccessor( BasicBlock block ) {
-        successors.add(block);
-    }
+    // public void addSuccessor( BasicBlock block ) {
+    //     successors.add(block);
+    // }
 
-    public BasicBlock createSuccessor(int id, String name) {
-        BasicBlock blck = new BasicBlock(id, name);
-        successors.add(blck);
-        blck.addPredecessor(this);
-        return blck;
-    }
+    // public BasicBlock createSuccessor(int id, String name) {
+    //     BasicBlock blck = new BasicBlock(id, name);
+    //     successors.add(blck);
+    //     blck.addPredecessor(this);
+    //     return blck;
+    // }
 
     @Override
     public Iterator<TAC> iterator() {

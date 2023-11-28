@@ -250,6 +250,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         BasicBlock nextBlock = new BasicBlock(-1, "Post-If");
         BasicBlock ifblock = new BasicBlock(-1, "If");
 
+
         Branch bra = new Branch(curCFG.instrNumberer.push(), is.getIfrel().token().lexeme());
         if( val instanceof Variable ) {
             Temporary storage = new Temporary(tempNum++);
@@ -287,14 +288,16 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         BasicBlock elseblock = null, entryBlock = curBlock;
         ifblock.setNum(blockNo++);
-        ifblock.addPredecessor(curBlock);
-        curBlock.addSuccessor(ifblock);
+        curBlock.connectAfter(ifblock);
+        // ifblock.addPredecessor(curBlock);
+        // curBlock.addSuccessor(ifblock);
 
 
         if( is.getElseseq() != null ) {
             elseblock = new BasicBlock(blockNo++, "Else");
-            elseblock.addPredecessor(curBlock);
-            curBlock.addSuccessor(elseblock);
+            curBlock.connectAfter(elseblock);
+            // elseblock.addPredecessor(curBlock);
+            // curBlock.addSuccessor(elseblock);
         }
         nextBlock.setNum(blockNo++);
 
@@ -316,16 +319,19 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             elsebra.setDestination(elseblock);
         }
 
+        ifblock.connectAfter(nextBlock);
+        // ifblock.addSuccessor(nextBlock);
+        // nextBlock.addPredecessor(ifblock);
 
-        ifblock.addSuccessor(nextBlock);
-        nextBlock.addPredecessor(ifblock);
         if( elseblock != null ) {
-            elseblock.addSuccessor(nextBlock);
-            nextBlock.addPredecessor(elseblock);
+            elseblock.connectAfter(nextBlock);
+            // elseblock.addSuccessor(nextBlock);
+            // nextBlock.addPredecessor(elseblock);
         }
         else {
-            entryBlock.addSuccessor(nextBlock);
-            nextBlock.addPredecessor(entryBlock);
+            entryBlock.connectAfter(nextBlock);
+            // entryBlock.addSuccessor(nextBlock);
+            // nextBlock.addPredecessor(entryBlock);
         }
 
         curBlock = nextBlock;
@@ -505,8 +511,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         BasicBlock repBlk = new BasicBlock(blockNo++, "Repeat");
         BasicBlock postRep = new BasicBlock(-1, "");
-        curBlock.addSuccessor(repBlk);
-        repBlk.addPredecessor(curBlock);
+        curBlock.connectAfter(repBlk);
+        // curBlock.addSuccessor(repBlk);
+        // repBlk.addPredecessor(curBlock);
         Branch bra = new Branch(curCFG.instrNumberer.push(), "");
         bra.setDestination(repBlk);
         curBlock.add(bra);
@@ -538,12 +545,15 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock.add( bra );
 
         // Add path back to start of loop
-        curBlock.addSuccessor(( repBlk ));
-        repBlk.addPredecessor( curBlock );
+        curBlock.connectAfter(repBlk);
+        // curBlock.addSuccessor(( repBlk ));
+        // repBlk.addPredecessor( curBlock );
 
         // Add exit path
-        postRep.addPredecessor( curBlock );
-        curBlock.addSuccessor( postRep );
+        curBlock.connectAfter(postRep);
+        // postRep.addPredecessor( curBlock );
+        // curBlock.addSuccessor( postRep );
+
         curBlock = postRep;
         curCFG.instrNumberer.newBlock(postRep);
 
@@ -653,14 +663,17 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         tempNum = 0;
 
         // Can Either go to loop or post loop
-        curBlock.addSuccessor(loopBlk);
-        curBlock.addSuccessor(postLoop);
+        curBlock.connectAfter(loopBlk);
+        // curBlock.addSuccessor(loopBlk);
+        // loopBlk.addPredecessor(curBlock);
+
+        curBlock.connectAfter(postLoop);
+        // curBlock.addSuccessor(postLoop);
+        // postLoop.addPredecessor(curBlock);
 
         // Loop inherits from this
-        loopBlk.addPredecessor(curBlock);
 
         // Post Loop Inherits from This and Loopblk
-        postLoop.addPredecessor(curBlock);
         // postLoop.addPredecessor(loopBlk);
 
         // Loop Block falls through to post loop
@@ -682,10 +695,14 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock.add(cmp);
         curBlock.add(braEnd);
         curBlock.add(failCond);
-        curBlock.addSuccessor(loopBlk);
-        curBlock.addSuccessor(postLoop);
-        loopBlk.addPredecessor(curBlock);
-        postLoop.addPredecessor(curBlock);
+
+        curBlock.connectAfter(loopBlk);
+        // curBlock.addSuccessor(loopBlk);
+        // loopBlk.addPredecessor(curBlock);
+
+        curBlock.connectAfter(postLoop);
+        // postLoop.addPredecessor(curBlock);
+        // curBlock.addSuccessor(postLoop);
 
 
 
