@@ -25,7 +25,7 @@ public class CFG implements Visitable<Object> {
     public void genAllNodes() {
         if( allNodes != null ) {
             for (BasicBlock blk : allNodes) {
-                if (blk != null) blk.markVisited();
+                if (blk != null) blk.resetVisited();
             }
         }
         allNodes = new ArrayList<>();
@@ -35,16 +35,29 @@ public class CFG implements Visitable<Object> {
         queue.add(head);
         while (!queue.isEmpty()) {
             BasicBlock node = queue.remove();
-            node.resetVisited();
 
             allNodes.add(node);
 
             for (BasicBlock child : node.getSuccessors()) {
-                if (child.visited()) {
+                if (!child.visited()) {
+                    child.markVisited();
                     queue.add(child);
                 }
             }
         }
+
+        allNodes.sort(new Comparator<BasicBlock>() {
+            @Override
+            public int compare(BasicBlock t1, BasicBlock t2) {
+                if( t1.getNum() > t2.getNum() )
+                    return 1;
+                else if( t1.getNum() < t2.getNum() )
+                    return -1;
+                else
+                    return 0;
+            }
+        });
+        for( var node : allNodes ) node.resetVisited();
     }
 
     public String asDotGraph() {

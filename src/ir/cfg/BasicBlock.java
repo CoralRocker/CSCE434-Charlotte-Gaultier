@@ -33,9 +33,9 @@ public class BasicBlock extends Block implements Iterable<TAC> {
      */
     public void connectAfter( BasicBlock blk ) {
         successors.add( blk );
-        // if( successors.size() > 2 ) {
-        //     throw new RuntimeException("A basic block cannot have more than two ancestors");
-        // }
+        if( successors.size() > 2 ) {
+            throw new RuntimeException("A basic block cannot have more than two ancestors");
+        }
         blk.predecessors.add(this);
     }
 

@@ -247,95 +247,156 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         Value val = is.getIfrel().accept(this);
 
-        BasicBlock nextBlock = new BasicBlock(-1, "Post-If");
-        BasicBlock ifblock = new BasicBlock(-1, "If");
+        BasicBlock nextBlock = new BasicBlock(-1, "Post-If"); // Block After If and Else
+        BasicBlock ifblock = new BasicBlock(-1, "If"); // Block with if case
+        BasicBlock endIf = null; // Last block of if case
+        BasicBlock elseblock = new BasicBlock(-1, "Else"); // Block with else case
+        BasicBlock endElse = null; // Last block of else case
+        BasicBlock cmpblock = curBlock; // Block with original CMP
 
-
+        boolean isVariable = false;
+        if( !(val instanceof Assignable) ) {
+            var temp = new Temporary(tempNum++);
+            cmpblock.add( new Store(curCFG.instrNumberer.push(), temp, val ));
+            val = temp;
+            isVariable = true;
+        }
         Branch bra = new Branch(curCFG.instrNumberer.push(), is.getIfrel().token().lexeme());
-        if( val instanceof Variable ) {
-            Temporary storage = new Temporary(tempNum++);
-            Cmp cmp = new Cmp(curCFG.instrNumberer.push(),
-                              val,
-                              new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))),
-                              storage,
-                              "eq" );
-            // If We're at the start of the block "rehead" it. Else just move back
-            if( curBlock.getInstructions().isEmpty() )
-                cmp.getIdObj().moveToBlockFront(curBlock.getNum());
-            else
-                cmp.getIdObj().moveRelative( -1 );
-
-            curBlock.add(cmp);
-            bra.setRel("==");
-            bra.setVal( storage );
+        bra.setVal((Assignable) val);
+        bra.setDestination(ifblock);
+        if( isVariable ) bra.setRel("!=");
+        cmpblock.add( bra );
+        if( is.getElseseq() != null ) {
+            bra = new Branch(curCFG.instrNumberer.push(), "");
+            bra.setDestination(elseblock);
+            cmpblock.add(bra);
+            cmpblock.connectAfter(elseblock);
         }
         else {
-            if( !(val instanceof Assignable) ) {
-                var temp = new Temporary(tempNum++);
-                curBlock.add( new Store(curCFG.instrNumberer.push(), temp, val ));
-                val = temp;
-                bra.setRel(("!="));
-            }
-            bra.setVal((Assignable) val);
-        }
-
-        bra.getIdObj().moveToEnd();
-        bra.setDestination(ifblock);
-        curBlock.add(bra);
-        Branch elsebra = new Branch(curCFG.instrNumberer.push(), "");
-        elsebra.setDestination(nextBlock);
-        curBlock.add(elsebra);
-
-        BasicBlock elseblock = null, entryBlock = curBlock;
-        ifblock.setNum(blockNo++);
-        curBlock.connectAfter(ifblock);
-        // ifblock.addPredecessor(curBlock);
-        // curBlock.addSuccessor(ifblock);
-
-
-        if( is.getElseseq() != null ) {
-            elseblock = new BasicBlock(blockNo++, "Else");
-            curBlock.connectAfter(elseblock);
-            // elseblock.addPredecessor(curBlock);
-            // curBlock.addSuccessor(elseblock);
-        }
-        nextBlock.setNum(blockNo++);
-
-
-        curBlock = ifblock;
-        curCFG.instrNumberer.newBlock(ifblock.getNum());
-        is.getIfseq().accept(this);
-        bra = new Branch(curCFG.instrNumberer.push(), "");
-        bra.setDestination(nextBlock);
-        curBlock.add( bra );
-
-        if( is.getElseseq() != null ) {
-            curBlock = elseblock;
-            curCFG.instrNumberer.newBlock(elseblock.getNum());
-            is.getElseseq().accept(this);
             bra = new Branch(curCFG.instrNumberer.push(), "");
             bra.setDestination(nextBlock);
-            curBlock.add( bra );
-            elsebra.setDestination(elseblock);
+            cmpblock.add(bra);
+            cmpblock.connectAfter(nextBlock);
         }
 
-        ifblock.connectAfter(nextBlock);
-        // ifblock.addSuccessor(nextBlock);
-        // nextBlock.addPredecessor(ifblock);
+        /*
+            IF CASE
+         */
 
-        if( elseblock != null ) {
-            elseblock.connectAfter(nextBlock);
-            // elseblock.addSuccessor(nextBlock);
-            // nextBlock.addPredecessor(elseblock);
-        }
-        else {
-            entryBlock.connectAfter(nextBlock);
-            // entryBlock.addSuccessor(nextBlock);
-            // nextBlock.addPredecessor(entryBlock);
+        cmpblock.connectAfter(ifblock);
+        ifblock.setNum(blockNo++);
+        curBlock = ifblock;
+        is.getIfseq().accept(this);
+        endIf = curBlock;
+
+        bra = new Branch(curCFG.instrNumberer.push(), "");
+        bra.setDestination(nextBlock);
+        endIf.add( bra );
+        endIf.connectAfter(nextBlock);
+
+        /*
+            ELSE CASE
+         */
+        if( is.getElseseq() != null ) {
+            elseblock.setNum(blockNo++);
+            curBlock = elseblock;
+            is.getElseseq().accept(this);
+            endElse = curBlock;
+
+            bra = new Branch(curCFG.instrNumberer.push(), "");
+            bra.setDestination(nextBlock);
+            endElse.add( bra );
+            endElse.connectAfter(nextBlock);
         }
 
         curBlock = nextBlock;
-        curCFG.instrNumberer.newBlock(nextBlock.getNum());
+        nextBlock.setNum(blockNo++);
+
+        // Branch bra = new Branch(curCFG.instrNumberer.push(), is.getIfrel().token().lexeme());
+        // if( val instanceof Variable ) {
+        //     Temporary storage = new Temporary(tempNum++);
+        //     Cmp cmp = new Cmp(curCFG.instrNumberer.push(),
+        //                       val,
+        //                       new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))),
+        //                       storage,
+        //                       "eq" );
+        //     // If We're at the start of the block "rehead" it. Else just move back
+        //     if( curBlock.getInstructions().isEmpty() )
+        //         cmp.getIdObj().moveToBlockFront(curBlock.getNum());
+        //     else
+        //         cmp.getIdObj().moveRelative( -1 );
+
+        //     curBlock.add(cmp);
+        //     bra.setRel("==");
+        //     bra.setVal( storage );
+        // }
+        // else {
+        //     if( !(val instanceof Assignable) ) {
+        //         var temp = new Temporary(tempNum++);
+        //         curBlock.add( new Store(curCFG.instrNumberer.push(), temp, val ));
+        //         val = temp;
+        //         bra.setRel(("!="));
+        //     }
+        //     bra.setVal((Assignable) val);
+        // }
+
+        // bra.getIdObj().moveToEnd();
+        // bra.setDestination(ifblock);
+        // curBlock.add(bra);
+        // Branch elsebra = new Branch(curCFG.instrNumberer.push(), "");
+        // elsebra.setDestination(nextBlock);
+        // curBlock.add(elsebra);
+
+        // BasicBlock elseblock = null, entryBlock = curBlock;
+        // ifblock.setNum(blockNo++);
+        // curBlock.connectAfter(ifblock);
+        // // ifblock.addPredecessor(curBlock);
+        // // curBlock.addSuccessor(ifblock);
+
+
+        // if( is.getElseseq() != null ) {
+        //     elseblock = new BasicBlock(blockNo++, "Else");
+        //     curBlock.connectAfter(elseblock);
+        //     // elseblock.addPredecessor(curBlock);
+        //     // curBlock.addSuccessor(elseblock);
+        // }
+        // nextBlock.setNum(blockNo++);
+
+
+        // curBlock = ifblock;
+        // curCFG.instrNumberer.newBlock(ifblock.getNum());
+        // is.getIfseq().accept(this);
+        // bra = new Branch(curCFG.instrNumberer.push(), "");
+        // bra.setDestination(nextBlock);
+        // curBlock.add( bra );
+
+        // if( is.getElseseq() != null ) {
+        //     curBlock = elseblock;
+        //     curCFG.instrNumberer.newBlock(elseblock.getNum());
+        //     is.getElseseq().accept(this);
+        //     bra = new Branch(curCFG.instrNumberer.push(), "");
+        //     bra.setDestination(nextBlock);
+        //     curBlock.add( bra );
+        //     elsebra.setDestination(elseblock);
+        // }
+
+        // ifblock.connectAfter(nextBlock);
+        // // ifblock.addSuccessor(nextBlock);
+        // // nextBlock.addPredecessor(ifblock);
+
+        // if( elseblock != null ) {
+        //     elseblock.connectAfter(nextBlock);
+        //     // elseblock.addSuccessor(nextBlock);
+        //     // nextBlock.addPredecessor(elseblock);
+        // }
+        // else {
+        //     entryBlock.connectAfter(nextBlock);
+        //     // entryBlock.addSuccessor(nextBlock);
+        //     // nextBlock.addPredecessor(entryBlock);
+        // }
+
+        // curBlock = nextBlock;
+        // curCFG.instrNumberer.newBlock(nextBlock.getNum());
 
         return null;
 
