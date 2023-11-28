@@ -34,11 +34,13 @@ public class AvailableExpression extends CFGVisitor {
 
     protected boolean isChanged = false;
 
+    private boolean do_print;
+
     public boolean isChanged() {
         return isChanged;
     }
 
-    public AvailableExpression(CFG cfg, boolean do_cse, boolean do_cpp ) {
+    public AvailableExpression(CFG cfg, boolean do_cse, boolean do_cpp, boolean do_print ) {
         this.cfg = cfg;
 
         var changed = new Object(){ boolean b = true; };
@@ -84,12 +86,12 @@ public class AvailableExpression extends CFGVisitor {
                 //         changed.b |= merge((Map<Expression, Expression>) blk.entry, (Map<Expression, Expression>) p.exit);
                 // }
 
-                changed.b |= ExprInBlock.ExprInBlock(blk, false, false);
+                changed.b |= ExprInBlock.ExprInBlock(blk, false, false, do_print);
             });
         }
 
         for( BasicBlock b : cfg.allNodes ) {
-            isChanged |= ExprInBlock.ExprInBlock(b, do_cse, do_cpp);
+            isChanged |= ExprInBlock.ExprInBlock(b, do_cse, do_cpp, do_print);
         }
 
     }

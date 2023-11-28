@@ -3,7 +3,6 @@ package ir;
 import ast.*;
 import ast.Return;
 import coco.Symbol;
-import coco.Token;
 import coco.VariableSymbol;
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
@@ -123,13 +122,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(DeclarationList list) {
+        if( list.getContained().get(0) instanceof VariableDeclaration ) {
+            if( curCFG.getSymbols() == null ) {
+                curCFG.setSymbols(new HashMap<>());
+            }
+        }
 
-        if( curCFG.getSymbols() != null && !(list.getContained().get(0) instanceof FuncDecl) ) {
-            throw new RuntimeException("Symbols list already made for CFG " + curCFG.toString());
-        }
-        else if( list.getContained().get(0) instanceof VariableDeclaration ) {
-            curCFG.setSymbols(new HashMap<>());
-        }
+        // if( curCFG.getSymbols() != null && !(list.getContained().get(0) instanceof FuncDecl) ) {
+        //     throw new RuntimeException("Symbols list already made for CFG " + curCFG.toString());
+        // }
+        // else if( list.getContained().get(0) instanceof VariableDeclaration ) {
+        //     curCFG.setSymbols(new HashMap<>());
+        // }
 
         for( AST decl : list.getContained() ) {
             decl.accept(this);
@@ -221,15 +225,36 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         // update curCFG to ths func
         // unsure if this is the right way to deal w block
         curBlock = new BasicBlock(blockNo++, fd.funcName());
-        curCFG = new CFG(curBlock, fd.getSymbol().typeSignatures());
+        curCFG = new CFG(curBlock, fd.getSymbol().typeSignatures(), fd);
         curCFG.instrNumberer.newBlock(curBlock.getNum());
         funcs.add(curCFG);
+
+        HashMap<VariableSymbol, VariableSymbol> syms;
+        if( curCFG.getSymbols() == null ) {
+            syms = new HashMap<>();
+            curCFG.setSymbols(syms);
+        }
+        else {
+            syms = curCFG.getSymbols();
+        }
+
+        for( var var : fd.getArgList() ) {
+            syms.put((VariableSymbol) var, (VariableSymbol) var);
+        }
+
         // add curCFG to funcs list
 
         // visit function body
         fd.getBody().accept(this);
 
         curCFG.genAllNodes();
+
+        // Add main symbols, respecting shadowing
+        for( VariableSymbol var : parent.getSymbols().values() ) {
+            if( !syms.containsKey(var) ) {
+                syms.put(var, var);
+            }
+        }
 
         // reset curCFG to parent
         curCFG = parent;
@@ -634,7 +659,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     public Value visit(RootAST root) {
 
         BasicBlock tmpBlk = new BasicBlock(0, "Main");
-        CFG tmpCFG = new CFG(tmpBlk, "main");
+        CFG tmpCFG = new CFG(tmpBlk, "main", null);
 
 
         curCFG = tmpCFG;

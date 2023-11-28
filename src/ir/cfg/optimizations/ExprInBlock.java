@@ -32,7 +32,7 @@ public class ExprInBlock implements TACVisitor<Expression> {
             avail.remove(expr);
     }
 
-    public static boolean ExprInBlock(BasicBlock blk, boolean do_cse, boolean do_cpp) {
+    public static boolean ExprInBlock(BasicBlock blk, boolean do_cse, boolean do_cpp, boolean do_print) {
         ExprInBlock visitor = new ExprInBlock();
         visitor.do_cse = do_cse;
         visitor.avail = (HashMap<Expression, Expression>) ((HashMap<Expression, Expression>) blk.entry).clone();

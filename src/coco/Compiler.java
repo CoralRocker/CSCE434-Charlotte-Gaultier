@@ -45,24 +45,24 @@ public class Compiler {
                 // System.out.printf("Running opt: %s\n", opt);
                 switch (opt) {
                     case "cf" -> {
-                        ReachingDefinition def = new ReachingDefinition(cfg, false, true, false, false);
+                        ReachingDefinition def = new ReachingDefinition(cfg, false, true, false, debug);
                     }
                     case "cp" -> {
-                        ReachingDefinition def = new ReachingDefinition(cfg, true, false, false, false);
+                        ReachingDefinition def = new ReachingDefinition(cfg, true, false, false, debug);
                     }
                     case "cse" -> {
-                        AvailableExpression expr = new AvailableExpression(cfg, true, false);
+                        AvailableExpression expr = new AvailableExpression(cfg, true, false, debug);
                     }
 
                     case "cpp" -> {
                         // ReachingDefinition def = new ReachingDefinition(cfg, false, false, true, true);
-                        AvailableExpression expr = new AvailableExpression(cfg, false, true);
+                        AvailableExpression expr = new AvailableExpression(cfg, false, true, debug);
                     }
                     case "dce" -> {
                         // Liveness live = new Liveness(cfg, true, true);
                         ProgramPointLiveness lvanal = new ProgramPointLiveness(cfg);
-                        lvanal.calculate(false);
-                        lvanal.doDCE(false);
+                        lvanal.calculate(debug);
+                        lvanal.doDCE(debug);
                     }
                     case "max" -> {
                         boolean changed = true;
@@ -72,13 +72,13 @@ public class Compiler {
                             changed = false;
 
                             ProgramPointLiveness lvanal = new ProgramPointLiveness(cfg);
-                            lvanal.calculate(false);
-                            changed |= lvanal.doDCE(false);
+                            lvanal.calculate(debug);
+                            changed |= lvanal.doDCE(debug);
 
-                            ReachingDefinition def = new ReachingDefinition(cfg, true, true, false, false);
+                            ReachingDefinition def = new ReachingDefinition(cfg, true, true, false, debug);
                             changed |= def.cfgchanged;
 
-                            AvailableExpression avail = new AvailableExpression(cfg, true, true);
+                            AvailableExpression avail = new AvailableExpression(cfg, true, true, debug);
                             changed |= avail.isChanged();
 
                             // Liveness lvanal = new Liveness(cfg, false, true);
@@ -125,7 +125,13 @@ public class Compiler {
 
     // Need to map from IDENT to memory offset
 
-    public Compiler (Scanner scanner, int numRegs) {
+    private boolean debug;
+
+    public Compiler(Scanner s, int n) {
+        this(s, n, false);
+    }
+
+    public Compiler (Scanner scanner, int numRegs, boolean debug) {
         this.scanner = scanner;
         currentToken = this.scanner.next();
         numDataRegisters = numRegs;
@@ -150,9 +156,9 @@ public class Compiler {
             initSymbolTable();
             computation();
         }
-        catch( QuitParseException e ) {
-            return ast;
-        }
+        // catch( QuitParseException e ) {
+        //     return ast;
+        // }
         catch( Exception e ) {
             System.out.println("CAUGHT ERROR: " + e);
         }

@@ -67,6 +67,12 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
         else { // Generate Stack Frame Shit
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0 )); // Save return address
+            int arg = 1;
+            for( var param : cfg.function.getArgList() ) {
+                int dest = visitor.registers.get(new Variable(param));
+                System.out.printf("R%d <=> %s (R%d)\n", arg++, param, dest );
+                instructions.addAll( visitor.move(dest, arg) );
+            }
         }
 
         for( BasicBlock blk : cfg.allNodes ) {
@@ -122,9 +128,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             // Save Return Value
             if( ret.var instanceof Assignable ) {
                 int dest = registers.get( (Assignable) ret.var );
-                if( dest != 1 ) {
-                    code.addAll( move(1, dest) );
-                }
+                code.addAll( move(1, dest) );
             }
             else if( ret.var instanceof Literal ){
                 code.addAll( move( 1, (Literal) ret.var));

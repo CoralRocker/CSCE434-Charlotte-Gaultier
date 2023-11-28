@@ -90,8 +90,9 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
                     if( br && other != null ) { // Other is Removed
                         // Remove From Successors
-                        blks.remove(other);
-                        other.getPredecessors().remove(blk);
+                        blk.disconnectAfter(other);
+                        // blks.remove(other);
+                        // other.getPredecessors().remove(blk);
 
                         ((Branch) tac).setVal(null);
                         ((Branch) tac).setRel("");
@@ -102,8 +103,9 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
                     }
                     else if( other != null ) { // Dest is removed
-                        blks.remove( dest );
-                        dest.getPredecessors().remove(blk);
+                        blk.disconnectAfter(dest);
+                        // blks.remove( dest );
+                        // dest.getPredecessors().remove(blk);
 
                         // Remove branch operation
                         iter.remove();

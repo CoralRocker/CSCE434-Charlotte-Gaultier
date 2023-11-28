@@ -1,6 +1,7 @@
 package ir.cfg;
 
 
+import ast.FuncDecl;
 import coco.VariableSymbol;
 import ir.tac.TacIDGenerator;
 
@@ -14,6 +15,8 @@ public class CFG implements Visitable<Object> {
 
     public final String cfgID;
     protected HashMap<VariableSymbol, VariableSymbol> symbols;
+
+    public final FuncDecl function;
 
     public HashMap<VariableSymbol, VariableSymbol> getSymbols() { return symbols; }
     public void setSymbols(HashMap<VariableSymbol, VariableSymbol> syms) { symbols = syms; }
@@ -67,9 +70,10 @@ public class CFG implements Visitable<Object> {
         return printer.genDotGraph();
     }
 
-    public CFG(BasicBlock head, String ID) {
+    public CFG(BasicBlock head, String ID, FuncDecl function) {
         this.head = head;
         this.cfgID = ID;
+        this.function = function;
     }
 
     public BasicBlock getHead() {

@@ -31,6 +31,7 @@ public class CompilerTesterPA89 {
 
         options.addOption("o", "opt", true, "Order-sensitive optimization -allowed to have multiple");
         options.addOption("max", "maxOpt", false, "Run all available optimizations till convergence");
+        options.addOption("debug", "debug", false, "Turn on debug printing from the compiler");
 
         HelpFormatter formatter = new HelpFormatter();
         CommandLineParser cmdParser = new DefaultParser();
@@ -81,8 +82,7 @@ public class CompilerTesterPA89 {
             numRegs = 24;
         }
 
-
-        Compiler c = new Compiler(s, numRegs);
+        Compiler c = new Compiler(s, numRegs, cmd.hasOption("debug"));
         ast.AST ast = c.genAST();
 
         String ast_text = ast.printPreOrder();
