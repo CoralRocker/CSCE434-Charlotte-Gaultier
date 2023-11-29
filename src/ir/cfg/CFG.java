@@ -1,7 +1,11 @@
 package ir.cfg;
 
 
+
 import ast.FuncDecl;
+
+import coco.FunctionSymbol;
+
 import coco.VariableSymbol;
 import ir.tac.TacIDGenerator;
 
@@ -14,6 +18,8 @@ public class CFG implements Visitable<Object> {
     public TacIDGenerator instrNumberer = new TacIDGenerator();
 
     public final String cfgID;
+
+    public FunctionSymbol func = null;
     protected HashMap<VariableSymbol, VariableSymbol> symbols;
 
     public final FuncDecl function;

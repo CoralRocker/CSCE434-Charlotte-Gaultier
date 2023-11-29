@@ -1,5 +1,6 @@
 package ast;
 
+import coco.FunctionSymbol;
 import coco.Token;
 import types.Type;
 
@@ -8,14 +9,18 @@ import java.util.ArrayList;
 public class FuncBody extends AST {
 
     private ArrayList<Token> unresolvedSymbols;
+
+    protected FunctionSymbol func;
+
     private StatSeq seq;
     private Token returnToken;
     private DeclarationList varList;
-    public FuncBody(Token tkn, DeclarationList vars, StatSeq seq) {
+    public FuncBody(Token tkn, DeclarationList vars, StatSeq seq, FunctionSymbol func) {
         super(tkn);
         assert( vars != null );
         this.seq = seq;
         this.varList = vars;
+        this.func = func;
         unresolvedSymbols = new ArrayList<>();
     }
     public void setReturnToken(Token tk){
@@ -29,6 +34,9 @@ public class FuncBody extends AST {
         getUnresolvedSymbols().add(sym);
     }
 
+    public FunctionSymbol getFunc(){
+        return func;
+    }
     @Override
     public String type() {
         return null;

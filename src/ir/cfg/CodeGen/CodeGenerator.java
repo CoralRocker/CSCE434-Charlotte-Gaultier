@@ -212,10 +212,13 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
 
         // Save Return to proper variable
-        int dest = registers.get(call.dest);
-        if( dest != 1 ) {
-            callCode.addAll( move(dest, 1) );
+        if(registers.containsKey(call.dest)){
+            int dest = registers.get(call.dest);
+            if( dest != 1 ) {
+                callCode.addAll( move(dest, 1) );
+            }
         }
+
 
         return callCode;
     }

@@ -39,6 +39,9 @@ public class Compiler {
     }
 
     public String optimization(List<String> optArguments, CommandLine cmd) {
+        if(optArguments.contains("dce") || optArguments.contains("max")){
+            gen.removeOrphans();
+        }
         for( CFG cfg : flowGraphs ) {
             // System.out.printf("Pre-optimization: \n%s\n", cfg.asDotGraph());
             for (String opt : optArguments) {
@@ -123,6 +126,8 @@ public class Compiler {
 
     private List<CFG> flowGraphs;
 
+    private IRGenerator gen;
+
     // Need to map from IDENT to memory offset
 
     private boolean debug;
@@ -175,7 +180,7 @@ public class Compiler {
     }
 
     public CFG genSSA(AST root) {
-        IRGenerator gen = new IRGenerator();
+        gen = new IRGenerator();
 
         gen.visit((RootAST) root);
 
@@ -915,7 +920,7 @@ public class Compiler {
             tryDeclareVariableStr(sym.name(), sym);
         }
 
-        FuncBody body = funcBody();
+        FuncBody body = funcBody(funcSym);
         FuncDecl decl = new FuncDecl(funcName, funcType, body, funcSym);
         decl.setArgs(argSymbols);
 
@@ -961,7 +966,7 @@ public class Compiler {
         return params;
     }
 
-    private FuncBody funcBody( ) {
+    private FuncBody funcBody( FunctionSymbol sym ) {
         Token brace = expectRetrieve( Token.Kind.OPEN_BRACE );
         DeclarationList vars = null;
 
@@ -980,7 +985,7 @@ public class Compiler {
         expect( Token.Kind.CLOSE_BRACE );
         expect( Token.Kind.SEMICOLON );
 
-        return new FuncBody(brace, vars, seq);
+        return new FuncBody(brace, vars, seq, sym);
     }
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."

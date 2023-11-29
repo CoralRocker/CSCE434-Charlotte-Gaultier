@@ -4,9 +4,13 @@ import ast.*;
 import ast.Return;
 import coco.Symbol;
 import coco.VariableSymbol;
+import coco.*;
+
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.tac.*;
+import ir.tac.Variable;
+import types.VoidType;
 
 import java.util.*;
 
@@ -214,6 +218,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         tac = new Call(curCFG.instrNumberer.push(), fc.getFunc(), retval, fc.getArgs().argTAC);
         curBlock.add(tac);
 
+        curCFG.func.calls.add((FunctionSymbol)fc.getFunc());
+
         //  Call Returns in temporary
         return retval;
     }
@@ -225,7 +231,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         // update curCFG to ths func
         // unsure if this is the right way to deal w block
         curBlock = new BasicBlock(blockNo++, fd.funcName());
+
         curCFG = new CFG(curBlock, fd.getSymbol().typeSignatures(), fd);
+        curCFG.func = fd.getSymbol();
+
         curCFG.instrNumberer.newBlock(curBlock.getNum());
         funcs.add(curCFG);
 
@@ -661,7 +670,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         BasicBlock tmpBlk = new BasicBlock(0, "Main");
         CFG tmpCFG = new CFG(tmpBlk, "main", null);
 
-
+        tmpCFG.func = new FunctionSymbol("main", new ArrayType(Token.Kind.VOID));
+        tmpCFG.func.setCalled(true);
         curCFG = tmpCFG;
         mainFunc = tmpCFG;
 
@@ -814,5 +824,25 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     public List<CFG> getAllCFGs() {
         return funcs;
+    }
+
+    public void removeOrphans() {
+        //
+
+        markCalls(mainFunc.func);
+        for (int i = 0; i < funcs.size(); i++){
+            if(!funcs.get(i).func.getIsCalled()){
+                funcs.remove(i);
+            }
+        }
+    }
+
+    public void markCalls(FunctionSymbol sym){
+        for(FunctionSymbol call : sym.calls){
+            if(!call.getIsCalled()){
+                call.setCalled(true);
+                markCalls(call);
+            }
+        }
     }
 }

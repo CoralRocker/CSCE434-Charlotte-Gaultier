@@ -3,6 +3,26 @@ main
 int a, b;
 bool x;
 
+function foo (int x) : int
+{
+    int y;
+    y = 5;
+    while (x < 0) do
+        x += y;
+    od;
+    return x;
+};
+
+function bar (bool y) : bool
+{
+    if (y) then
+        return not y;
+    else
+        y = y and true or (y == y);
+    fi
+    return true;
+};
+
 {
   x = true;
 

@@ -27,6 +27,17 @@ public class FunctionSymbol extends Symbol {
         return lists;
     }
 
+    public List<FunctionSymbol> calls = new ArrayList<FunctionSymbol>();
+
+    private boolean isCalled = false;
+
+    public void setCalled(boolean val){
+        isCalled = val;
+    }
+
+    public boolean getIsCalled(){
+        return isCalled;
+    }
     public Token getDeclarationToken() { return declTok; }
     public Type getReturnType() { switch(returnType){
         case INT:
