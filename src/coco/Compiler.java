@@ -64,6 +64,7 @@ public class Compiler {
                     case "dce" -> {
                         // Liveness live = new Liveness(cfg, true, true);
                         ProgramPointLiveness lvanal = new ProgramPointLiveness(cfg);
+                        lvanal.earlyReturn(debug);
                         lvanal.calculate(debug);
                         lvanal.doDCE(debug);
                     }
@@ -142,6 +143,7 @@ public class Compiler {
         numDataRegisters = numRegs;
         instructions = new ArrayList<>();
         ast = null;
+        this.debug = debug;
     }
 
     public void regAlloc(int n) {
@@ -229,10 +231,11 @@ public class Compiler {
             }
         }
 
-
-        System.out.printf("Instructions: \n");
+        if( debug )
+            System.out.printf("Instructions: \n");
         for( int i = 0; i < assembly.size(); i++ ) {
-            System.out.printf("%3d : %-32s => 0x%08x\n", i, assembly.get(i).generateAssembly(), assembly.get(i).generateInstruction());
+            if( debug )
+                System.out.printf("%3d : %-32s => 0x%08x\n", i, assembly.get(i).generateAssembly(), assembly.get(i).generateInstruction());
             instructions.add( assembly.get(i).generateInstruction() );
         }
 

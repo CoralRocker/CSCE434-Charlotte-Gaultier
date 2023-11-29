@@ -7,6 +7,7 @@ import ir.tac.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ProgramPointLiveness {
 
@@ -19,6 +20,66 @@ public class ProgramPointLiveness {
 
     public boolean doDCE(boolean do_print) {
         return DeadCode.doDCE(cfg, do_print);
+    }
+
+    public boolean earlyReturn(boolean do_print) {
+
+        boolean changed = false;
+
+        //
+        // Disconnection Pass
+        //
+        for( var blk : cfg.allNodes ) {
+            int early_return = -1;
+            int ctr = -1;
+            for( TAC instr : blk.getInstructions() ) {
+                ctr++;
+
+                if( instr instanceof Return && (ctr+1) != blk.getInstructions().size() ) {
+                    if( do_print ) {
+                        System.out.printf("Found early return in %s : %s\n", blk, instr);
+                    }
+                    early_return = ctr;
+                    break;
+                }
+            }
+
+            if( early_return > -1 ) {
+                changed = true;
+                // Remove Everything From earl_return to end of instructions.
+                List<TAC> toRemove = blk.getInstructions().subList(early_return+1, blk.getInstructions().size());
+                cfg.instrNumberer.removeAll( toRemove.stream().map(TAC::getIdObj).toList() );
+                blk.getInstructions().removeAll(toRemove);
+
+                // Remove successors and remove self from predecessors
+                for( var succ : blk.getSuccessors() ) {
+                    if( do_print )
+                        System.out.printf("Disconnecting %s from %s\n", succ, blk);
+                }
+                blk.disconnectSuccessors();
+            }
+        }
+
+        boolean cfgchanged = true;
+        while( cfgchanged ) {
+            cfgchanged = false;
+
+            var iter = cfg.allNodes.listIterator();
+            while( iter.hasNext() ) {
+                var blk = iter.next();
+
+                if( (blk.getPredecessors().isEmpty() || (blk.getPredecessors().size() == 1 && blk.getPredecessors().get(0) == blk) )
+                        && blk.getNum() != 1 ) {
+                    System.out.printf("Block %s has no predecessors. Deleting.\n", blk);
+                    blk.disconnectSuccessors();
+                    cfg.instrNumberer.removeBlock(blk);
+                    iter.remove();
+                    cfgchanged = true;
+                }
+            }
+        }
+
+        return true;
     }
 
     public void calculate(boolean do_print) {
@@ -50,7 +111,33 @@ public class ProgramPointLiveness {
                 }
 
                 changed.b = TACLiveness.BlockLiveness(blk);
-            });
+            }, false);
+
+            // Handle blocks unreachable via RBFS
+            var iter = cfg.allNodes.listIterator(cfg.allNodes.size()-1);
+            while( iter.hasPrevious() ) {
+                var blk = iter.previous();
+                if( blk.visited() ) continue; // Only visit unseen blocks
+
+                // Perform Liveness Analysis on block
+                HashSet<Assignable> old_live = blk.live_out;
+                blk.live_out = new HashSet<>(old_live.size());
+                for (var pred : blk.getSuccessors()) {
+                    blk.live_out.addAll(pred.live_in);
+                }
+                if( old_live.size() != blk.live_out.size() )
+                    changed.b = true;
+                else {
+                    old_live.removeAll(blk.live_out);
+                    if( !old_live.isEmpty() ) {
+                        changed.b = true;
+                    }
+                }
+
+                changed.b = TACLiveness.BlockLiveness(blk);
+
+            }
+
 
             if( do_print ) {
                 System.out.printf("Liveness Analysis Iteration %d:\n", iterations);

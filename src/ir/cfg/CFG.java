@@ -133,7 +133,11 @@ public class CFG implements Visitable<Object> {
         markUnvisited();
     }
 
-    public void reverseBreadthFirst( Consumer<BasicBlock> function ) {
+    public void reverseBreadthFirst( Consumer<BasicBlock> fn ) {
+        reverseBreadthFirst(fn, true);
+    }
+
+    public void reverseBreadthFirst( Consumer<BasicBlock> function, boolean mark_unvisited ) {
         Queue<BasicBlock> queue = new LinkedList<>();
 
         queue.add( allNodes.get(allNodes.size()-1) );
@@ -151,7 +155,8 @@ public class CFG implements Visitable<Object> {
             }
         }
 
-        markUnvisited();
+        if( mark_unvisited )
+            markUnvisited();
     }
 
     public void depthFirst( Consumer<BasicBlock> function ) {
