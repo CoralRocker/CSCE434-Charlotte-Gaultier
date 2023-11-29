@@ -83,8 +83,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(ArrayIndex idx) {
-
-        return null;
+        throw new RuntimeException("Array Indexing is not supported");
+//        return null;
     }
 
     @Override
