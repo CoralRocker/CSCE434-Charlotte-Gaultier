@@ -753,6 +753,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(Return ret) {
 
+        if( ret.getReturn() == null ) {
+            curBlock.add( new ir.tac.Return(curCFG.instrNumberer.push(), null));
+            return null;
+        }
         Value v = ret.getReturn().accept(this);
         curBlock.add( new ir.tac.Return(curCFG.instrNumberer.push(), v) );
 

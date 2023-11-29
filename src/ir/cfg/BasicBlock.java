@@ -44,6 +44,16 @@ public class BasicBlock extends Block implements Iterable<TAC> {
         blk.predecessors.remove(this);
     }
 
+    public void disconnectSuccessors() {
+        var iter = successors.listIterator();
+        while( iter.hasNext() ) {
+            var succ = iter.next();
+
+            succ.predecessors.remove(this);
+            iter.remove();
+        }
+    }
+
     public boolean isSuccessor( BasicBlock blk ) {
         return successors.contains(blk);
     }
