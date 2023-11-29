@@ -92,7 +92,7 @@ public class ReachingDefinition extends CFGVisitor {
             });
 
             if( do_print ) {
-                System.out.printf("Post Iteration %2d:\n", iters);
+                System.out.printf("Post Iteration %2d: %s\n", iters, (changed.b) ? "CHANGED" : "NO CHANGE");
                 System.out.println(cfg.asDotGraph());
                 System.out.println("\n");
             }
@@ -103,11 +103,14 @@ public class ReachingDefinition extends CFGVisitor {
             BasicBlock allNode = iter.next();
             cfgchanged |= ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_fold, do_print);
             if( do_fold ) {
-                if( allNode.getPredecessors().isEmpty() && allNode.getNum() != 1 ) {
+                if( (allNode.getPredecessors().isEmpty() || (allNode.getPredecessors().size() == 1 && allNode.isPredecessor(allNode)) ) && allNode.getNum() != 1  ) {
+
                     // Delete this block and renumber eveything
-                    for( var succ : allNode.getSuccessors() ) {
-                        succ.getPredecessors().remove(allNode);
-                    }
+                    allNode.disconnectSuccessors();
+
+                    // for( var succ : allNode.getSuccessors() ) {
+                    //     succ.getPredecessors().remove(allNode);
+                    // }
 
                     iter.set(null);
                     cfgchanged = true;

@@ -33,7 +33,7 @@ public class SymbolVal implements Cloneable {
             instr = other.instr;
             val = other.val;
             copy = other.copy;
-            return true;
+            return val != null || copy != null;
         } else if (other.instr == -1) {
             return false;
         }
@@ -51,10 +51,12 @@ public class SymbolVal implements Cloneable {
             }
         }
         else if ( this.isCopied() ^ other.isCopied() ) {
+            boolean changed = val == null && copy == null;
+
             copy = null;
             val = null;
             instr = -1;
-            return true;
+            return !changed; // If we're already undefined, no change occurred.
         }
 
         // Not Const + Anything = Not Const
