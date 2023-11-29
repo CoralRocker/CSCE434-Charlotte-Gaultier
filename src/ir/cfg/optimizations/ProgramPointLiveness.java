@@ -70,7 +70,8 @@ public class ProgramPointLiveness {
 
                 if( (blk.getPredecessors().isEmpty() || (blk.getPredecessors().size() == 1 && blk.getPredecessors().get(0) == blk) )
                         && blk.getNum() != 1 ) {
-                    System.out.printf("Block %s has no predecessors. Deleting.\n", blk);
+                    if( do_print )
+                        System.out.printf("Block %s has no predecessors. Deleting.\n", blk);
                     blk.disconnectSuccessors();
                     cfg.instrNumberer.removeBlock(blk);
                     iter.remove();
