@@ -9,9 +9,11 @@ import coco.*;
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.tac.*;
+import ir.tac.ArrayIndex;
 import ir.tac.Variable;
 import types.VoidType;
 
+import java.sql.Array;
 import java.util.*;
 
 //Traverse the AST - generate a CFG for each function
@@ -82,9 +84,13 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     }
 
     @Override
-    public Value visit(ArrayIndex idx) {
-        throw new RuntimeException("Array Indexing is not supported");
-//        return null;
+    public Value visit(ast.ArrayIndex idx) {
+        Value index = idx.getIndex().accept(this);
+
+
+        return new ArrayIndex(new VariableSymbol(idx.getArray().token().lexeme(), idx.getArray().type()), index);
+//        throw new RuntimeException("Array Indexing is not supported");
+        return null;
     }
 
     @Override
