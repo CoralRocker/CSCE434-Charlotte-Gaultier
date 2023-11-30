@@ -1,0 +1,15 @@
+main
+
+int a, b, c, d;
+
+{
+
+  a = 3; //unused
+  b = 4;
+  c = 1; //overwritten
+
+  c = b + 2;
+
+  call printInt(c);
+
+}.

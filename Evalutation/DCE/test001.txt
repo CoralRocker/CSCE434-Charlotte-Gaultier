@@ -1,0 +1,31 @@
+//orphan function elim
+
+main
+int g,h;
+
+function foo() : void {
+    g = 3;
+    h = 4;
+    call printInt(g);
+    call printInt(h);
+};
+
+function foo2() : void {
+    g = 5;
+    h = 6;
+    call printInt(g);
+    call printInt(h);
+};
+
+function bar(int x, int y) : void {
+    g = 1;
+    h = 2;
+    call foo2();
+    call printInt(g); 
+    call printInt(h);   
+};
+
+{
+    call foo();
+}
+.
