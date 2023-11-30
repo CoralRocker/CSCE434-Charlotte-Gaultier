@@ -99,7 +99,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Load tac2 = new Load(curCFG.instrNumberer.push(), ret, array, index);
         curBlock.add(tac2);
 
-        // TODO: calculate offset with datatype sizes etc, pass it to Load
+        // TODO: figure out how to get the mem address of array
+        // TODO: calculate offset with datatype sizes etc, put it in a variable in a register. pass variable to load
 
         return ret;
     }
