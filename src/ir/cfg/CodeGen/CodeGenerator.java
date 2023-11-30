@@ -634,10 +634,15 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     }
 
     @Override
+<<<<<<< HEAD
     public List<DLXCode> visit(Store store) {int dest = registers.get(store.dest);
         if( dest == -1 ) {
             dest = SPILL_DEST;
         }
+=======
+    public List<DLXCode> visit(Store store) {
+        int dest = getDest(store.dest);
+>>>>>>> f498c26 (arrays partially done)
 
         if( store.source instanceof Literal ) {
             // DEST = R0(always 0) + literal
@@ -657,6 +662,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         if( dest == -1 ) {
             dest = SPILL_DEST;
         }
+<<<<<<< HEAD
         if( load.offset instanceof Literal ) {
             // DEST = R0(always 0) + literal
             return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt() ));
@@ -665,6 +671,11 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             // BUG: offset is always 1. why
             return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset ));
         }
+=======
+//        return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, load.offset ));
+        // TODO have the offset put in a register called from here as such
+        return null;
+>>>>>>> f498c26 (arrays partially done)
     }
 
     @Override

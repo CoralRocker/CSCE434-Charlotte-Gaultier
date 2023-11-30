@@ -570,6 +570,7 @@ public class Compiler {
         }
 
         for( int i = 0; i < indexes.size(); i++ ) {
+<<<<<<< HEAD
             Type ind = indexes.get(i).typeClass();
             if(ind == null){
                 // this is busted sorry
@@ -578,6 +579,9 @@ public class Compiler {
                 ind = indexes.get(i).typeClass();
             }
             symbol = new ArrayIndex(indexes.get(i).token(), startBrackets.firstElement(), symbol, indexes.get(i), new ArrayType(new Token(ind.toString(), 0, 0).kind()));
+=======
+            symbol = new ArrayIndex(indexes.get(i).token(), startBrackets.firstElement(), symbol, indexes.get(i), new ArrayType(new Token(indexes.get(i).typeClass().toString(), 0, 0).kind()));
+>>>>>>> f498c26 (arrays partially done)
             startBrackets.remove(0);
         }
         // for( int i = indexes.size()-1; i >= 0; i-- ) {
