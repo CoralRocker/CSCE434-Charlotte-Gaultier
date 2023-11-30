@@ -4,9 +4,12 @@ int x, y, z, a;
 int [8] arrA;
 
 
+
 // cp cf dce
 {
+
     arrA[2] = 15;
     a = arrA[2];
     call printInt( a );
+
 }.
