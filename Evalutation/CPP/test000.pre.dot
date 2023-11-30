@@ -1,0 +1,12 @@
+digraph G {
+bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
+	1: store a 34
+|	2: store b 3
+|	3: mul c b a
+|	4: store a c
+|	5: store b a
+|	6: store _t0 b
+|<exit>	7: call _t0 printInt
+}"];
+}
+

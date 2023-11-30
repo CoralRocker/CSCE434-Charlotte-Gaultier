@@ -1,0 +1,31 @@
+digraph G {
+bb1 [shape=record, label="<B> Main \n BB1 | {<entry>
+	1: store a 25
+|	2: store b 4
+|	3: call _t0 readInt
+|	4: mul c _t0 0
+|	5: mul c a b
+|	6: cmp _t0 c 100
+|	7: beq _t0 BB2
+|<exit>	8: bra BB3
+}"];
+bb1:exit -> bb3:entry
+bb1:exit -> bb2:entry
+bb3 [shape=record, label="<B> Else \n BB3 | {<entry>
+	12: store _t0 99
+|	13: call _t0 printInt
+|<exit>	14: bra BB4
+}"];
+bb3:exit -> bb4:entry
+bb2 [shape=record, label="<B> If \n BB2 | {<entry>
+	9: store _t0 c
+|	10: call _t0 printInt
+|<exit>	11: bra BB4
+}"];
+bb2:exit -> bb4:entry
+bb4 [shape=record, label="<B> Post-If \n BB4 | {<entry>
+	15: mul _t0 b c
+|<exit>	16: call _t0 printInt
+}"];
+}
+

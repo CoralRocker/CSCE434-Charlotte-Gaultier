@@ -1,0 +1,16 @@
+main
+
+int a, b, c;
+
+{
+
+  a = 34;
+  b = 3;
+
+  c = b * a;
+
+  a = c;
+  b = a;
+
+  call printInt( b ); // Equivalent to printInt( C );
+}.
