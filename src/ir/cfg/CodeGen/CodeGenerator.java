@@ -103,12 +103,22 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             if( asm.getFormat().equals(DLXCode.FORMAT.UNRESOLVED_BRANCH) ) {
                 int bb = visitor.labels.get(asm.immediate);
                 int c = bb - counter;
-                if( c == 1 ) {
+                if( c == 1 || c == 0 ) {
                     iter.remove();
+                    int finalCounter = counter;
+                    for( var key : visitor.labels.keySet() ) {
+                        int val = visitor.labels.get( key );
+                        if( val > counter ) {
+                            visitor.labels.put(key, val - 1);
+                        }
+                    }
+                    continue; // avoid incrementing counter
                 } else {
                     iter.set(DLXCode.immediateOp(asm.opcode, asm.regA, asm.regB, c));
                 }
             }
+
+            iter.nextIndex();
 
             counter++;
         }
@@ -382,23 +392,23 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 opcode = DLXCode.OPCODE.BSR;
             }
         }
-        if( !labels.containsKey(dest) ) {
-            if( bra.isConditional() ) {
-                return List.of(DLXCode.unresolvedBranch(opcode, registers.get((Assignable) bra.getVal()), dest));
-            }
-            else {
-                return List.of(DLXCode.unresolvedBranch(opcode, 0, dest));
-            }
+        //if( !labels.containsKey(dest) ) {
+        if( bra.isConditional() ) {
+            return List.of(DLXCode.unresolvedBranch(opcode, registers.get((Assignable) bra.getVal()), dest));
         }
         else {
-            dest = labels.get(dest) - instrnum;
-            if( !opcode.equals(DLXCode.OPCODE.BSR) ) {
-                return List.of(DLXCode.immediateOp(opcode, registers.get((Assignable) bra.getVal()), 0, dest));
-            }
-            else {
-                return List.of(DLXCode.immediateOp(opcode, 0, 0, dest));
-            }
+            return List.of(DLXCode.unresolvedBranch(opcode, 0, dest));
         }
+        // }
+        // else {
+        //     dest = labels.get(dest) - instrnum;
+        //     if( !opcode.equals(DLXCode.OPCODE.BSR) ) {
+        //         return List.of(DLXCode.immediateOp(opcode, registers.get((Assignable) bra.getVal()), 0, dest));
+        //     }
+        //     else {
+        //         return List.of(DLXCode.immediateOp(opcode, 0, 0, dest));
+        //     }
+        // }
     }
 
     @Override
