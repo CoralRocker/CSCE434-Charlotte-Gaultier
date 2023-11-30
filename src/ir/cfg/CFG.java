@@ -307,4 +307,9 @@ public class CFG implements Visitable<Object> {
     public Object accept(CFGVisitor<Object> visitor) {
         return visitor.visit(this.head);
     }
+
+    @Override
+    public String toString() {
+        return cfgID;
+    }
 }

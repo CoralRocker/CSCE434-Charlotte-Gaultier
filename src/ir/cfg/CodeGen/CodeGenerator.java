@@ -42,6 +42,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain) {
         cfg.genAllNodes();
 
+        System.out.printf("Generating Assembly for %s (isMain ? %s)\n", cfg, isMain);
+
         CodeGenerator visitor = new CodeGenerator();
 
         RegisterAllocator allocator = new RegisterAllocator(nRegs);
@@ -91,7 +93,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
 
         if( !instructions.get(instructions.size()-1).getOpcode().equals(DLXCode.OPCODE.RET) ) {
-            instructions.add( DLXCode.regOp(DLXCode.OPCODE.RET, 0, 0, 0));
+            Return ret = new Return(cfg.instrNumberer.push(), null);
+            instructions.addAll( ret.accept(visitor) );
         }
 
         // Set the address of all branches properly

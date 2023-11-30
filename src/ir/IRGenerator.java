@@ -926,11 +926,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         //
 
         markCalls(mainFunc.func);
-        for (int i = 0; i < funcs.size(); i++){
-            if(!funcs.get(i).func.getIsCalled()){
-                funcs.remove(i);
+        var iter = funcs.listIterator();
+        while( iter.hasNext() ) {
+            var func = iter.next();
+            if( !func.func.getIsCalled() ) {
+                iter.remove();
             }
         }
+        // for (int i = 0; i < funcs.size(); i++){
+        //     if(!funcs.get(i).func.getIsCalled()){
+        //         funcs.remove(i);
+        //     }
+        // }
     }
 
     public void markCalls(FunctionSymbol sym){
