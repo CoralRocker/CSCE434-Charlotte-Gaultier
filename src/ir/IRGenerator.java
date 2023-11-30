@@ -1,6 +1,7 @@
 package ir;
 
 import ast.*;
+import ast.ArrayIndex;
 import ast.Return;
 import coco.Symbol;
 import coco.VariableSymbol;
@@ -9,7 +10,6 @@ import coco.*;
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.tac.*;
-import ir.tac.ArrayIndex;
 import ir.tac.Variable;
 import types.VoidType;
 
@@ -85,25 +85,42 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(ast.ArrayIndex idx) {
+        Assignable tmpdest = asnDest;
+
+        asnDest = null;
         Value index = idx.getIndex().accept(this);
+        tempNum += 1;
+        Value array = idx.getArray().accept(this);
+        tempNum -= 1;
+        asnDest = tmpdest;
 
 
-        return new ArrayIndex(new VariableSymbol(idx.getArray().token().lexeme(), idx.getArray().type()), index);
-//        throw new RuntimeException("Array Indexing is not supported");
-        return null;
+        Temporary ret = new Temporary(tempNum);
+        Load tac2 = new Load(curCFG.instrNumberer.push(), ret, array, index);
+        curBlock.add(tac2);
+
+        // TODO: calculate offset with datatype sizes etc, pass it to Load
+
+        return ret;
     }
 
     @Override
     public Value visit(Assignment asn) {
-
+        Symbol destSym = null;
+        Assignable dst = null;
         tempNum = 0;
+        if (asn.getTarget() instanceof Designator){
+            Designator dest = (Designator) asn.getTarget();
+            destSym = dest.getSymbol();
 
-        Designator dest = (Designator) asn.getTarget();
-        Symbol destSym = dest.getSymbol();
-        if(destSym instanceof VariableSymbol){
-            ((VariableSymbol) destSym).isInitialized = true;
+            destSym.isInitialized = true;
+
+            dst = new Variable(destSym, instr);
+        }else if(asn.getTarget() instanceof ast.ArrayIndex){
+            dst = (Temporary)asn.getTarget().accept(this);
+//            destSym = ((ArrayIndex) asn.getTarget()).getSymbol();
         }
-        Variable dst = new Variable(destSym, instr);
+
 
         AST astSource = asn.getRvalue();
         Value src = null;

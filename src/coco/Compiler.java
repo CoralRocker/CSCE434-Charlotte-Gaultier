@@ -544,7 +544,7 @@ public class Compiler {
         }
 
         for( int i = 0; i < indexes.size(); i++ ) {
-            symbol = new ArrayIndex(indexes.get(i).token(), startBrackets.firstElement(), symbol, indexes.get(i));
+            symbol = new ArrayIndex(indexes.get(i).token(), startBrackets.firstElement(), symbol, indexes.get(i), new ArrayType(new Token(indexes.get(i).typeClass().toString(), 0, 0).kind()));
             startBrackets.remove(0);
         }
         // for( int i = indexes.size()-1; i >= 0; i-- ) {

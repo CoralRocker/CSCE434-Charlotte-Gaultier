@@ -10,6 +10,8 @@ public abstract class Symbol {
         this.name = name;
     }
 
+    public boolean isInitialized = false;
+
     public String name() {
         return name;
     }

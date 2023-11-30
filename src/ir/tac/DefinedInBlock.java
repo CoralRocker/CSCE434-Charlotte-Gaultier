@@ -39,6 +39,12 @@ public class DefinedInBlock implements TACVisitor<List<Variable>> {
     }
 
     @Override
+    public List<Variable> visit(Load load) {
+        return null;
+    }
+
+
+    @Override
     public List<Variable> visit(Literal lit) {
         return null;
     }

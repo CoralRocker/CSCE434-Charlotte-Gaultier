@@ -141,6 +141,10 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
         return null;
     }
 
+    public TacPair visit(Load load) {
+        return null;
+    }
+
     @Override
     public TacPair visit(Branch bra) {
         return null;

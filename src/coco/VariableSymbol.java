@@ -1,11 +1,12 @@
 package coco;
 
+import ir.tac.Value;
+
 public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>, Cloneable {
 
     private final ArrayType type;
     private Object value;
-
-    public boolean isInitialized = false;
+//    public boolean isInitialized = false;
 
     public VariableSymbol(String name, ArrayType type) {
         super(name);

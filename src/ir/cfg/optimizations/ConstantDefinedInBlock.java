@@ -259,6 +259,12 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
         return null;
     }
 
+    public SymbolVal visit(Load load) {
+        // TODO implement
+        return null;
+    }
+
+
     @Override
     public SymbolVal visit(Branch bra) {
         if( bra.getVal() == null ) return null;

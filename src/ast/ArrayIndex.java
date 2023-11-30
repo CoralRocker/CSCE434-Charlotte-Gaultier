@@ -1,6 +1,6 @@
 package ast;
 
-import coco.Token;
+import coco.*;
 import types.Type;
 
 public class ArrayIndex extends AST implements Visitable {
@@ -13,12 +13,22 @@ public class ArrayIndex extends AST implements Visitable {
 
     public final Token endBrace;
 
+    private Symbol sym;
 
-    public ArrayIndex(Token tkn, Token endBrace, AST arr, AST idx) {
+    public void setSymbol(Symbol sym){
+        this.sym = sym;
+    }
+
+    public Symbol getSymbol(){
+        return sym;
+    }
+
+    public ArrayIndex(Token tkn, Token endBrace, AST arr, AST idx, ArrayType type) {
         super(tkn);
         this.array = arr;
         this.index = idx;
         this.endBrace = endBrace;
+//        this.sym = new ArraySymbol(this.toString(), type, idx.);
     }
 
     public Token getIdentToken() {
@@ -54,7 +64,15 @@ public class ArrayIndex extends AST implements Visitable {
 
     @Override
     public String toString() {
-        return "ArrayIndex";
+        String arr = array.toString();
+        String ind = index.toString();
+        if(array instanceof Designator){
+            arr = ((Designator) array).getSymbol().name();
+        }
+        if(index instanceof Designator){
+            ind = ((Designator) index).getSymbol().name();
+        }
+        return arr + "[" + ind + "]";
     }
 
     @Override
@@ -71,4 +89,5 @@ public class ArrayIndex extends AST implements Visitable {
     public AST constEvaluate() {
         return null;
     }
+
 }

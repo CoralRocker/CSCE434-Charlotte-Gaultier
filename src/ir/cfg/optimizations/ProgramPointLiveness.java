@@ -240,6 +240,11 @@ class TACLiveness implements TACVisitor<LiveData> {
         return new LiveData(null, lstack.val, null);
     }
 
+    public LiveData visit(Load load) {
+        return null; //TODO implement
+    }
+
+
     @Override
     public LiveData visit(Branch bra) {
         return new LiveData(null, bra.getVal());
@@ -325,6 +330,10 @@ class DeadCode implements TACVisitor<Boolean> {
     @Override
     public Boolean visit(Return ret) {
         return false;
+    }
+
+    public Boolean visit(Load load) {
+        return null;
     }
 
     @Override

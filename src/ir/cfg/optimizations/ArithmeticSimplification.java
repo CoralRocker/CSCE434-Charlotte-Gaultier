@@ -163,6 +163,11 @@ public class ArithmeticSimplification implements TACVisitor<TAC> {
     }
 
     @Override
+    public TAC visit(Load load) {
+        return null;
+    }
+
+    @Override
     public TAC visit(StoreStack sstack) {
         return null;
     }

@@ -84,6 +84,11 @@ public class ExprInBlock implements TACVisitor<Expression> {
     }
 
     @Override
+    public Expression visit(Load load) {
+        return null;
+    }
+
+    @Override
     public Expression visit(Literal lit) {
         return null;
     }

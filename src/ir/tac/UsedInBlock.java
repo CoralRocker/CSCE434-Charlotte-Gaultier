@@ -95,6 +95,10 @@ public class UsedInBlock implements TACVisitor<List<Assignable>> {
     public List<Assignable> visit(LoadStack lstack) {
         return null;
     }
+    @Override
+    public List<Assignable> visit(Load load) {
+        return null;
+    }
 
     @Override
     public List<Assignable> visit(Branch bra) {

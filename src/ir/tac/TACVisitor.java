@@ -38,4 +38,6 @@ public interface TACVisitor<E> {
     default E visit(Xor xor) { return visit((Assign) xor); }
     default E visit(Lsh lsh) { return visit((Assign) lsh); }
     default E visit(Ash rsh) { return visit((Assign) rsh); }
+    E visit(Load load);
+
 }
