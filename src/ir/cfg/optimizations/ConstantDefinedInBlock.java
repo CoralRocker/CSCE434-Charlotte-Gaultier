@@ -67,7 +67,10 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
             // Must replace Assign with Store
             if (do_fold && sym != null ){
                 if( sym.isConstant() && tac instanceof Assign){
-                    blk.getInstructions().set(ctr, new Store(tac.getIdObj(), ((Assign) tac).dest, sym.val));
+                    Store str = new Store(tac.getIdObj(), ((Assign)tac).dest, sym.val);
+                    if( do_print )
+                        System.out.printf("Setting BB%d::%d  %s to %s\n", blk.getNum(), ctr, tac, str);
+                    blk.getInstructions().set(ctr, str);
                     changed = true;
                 }
             }
@@ -90,6 +93,9 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
                     if( br && other != null ) { // Other is Removed
                         // Remove From Successors
+                        if( do_print ) {
+                            System.out.printf("Disconnecting %s from %s\n", other, blk);
+                        }
                         blk.disconnectAfter(other);
                         // blks.remove(other);
                         // other.getPredecessors().remove(blk);
@@ -103,6 +109,9 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
                     }
                     else if( other != null ) { // Dest is removed
+                        if( do_print ) {
+                            System.out.printf("Disconnecting %s from %s\n", dest, blk);
+                        }
                         blk.disconnectAfter(dest);
                         // blks.remove( dest );
                         // dest.getPredecessors().remove(blk);

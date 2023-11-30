@@ -3,6 +3,8 @@ package ir.cfg.optimizations;
 import ir.tac.Assignable;
 import ir.tac.Literal;
 
+import static java.lang.Integer.max;
+
 public class SymbolVal implements Cloneable {
 
     public final String sym; // Symbol with type
@@ -43,7 +45,7 @@ public class SymbolVal implements Cloneable {
         if( this.isCopied() && other.isCopied() ) {
             if( copy != other.copy ) {
                 copy = null;
-                instr = -1;
+                instr = Integer.max(this.instr, other.instr);
                 return true;
             }
             else {
@@ -55,7 +57,7 @@ public class SymbolVal implements Cloneable {
 
             copy = null;
             val = null;
-            instr = -1;
+            instr = Integer.max( this.instr, other.instr );
             return !changed; // If we're already undefined, no change occurred.
         }
 
