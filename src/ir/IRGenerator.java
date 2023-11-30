@@ -718,17 +718,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value val = rep.getRelation().accept(this);
 
         // Get the inverse of the relation (to restart loop)
-        String op = null;
-        switch( rep.getRelation().token().kind() ) {
-            case GREATER_EQUAL -> { op = "<"; }
-            case GREATER_THAN -> { op = "<="; }
-            case LESS_EQUAL -> { op = ">"; }
-            case LESS_THAN -> { op = ">="; }
-            case EQUAL_TO -> { op = "!="; }
-            case NOT_EQUAL -> { op = "=="; }
-        }
         postRep.setNum(blockNo++);
-        Branch braEnd = new Branch(curCFG.instrNumberer.push(), op);
+        Branch braEnd = new Branch(curCFG.instrNumberer.push(), rep.getRelation().token().lexeme());
+        braEnd.invertRelation();
         bra = new Branch(curCFG.instrNumberer.push(), "");
         braEnd.setVal((Assignable) val); // TODO: Make work for boolean var / literal
         braEnd.setDestination(repBlk);

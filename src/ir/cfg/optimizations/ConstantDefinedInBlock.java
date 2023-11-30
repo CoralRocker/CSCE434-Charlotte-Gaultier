@@ -158,7 +158,7 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
         // visitor.defined.keySet().removeIf(SymbolVal::isTemporary);
         blk.exit = visitor.defined;
         if( changed && do_print && (do_copy_prop || do_prop) ) {
-            System.err.printf("CFG was changed by ConstDefInBlock for BB%d\n", blk.getNum());
+            System.out.printf("CFG was changed by ConstDefInBlock for BB%d\n", blk.getNum());
         }
         return changed;
     }
