@@ -20,9 +20,11 @@ function foo2() : void {
 function bar(int x, int y) : void {
     g = 1;
     h = 2;
-    call foo2();
-    call printInt(g); 
-    call printInt(h);   
+    // call foo2();
+    call printInt(g);
+    call printInt(h);
+    call printInt(x);
+    call printInt(y);
 };
 
 {

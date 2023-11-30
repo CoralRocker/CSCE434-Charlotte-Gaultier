@@ -39,9 +39,8 @@ public class Compiler {
     }
 
     public String optimization(List<String> optArguments, CommandLine cmd) {
-        if(optArguments.contains("dce") || optArguments.contains("max")){
-            gen.removeOrphans();
-        }
+        gen.removeOrphans();
+        flowGraphs = gen.getAllCFGs();
         for( CFG cfg : flowGraphs ) {
             if( debug )
                 System.out.printf("Pre-optimization: \n%s\n", cfg.asDotGraph());
