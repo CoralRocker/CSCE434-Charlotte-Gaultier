@@ -43,7 +43,8 @@ public class Compiler {
             gen.removeOrphans();
         }
         for( CFG cfg : flowGraphs ) {
-            // System.out.printf("Pre-optimization: \n%s\n", cfg.asDotGraph());
+            if( debug )
+                System.out.printf("Pre-optimization: \n%s\n", cfg.asDotGraph());
             for (String opt : optArguments) {
                 // System.out.printf("Running opt: %s\n", opt);
                 switch (opt) {
@@ -91,8 +92,10 @@ public class Compiler {
                         }
                     }
                 }
-                // System.out.println("Post Optimization:");
-                // System.out.println(cfg.asDotGraph());
+                if( debug ) {
+                    System.out.println("Post Optimization:");
+                    System.out.println(cfg.asDotGraph());
+                }
             }
         }
         return flowGraphs.get(flowGraphs.size()-1).asDotGraph();

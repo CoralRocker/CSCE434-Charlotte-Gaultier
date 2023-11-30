@@ -618,6 +618,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         rep.getSeq().accept(this);
 
+        if( rep.getRelation() instanceof Relation )
+            ((Relation) rep.getRelation()).isBranchRel = true;
         Value val = rep.getRelation().accept(this);
 
         // Get the inverse of the relation (to restart loop)
@@ -741,22 +743,25 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     public Value visit(WhileStat wstat) {
 
         tempNum = 0;
+        if( wstat.getRelation() instanceof Relation )
+            ((Relation) wstat.getRelation()).isBranchRel = true;
         Value stmt = wstat.getRelation().accept(this);
 
         BasicBlock loopBlk = new BasicBlock(blockNo++, "While"),
                    postLoop = new BasicBlock(-1, "Post-While");
 
         curCFG.instrNumberer.newBlock(loopBlk);
-        Temporary cmpStart = new Temporary(tempNum++);
-        Cmp cmp = new Cmp(curCFG.instrNumberer.push(), stmt, Literal.get(false), cmpStart, "eq" );
-        Branch braEnd = new Branch(curCFG.instrNumberer.push(), "==");
-        braEnd.setVal(cmpStart);
+        Branch braEnd = new Branch(curCFG.instrNumberer.push(), wstat.getRelation().token().lexeme());
+        braEnd.invertRelation(); // Branch if relation is false
+        if( !(stmt instanceof Assignable) ) {
+            throw new RuntimeException(String.format("While relation returned %s not Assignable", stmt));
+        }
+        braEnd.setVal((Assignable) stmt);
         braEnd.setDestination(postLoop);
 
         Branch failCond = new Branch(curCFG.instrNumberer.push(), "");
         failCond.setDestination(loopBlk);
 
-        curBlock.add(cmp);
         curBlock.add(braEnd);
         curBlock.add(failCond);
 
@@ -784,15 +789,15 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         tempNum = 0;
 
         stmt = wstat.getRelation().accept(this);
-        cmpStart = new Temporary(tempNum++);
-        cmp = new Cmp(curCFG.instrNumberer.push(), stmt, Literal.get(true), cmpStart, "eq" );
-        braEnd = new Branch(curCFG.instrNumberer.push(), "==");
-        braEnd.setVal(cmpStart);
+        braEnd = new Branch(curCFG.instrNumberer.push(), wstat.getRelation().token().lexeme());
+        if( !(stmt instanceof Assignable) ) {
+            throw new RuntimeException(String.format("While relation returned %s not Assignable (second time??)", stmt));
+        }
+        braEnd.setVal((Assignable) stmt);
         braEnd.setDestination(loopBlk);
 
         failCond = new Branch(curCFG.instrNumberer.push(), "");
         failCond.setDestination(postLoop);
-        curBlock.add(cmp);
         curBlock.add(braEnd);
         curBlock.add(failCond);
 

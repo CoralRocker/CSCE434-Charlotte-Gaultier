@@ -69,17 +69,25 @@ public class ReachingDefinition extends CFGVisitor {
            changed.b = false;
             iters++;
             int finalIters = iters;
+
+            if( do_print ) {
+                System.out.printf("Iteration %d Start \n", iters);
+                for( var node : cfg.allNodes ) {
+                    System.out.printf("%s:\nEntry:\t%s\nExit:\t%s\n", node, ((HashMap<SymbolVal, SymbolVal>) node.entry).keySet(), ((HashMap<SymbolVal, SymbolVal>) node.exit).keySet() );
+                }
+            }
+
             cfg.breadthFirst((BasicBlock b) -> {
                 if( do_print )
                     System.out.printf("%2d: Processing BB%d\n", finalIters, b.getNum());
 
                 for( BasicBlock p : b.getPredecessors() ) {
-                    if( b != p ) {
+                    // if( b != p ) {
                         // Merge the incoming changes from "ABOVE"
                         if( do_print )
-                            System.out.printf(" -> Merging BB%d -> BB%d\n", finalIters, p.getNum(), b.getNum() );
+                            System.out.printf(" -> Merging BB%d -> BB%d\n", p.getNum(), b.getNum() );
                         changed.b |= ReachingDefinition.mergeSymbolList((HashMap<SymbolVal, SymbolVal>) b.entry, (HashMap<SymbolVal, SymbolVal>) p.exit, do_print);
-                    }
+                    // }
                 }
 
                 changed.b |= ConstantDefinedInBlock.defInBlock(b, false, do_fold, false, false, do_print);
@@ -104,6 +112,8 @@ public class ReachingDefinition extends CFGVisitor {
             cfgchanged |= ConstantDefinedInBlock.defInBlock(allNode, do_prop, do_fold, do_copy_prop, do_fold, do_print);
             if( do_fold ) {
                 if( (allNode.getPredecessors().isEmpty() || (allNode.getPredecessors().size() == 1 && allNode.isPredecessor(allNode)) ) && allNode.getNum() != 1  ) {
+                    if( do_print )
+                        System.out.printf("Disconnecting %s\n", allNode);
 
                     // Delete this block and renumber eveything
                     allNode.disconnectSuccessors();

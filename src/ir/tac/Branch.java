@@ -54,6 +54,29 @@ public class Branch extends TAC {
         this.val = val;
     }
 
+    public void invertRelation() {
+        switch( rel ) {
+            case ">" -> {
+                rel = "<=";
+            }
+            case ">=" -> {
+                rel = "<";
+            }
+            case "==" -> {
+                rel = "!=";
+            }
+            case "!=" -> {
+                rel = "==";
+            }
+            case "<" -> {
+                rel = ">=";
+            }
+            case "<=" -> {
+                rel = ">";
+            }
+        }
+    }
+
     @Override
     public String genDot() {
         String jumpType;
