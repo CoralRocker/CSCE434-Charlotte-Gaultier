@@ -2,6 +2,7 @@ package ir.cfg.optimizations;
 
 import coco.Symbol;
 import coco.VariableSymbol;
+import com.sun.source.doctree.SystemPropertyTree;
 import ir.cfg.BasicBlock;
 import ir.tac.*;
 
@@ -175,8 +176,8 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(Call call) {
-        if (call.dest instanceof Variable)
-            return new SymbolVal(((VariableSymbol) ((Variable) call.dest).getSym()).name(), call.getId() );
+        if (call.dest != null)
+            return new SymbolVal(call.dest.name(), call.getId() );
         return null;
     }
 

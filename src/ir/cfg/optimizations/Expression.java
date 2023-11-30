@@ -7,6 +7,13 @@ public class Expression {
     protected TAC op;
     protected Value[] args;
 
+    protected void setExprNotDest( Expression expr ) {
+        if( !expr.dest.equals(dest) ) throw new RuntimeException("Cannot merge two expressions with differing destinations!");
+
+        op = expr.op;
+        args = expr.args;
+    }
+
     private boolean isValidOp(TAC op) {
         if (op instanceof Assign) {
             return true;

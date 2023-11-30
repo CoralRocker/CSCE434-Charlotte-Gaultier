@@ -93,7 +93,7 @@ public class Compiler {
                     }
                 }
                 if( debug ) {
-                    System.out.println("Post Optimization:");
+                    System.out.printf("Post Optimization %s:\n", opt);
                     System.out.println(cfg.asDotGraph());
                 }
             }
