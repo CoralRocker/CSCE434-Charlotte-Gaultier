@@ -1,0 +1,20 @@
+main
+
+int a, b, c, d;
+
+{
+
+  a = 3;
+  b = 4;
+
+  c = b * a;
+
+  if( ((b*a)/2) > b ) then
+    call printInt(b * a);
+  else
+    b = 3;
+    call printInt( b * a );
+  fi;
+
+  call printInt( b * a );
+}.

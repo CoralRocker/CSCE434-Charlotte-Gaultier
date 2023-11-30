@@ -1,0 +1,23 @@
+main
+
+// Demonstrate Constant folding
+
+int a, b, c;
+
+{
+  a = 25;
+  b = 4;
+
+  c = call readInt() * 0;
+
+  c = a * b;
+
+  if( c == 100 )then
+    call printInt(c);
+  else
+    call printInt( 99 );
+  fi;
+
+  call printInt( b * c );
+
+}.
