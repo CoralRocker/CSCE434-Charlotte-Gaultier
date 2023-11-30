@@ -11,6 +11,32 @@ public class ExprInBlock implements TACVisitor<Expression> {
 
     private HashMap<Expression, Expression> avail;
     private boolean do_cse = false;
+    private boolean do_cpp = false;
+
+    // Given a store "a = Store b"
+    // Searches for an expression which stores to b (can only have one by definition)
+    //
+    private Expression containsStoreDest( Expression cont ) {
+        if( cont.args.length != 1 ) throw new RuntimeException("Can only check for store source of a store expression!");
+        if( !(cont.args[0] instanceof Assignable) ) return null; // No redefining literals
+
+        Assignable str = (Assignable) cont.args[0];
+        for( Expression expr : avail.keySet() ) {
+            if( expr.dest.equals(str) ) {
+                return expr;
+            }
+        }
+
+        return null;
+    }
+
+    private Expression containsByDest( Expression cont ) {
+        for( Expression expr : avail.keySet() ) {
+            if( expr.dest.equals(cont.dest) )
+                return expr;
+        }
+        return null;
+    }
 
     // O(1)
     private Expression contains(Expression cont) {
@@ -19,22 +45,24 @@ public class ExprInBlock implements TACVisitor<Expression> {
 
     // Remove all which contain dest
     // O(n)
-    private void kill(Assignable dest) {
+    private void kill(Expression expr) {
         List<Expression> toDelete = new ArrayList<>();
         var keys = avail.keySet().iterator();
         while (keys.hasNext()) {
             var key = keys.next();
-            if (key.contains(dest)) {
+            if (key.contains(expr.dest) || (key != expr && key.dest.equals(expr.dest)) ) {
                 toDelete.add(key);
             }
         }
-        for (Expression expr : toDelete)
-            avail.remove(expr);
+
+        for (Expression del : toDelete)
+            avail.remove(del);
     }
 
     public static boolean ExprInBlock(BasicBlock blk, boolean do_cse, boolean do_cpp, boolean do_print) {
         ExprInBlock visitor = new ExprInBlock();
         visitor.do_cse = do_cse;
+        visitor.do_cpp = do_cpp;
         visitor.avail = (HashMap<Expression, Expression>) ((HashMap<Expression, Expression>) blk.entry).clone();
         boolean changed = false;
 
@@ -44,8 +72,15 @@ public class ExprInBlock implements TACVisitor<Expression> {
             Expression ret = instr.accept(visitor);
             // System.out.printf("Post instruction %2d: %s\n", instr.getId(), visitor.avail.keySet());
             if (ret != null && ret.op.getId() != instr.getId()) {
+                // Do Copy Propagation
                 if (instr instanceof Store && do_cpp && !(((Store) instr).source instanceof Literal) ) {
-                    blk.getInstructions().set(ctr, new Store(instr.getIdObj(), ((Store) instr).dest, ret.dest));
+                    Store str = new Store( instr.getIdObj(), ((Store)instr).dest, ret.args[0]);
+                    blk.getInstructions().set(ctr, str);
+                    Expression expr = new Expression(str.dest, str, str.source);
+                    if( visitor.avail.containsKey(expr) ) {
+                        visitor.containsByDest(expr).setExprNotDest(expr);
+                    }
+
                 } else if (instr instanceof Assign && do_cse) {
                     blk.getInstructions().set(ctr, new Store(instr.getIdObj(), ((Assign) instr).dest, ret.dest));
                 }
@@ -118,7 +153,7 @@ public class ExprInBlock implements TACVisitor<Expression> {
             avail.put(expr, expr);
         else
             retval = contained;
-        kill(expr.dest);
+        kill(expr);
         return retval;
     }
 
@@ -160,14 +195,14 @@ public class ExprInBlock implements TACVisitor<Expression> {
     @Override
     public Expression visit(Store store) {
         Expression expr = new Expression(store.dest, store, store.source);
-        Expression contained = contains(expr);
-        Expression retval = null;
+        Expression contained = contains( expr );
+        // Expression retval = null;
         if (contained == null)
             avail.put(expr, expr);
-        else
-            retval = contained;
-        kill(expr.dest);
-        return retval;
+        // else
+        //     retval = contained;
+        kill(expr);
+        return containsStoreDest(expr);
     }
 
     @Override
@@ -188,13 +223,13 @@ public class ExprInBlock implements TACVisitor<Expression> {
     @Override
     public Expression visit(Not not) {
         Expression expr = new Expression(not.dest, not, not.src);
-        Expression contained = contains(expr);
+        Expression contained = containsStoreDest( expr );
         Expression retval = null;
         if (contained == null)
             avail.put(expr, expr);
         else
             retval = contained;
-        kill(expr.dest);
+        kill(expr);
         return retval;
     }
 
