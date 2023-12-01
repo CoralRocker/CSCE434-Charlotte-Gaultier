@@ -1,0 +1,12 @@
+main
+
+int a, b, c;
+
+{
+  // a = call readInt();
+  while( a >= b ) do
+    call printInt( 45 );
+    return;
+  od;
+
+}.

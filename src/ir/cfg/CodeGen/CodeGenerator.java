@@ -6,6 +6,7 @@ import ir.cfg.BasicBlock;
 import ir.cfg.*;
 import ir.cfg.registers.RegisterAllocator;
 import ir.tac.*;
+import types.VoidType;
 
 import java.util.*;
 
@@ -19,6 +20,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     private int numSpills;
     private boolean isMain;
 
+    private CFG cfg;
     private int numSavedRegisters;
 
     private int instrnum;
@@ -42,8 +44,6 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain) {
         cfg.genAllNodes();
 
-        System.out.printf("Generating Assembly for %s (isMain ? %s)\n", cfg, isMain);
-
         CodeGenerator visitor = new CodeGenerator();
 
         RegisterAllocator allocator = new RegisterAllocator(nRegs);
@@ -53,6 +53,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         visitor.instrnum = 0;
         visitor.numSpills = 0;
         visitor.numSavedRegisters = 4;
+        visitor.cfg = cfg;
 
         for( var entry : visitor.registers.entrySet() ) {
             if( entry.getValue() == -1 ) visitor.numSpills++;
@@ -69,11 +70,28 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
         else { // Generate Stack Frame Shit
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0 )); // Save return address
+
+            // Load Args
             int arg = 1;
             for( var param : cfg.function.getArgList() ) {
                 int dest = visitor.registers.get(new Variable(param));
+                instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * arg));
                 System.out.printf("R%d <=> %s (R%d)\n", arg++, param, dest );
-                instructions.addAll( visitor.move(dest, arg) );
+            }
+
+            // Load Globals
+            for( var sym : cfg.getSymbols().keySet() ) {
+                if( sym.globalLoc != -1 ) {
+                    var symvar = new Variable(sym);
+                    if( !visitor.registers.containsKey(symvar) ) {
+                        System.out.printf("Global variable %s not live for function %s\n", sym, cfg.func);
+                        continue;
+                    }
+
+                    int dest = visitor.registers.get(symvar);
+                    System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
+                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -4 * sym.globalLoc ));
+                }
             }
         }
 
@@ -147,6 +165,21 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 code.addAll( move( 1, (Literal) ret.var));
             }
 
+            // Save global variables
+            for( var sym : cfg.getSymbols().keySet() ) {
+                if( sym.globalLoc != -1 ) {
+                    var symvar = new Variable(sym);
+                    if( !registers.containsKey(symvar) ) {
+                        System.out.printf("Global variable %s not live for function return %s\n", sym, cfg.func);
+                        continue;
+                    }
+
+                    int dest = registers.get(symvar);
+                    System.out.printf("Global variable %s store to GLOBL[%d] from reg %d\n", sym, sym.globalLoc, dest);
+                    code.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -4 * sym.globalLoc ));
+                }
+            }
+
             // Restore RA to R31
             code.add( DLXCode.regOp(DLXCode.OPCODE.LDX, 31, FRAME_PTR, 0 ) );
 
@@ -205,32 +238,75 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 1)) );
         callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 2)) );
 
-        // Set the arguments
-        for ( int arg = 0; arg < call.args.size(); arg++ ) {
-            int srcReg = registers.get(call.args.get(arg));
-            if( srcReg != (arg + 1) ) {
-                callCode.addAll( move(arg+1, srcReg) );
-            }
-        }
 
         // Set the new SP and FP
         callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, 4 * (numSpills + numSavedRegisters + 2)) );
         callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 4)); // TODO: Stack spilled args
 
+        // Set the arguments on the stack
+        for ( int arg = 0; arg < call.args.size(); arg++ ) {
+            int srcReg = registers.get(call.args.get(arg));
+            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, srcReg, FRAME_PTR, -4 * (arg + 1) ) );
+            // if( srcReg != (arg + 1) ) {
+            //     callCode.addAll( move(arg+1, srcReg) );
+            // }
+        }
+
+        // Save Globals
+        for( var sym : cfg.getSymbols().keySet() ) {
+            if( sym.globalLoc != -1 ) {
+                var symvar = new Variable(sym);
+                if( !registers.containsKey(symvar) ) {
+                    System.out.printf("Global variable %s not live for function %s\n", sym, cfg.func);
+                    continue;
+                }
+
+                int dest = registers.get(symvar);
+                System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
+                callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -4 * sym.globalLoc ));
+            }
+        }
+
         callCode.add(DLXCode.unresolvedCall(DLXCode.OPCODE.JSR, ((FunctionSymbol)call.function).typeSignatures()));
+
+        // Have Return?
+        if( !((FunctionSymbol) call.function).getRealReturnType().equals(new VoidType()) ) {
+            callCode.addAll( move(31, 1) ); // Store safely
+        }
+
 
         // Restore Registers (but not R1)
         for( int i = 2; i <= numSavedRegisters; i++ ) {
             callCode.add( DLXCode.immediateOp( DLXCode.OPCODE.LDW, i, FRAME_PTR, -1 * 4  * ( numSpills + i ) ) );
         }
 
-        // Save Return to proper variable
-        if(registers.containsKey(call.dest)){
-            int dest = registers.get(call.dest);
-            if( dest != 1 ) {
-                callCode.addAll( move(dest, 1) );
+
+        // Restore Global Variables
+        for( var sym : cfg.getSymbols().keySet() ) {
+            if( sym.globalLoc != -1 ) {
+                var symvar = new Variable(sym);
+                if( !registers.containsKey(symvar) ) {
+                    System.out.printf("Global variable %s not live for function %s\n", sym, cfg.func);
+                    continue;
+                }
+
+                int dest = registers.get(symvar);
+                System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
+                callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -4 * sym.globalLoc ));
             }
         }
+
+        // Have Return?
+        if( !((FunctionSymbol) call.function).getRealReturnType().equals(new VoidType()) ) {
+            // Save Return to proper variable
+            if(registers.containsKey(call.dest)){
+                int dest = registers.get(call.dest);
+                if( dest != 1 ) {
+                    callCode.addAll( move(dest, 31) );
+                }
+            }
+        }
+
 
 
         return callCode;
@@ -484,7 +560,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
         return List.of(
                 move( SPILL_DEST, Literal.get(1)).get(0),
-                DLXCode.immediateOp(DLXCode.OPCODE.SUB, registers.get(not.dest), SPILL_DEST, registers.get((Assignable) not.src) )
+                DLXCode.regOp(DLXCode.OPCODE.SUB, registers.get(not.dest), SPILL_DEST, registers.get((Assignable) not.src) )
         );
     }
 

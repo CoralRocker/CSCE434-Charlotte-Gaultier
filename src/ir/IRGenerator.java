@@ -149,7 +149,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(Designator des) {
         if(des.getSymbol() instanceof VariableSymbol){
-            if(!((VariableSymbol)(des.getSymbol())).isInitialized){
+            var varsym = ((VariableSymbol)des.getSymbol());
+            if(!varsym.isInitialized && !varsym.isFunctionParam ){
                 // if variable is uninitialized
                 switch(des.type()){
                     case "int":
@@ -165,7 +166,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
                         curBlock.add(tac2);
                         break;
                 }
-                ((VariableSymbol)(des.getSymbol())).isInitialized = true;
+                varsym.isInitialized = true;
         }}
         return new Variable(des.getSymbol());
     }
@@ -249,6 +250,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         for( var var : fd.getArgList() ) {
             syms.put((VariableSymbol) var, (VariableSymbol) var);
+            ((VariableSymbol) var).isFunctionParam = true;
         }
 
         // add curCFG to funcs list
@@ -677,6 +679,14 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         //
         if( root.getVars() != null )
             root.getVars().accept(this);
+
+        int i = 0;
+        if( curCFG.getSymbols() != null ) {
+            for( var sym : curCFG.getSymbols().keySet() ) {
+                sym.globalLoc = i++; // Global counter
+            }
+        }
+
         if( root.getFuncs() != null ) {
             root.getFuncs().accept(this);
         }
@@ -743,11 +753,15 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
                    postLoop = new BasicBlock(-1, "Post-While");
 
         curCFG.instrNumberer.newBlock(loopBlk);
-        Branch braEnd = new Branch(curCFG.instrNumberer.push(), wstat.getRelation().token().lexeme());
-        braEnd.invertRelation(); // Branch if relation is false
         if( !(stmt instanceof Assignable) ) {
+            Temporary tmp = new Temporary( tempNum++);
+            Store str = new Store(curCFG.instrNumberer.push(), tmp, stmt);
+            stmt = tmp;
+            curBlock.add(str);
             throw new RuntimeException(String.format("While relation returned %s not Assignable", stmt));
         }
+        Branch braEnd = new Branch(curCFG.instrNumberer.push(), wstat.getRelation().token().lexeme());
+        braEnd.invertRelation(); // Branch if relation is false
         braEnd.setVal((Assignable) stmt);
         braEnd.setDestination(postLoop);
 
@@ -781,10 +795,14 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         tempNum = 0;
 
         stmt = wstat.getRelation().accept(this);
-        braEnd = new Branch(curCFG.instrNumberer.push(), wstat.getRelation().token().lexeme());
         if( !(stmt instanceof Assignable) ) {
+            Temporary tmp = new Temporary( tempNum++);
+            Store str = new Store(curCFG.instrNumberer.push(), tmp, stmt);
+            stmt = tmp;
+            curBlock.add(str);
             throw new RuntimeException(String.format("While relation returned %s not Assignable (second time??)", stmt));
         }
+        braEnd = new Branch(curCFG.instrNumberer.push(), wstat.getRelation().token().lexeme());
         braEnd.setVal((Assignable) stmt);
         braEnd.setDestination(loopBlk);
 
