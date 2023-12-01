@@ -159,6 +159,8 @@ public class CompilerTester {
         // Comment these out for PA 7 - 8 - 9
         String[] optArgs = cmd.getOptionValues("opt");
         List<String> optArguments = (optArgs!=null && optArgs.length != 0) ? Arrays.asList(optArgs) : new ArrayList<String>();
+        if( cmd.hasOption("max") )
+            optArguments.add("max");
 
         //PA 7
         try {

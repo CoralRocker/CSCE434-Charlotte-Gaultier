@@ -41,6 +41,11 @@ public class Compiler {
     public String optimization(List<String> optArguments, CommandLine cmd) {
         gen.removeOrphans();
         flowGraphs = gen.getAllCFGs();
+
+        if( cmd.hasOption("max") )
+            optArguments.add("max");
+
+
         for( CFG cfg : flowGraphs ) {
             if( debug )
                 System.out.printf("Pre-optimization: \n%s\n", cfg.asDotGraph());
