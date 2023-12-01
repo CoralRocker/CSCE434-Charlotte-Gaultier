@@ -85,21 +85,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(ast.ArrayIndex idx) {
-<<<<<<< HEAD
+
 
         Value index = idx.getIndex().accept(this);
         tempNum += 1;
         Value array = idx.getArray().accept(this);
-=======
-        Assignable tmpdest = asnDest;
-
-        asnDest = null;
-        Value index = idx.getIndex().accept(this);
-        tempNum += 1;
-        Value array = idx.getArray().accept(this);
-        tempNum -= 1;
-        asnDest = tmpdest;
->>>>>>> f498c26 (arrays partially done)
 
         int size = ((Variable)array).getSym().type().getSize();
         Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), size));
@@ -108,7 +98,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Temporary offset = new Temporary(tempNum);
         tempNum += 1;
 
-<<<<<<< HEAD
         Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
         tempNum -= 1;
         curBlock.add(mulInst);
@@ -132,15 +121,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         // how to handle stores?
         // we hit an array value, do all the math to figure out its offset in memory, and then need to store some value into it
         // so should array access return the mem offset?
-=======
-        Temporary ret = new Temporary(tempNum);
-        Load tac2 = new Load(curCFG.instrNumberer.push(), ret, array, index);
-        curBlock.add(tac2);
 
-        // TODO: calculate offset with datatype sizes etc, pass it to Load
-
-        return ret;
->>>>>>> f498c26 (arrays partially done)
     }
 
     @Override
@@ -156,7 +137,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
             dst = new Variable(destSym, instr);
         }else if(asn.getTarget() instanceof ast.ArrayIndex){
-<<<<<<< HEAD
+
             // ARRAY CASE
 
             ArrayIndex idx = (ArrayIndex) asn.getTarget();
@@ -212,10 +193,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
             return null;
 //            dst = (Assignable)asn.getTarget().accept(this);
-=======
-            dst = (Temporary)asn.getTarget().accept(this);
-//            destSym = ((ArrayIndex) asn.getTarget()).getSymbol();
->>>>>>> f498c26 (arrays partially done)
         }
 
 
