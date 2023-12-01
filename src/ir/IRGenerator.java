@@ -93,8 +93,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value array = idx.getArray().accept(this);
         tempNum -= 1;
         asnDest = tmpdest;
-
-
+        // resolve inde to a number
+        // get size of object in array - this is type
         Temporary ret = new Temporary(tempNum);
         Load tac2 = new Load(curCFG.instrNumberer.push(), ret, array, index);
         curBlock.add(tac2);
