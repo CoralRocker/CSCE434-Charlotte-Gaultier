@@ -43,6 +43,8 @@ public class Compiler {
         gen.removeOrphans();
         flowGraphs = gen.getAllCFGs();
 
+        optArguments = new ArrayList<>(optArguments);
+
         if( cmd.hasOption("max") )
             optArguments.add("max");
 
@@ -154,10 +156,16 @@ public class Compiler {
         this.debug = debug;
     }
 
+    /**
+     * WARNING: Useless function.
+     * Register allocation is called by the code generator.
+     * Running register allocation multiple times results in errors
+     * @param n
+     */
     public void regAlloc(int n) {
-        CFG main = flowGraphs.get(flowGraphs.size()-1);
-        RegisterAllocator allocator = new RegisterAllocator(n);
-        allocator.allocateRegisters(main);
+        // CFG main = flowGraphs.get(flowGraphs.size()-1);
+        // RegisterAllocator allocator = new RegisterAllocator(n);
+        // allocator.allocateRegisters(main);
     }
 
     public SymbolTable symbolTable(){
