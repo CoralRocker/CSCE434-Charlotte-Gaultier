@@ -6,7 +6,11 @@ public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>
 
     private final ArrayType type;
     private Object value;
-//    public boolean isInitialized = false;
+
+
+    public boolean isInitialized = false;
+    public int globalLoc = -1;
+    public boolean isFunctionParam = false;
 
     public VariableSymbol(String name, ArrayType type) {
         super(name);
