@@ -1,6 +1,7 @@
 main
 
 int x, y, z, a;
+
 int [8] arrA;
 
 
@@ -11,6 +12,7 @@ int [8] arrA;
     arrA[2] = 15;
     a = arrA[2];
     call printInt( a );
+
 
 
 }.

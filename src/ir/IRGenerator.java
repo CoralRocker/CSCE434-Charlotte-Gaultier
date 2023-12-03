@@ -99,11 +99,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         tempNum += 1;
 
         Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
-        tempNum -= 1;
         curBlock.add(mulInst);
 
         // add offset to base address (array)
         Temporary addy = new Temporary(tempNum);
+
         tempNum += 1;
         Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
         tempNum -= 1;
@@ -122,6 +122,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         // we hit an array value, do all the math to figure out its offset in memory, and then need to store some value into it
         // so should array access return the mem offset?
 
+
     }
 
     @Override
@@ -139,6 +140,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         }else if(asn.getTarget() instanceof ast.ArrayIndex){
 
             // ARRAY CASE
+
 
             ArrayIndex idx = (ArrayIndex) asn.getTarget();
             Value index = idx.getIndex().accept(this);
