@@ -90,16 +90,30 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         asnDest = null;
         Value index = idx.getIndex().accept(this);
         tempNum += 1;
-        Value array = idx.getArray().accept(this);
-        tempNum -= 1;
+        Value array = idx.getArray().accept(this) ;
         asnDest = tmpdest;
-        // resolve inde to a number
-        // get size of object in array - this is type
-        Temporary ret = new Temporary(tempNum);
-        Load tac2 = new Load(curCFG.instrNumberer.push(), ret, array, index);
+
+        // TODO make array always be a variable
+        int size = ((Variable)array).getSym().type().getSize();
+        Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), size));
+        // size in bytes of the array object
+        // calculate ind * size = offset
+        Temporary offset = new Temporary(tempNum);
+        tempNum += 1;
+
+        Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
+        curBlock.add(mulInst);
+
+        // add offset to base address (array)
+        Temporary addy = new Temporary(tempNum);
+        Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
+        curBlock.add(addInst);
+
+        // Temporary ret = new Temporary(tempNum);
+        Variable ret = new Variable(((Variable)array).getSym());
+        Load tac2 = new Load(curCFG.instrNumberer.push(), ret, addy);
         curBlock.add(tac2);
 
-        // TODO: figure out how to get the mem address of array
         // TODO: calculate offset with datatype sizes etc, put it in a variable in a register. pass variable to load
 
         return ret;
@@ -118,7 +132,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
             dst = new Variable(destSym, instr);
         }else if(asn.getTarget() instanceof ast.ArrayIndex){
-            dst = (Temporary)asn.getTarget().accept(this);
+            dst = (Variable)asn.getTarget().accept(this);
 //            destSym = ((ArrayIndex) asn.getTarget()).getSymbol();
         }
 

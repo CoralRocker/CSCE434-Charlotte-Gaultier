@@ -1,19 +1,11 @@
 main
 
 int x, y, z, a;
-int [4] arrA;
+int [8][8] arrA;
 
 
 // cp cf dce
 {
-    a = 2;
-    arrA[ 2 + 3 ] = 51;
-    call printInt( arrA[ 2 ] );
-
-    x = arrA[a];
-    call printInt( x );
-
-    y = 2 * x + y;
-    x = x + y * 2 + z;
-    call printInt(y);
+    arrA[ 2 + 3 ][1] = 51;
+    call printInt( arrA[ 5 ][1] );
 }.

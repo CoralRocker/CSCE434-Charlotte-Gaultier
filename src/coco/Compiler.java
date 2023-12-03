@@ -547,6 +547,7 @@ public class Compiler {
         for( int i = 0; i < indexes.size(); i++ ) {
             Type ind = indexes.get(i).typeClass();
             if(ind == null){
+                // this is busted sorry
                 TypeChecker vis = new TypeChecker();
                 indexes.get(i).accept(vis);
                 ind = indexes.get(i).typeClass();

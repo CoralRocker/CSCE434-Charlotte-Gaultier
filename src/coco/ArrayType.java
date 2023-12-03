@@ -17,6 +17,8 @@ public class ArrayType {
 
     private boolean function = false;
 
+    private int size;
+
     private ArrayList< ArrayType > arglist = null;
 
     private ArrayList< Integer > dims;
@@ -52,6 +54,37 @@ public class ArrayType {
     public ArrayType( Token.Kind type ) {
         dims = null;
         this.type = new Token(type, 0, 0);
+    }
+
+    public int getSize(){
+        Token typeForSize = type;
+
+        int innerSize = 0;
+        switch(typeForSize.kind()){
+            case BOOL:
+                innerSize = 1;
+                break;
+            case INT:
+                innerSize = 4;
+                break;
+            case FLOAT:
+                innerSize = 4;
+                break;
+            case VOID:
+                innerSize = 0;
+                break;
+        }
+        if(!dims.isEmpty()){
+            // 2d array case
+            if(dims.size() == 2){
+                // return inner type * outer dim value
+                return innerSize * dims.get(0);
+            }
+        }
+        // primitives (bool, int, float, void)
+        // arrays: size of the array objects
+        // functions: return size of return type
+        return innerSize;
     }
 
     public  static ArrayType makeFunctionType( Token.Kind ret ) {

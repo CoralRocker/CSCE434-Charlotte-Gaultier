@@ -20,6 +20,15 @@ public class Load extends TAC{
         }
     }
 
+    public Load(TacID id, Assignable dest, Value offset) {
+        super(id);
+        if(dest instanceof Variable){
+            ((Variable) dest).setInitialized(true);
+        }
+        this.dest = dest;
+        this.offset = offset;
+    }
+
     @Override
     public <E> E accept(TACVisitor<E> visitor) {
         return visitor.visit(this);
@@ -27,6 +36,9 @@ public class Load extends TAC{
 
     @Override
     public String genDot() {
+        if (base == null) {
+            return String.format("load %s %s %s", dest.toString(), "base", offset.toString());
+        }
         return String.format("load %s %s %s", dest.toString(), base.toString(), offset.toString());
     }
 }
