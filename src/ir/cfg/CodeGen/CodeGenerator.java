@@ -661,11 +661,11 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
         if( load.offset instanceof Literal ) {
             // DEST = R0(always 0) + literal
-            return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt() ));
+            return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt(), load ));
         }else{
             int offset = registers.get(load.offset);
             // BUG: offset is always 1. why
-            return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset ));
+            return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset, load ));
         }
 
     }
@@ -678,25 +678,16 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             if(sstack.src instanceof Literal){
                 src = ((Literal) sstack.src).getInt();
                 int offset = registers.get(sstack.offset);
-<<<<<<< HEAD
                 return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, offset, FRAME_PTR, src, sstack) );
-=======
-                return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, offset, FRAME_PTR, src) );
->>>>>>> 767445c (ssssssssssssssssssssssssssssssssssssssssssssssssxxload store stuff... getting closer)
             }else{
                 src = registers.get(sstack.src);
             }
             int offset = registers.get(sstack.offset);
 
-<<<<<<< HEAD
             return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, FRAME_PTR, offset, sstack) );
         }
         return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo. sstack) );
-=======
-            return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, FRAME_PTR, offset) );
-        }
-        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo, sstack) );
->>>>>>> 767445c (ssssssssssssssssssssssssssssssssssssssssssssssssxxload store stuff... getting closer)
+
     }
 
     @Override
