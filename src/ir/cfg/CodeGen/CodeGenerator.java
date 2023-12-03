@@ -25,20 +25,20 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     private int instrnum;
 
-    private List<DLXCode> move(int destReg, int srcReg) {
+    private List<DLXCode> move(int destReg, int srcReg, TAC tac) {
         if( destReg == srcReg )
             return Collections.emptyList();
 
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.ADD, destReg, 0, srcReg));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.ADD, destReg, 0, srcReg, tac));
     }
 
-    private List<DLXCode> move(int destReg, Literal src) {
-        return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ADDI, destReg, 0, src.getInt()));
+    private List<DLXCode> move(int destReg, Literal src, TAC tac) {
+        return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ADDI, destReg, 0, src.getInt(), tac));
     }
 
-    private List<DLXCode> move(int destReg, Assignable src) {
+    private List<DLXCode> move(int destReg, Assignable src, TAC tac) {
         int reg = registers.get(src);
-        return move( destReg, reg );
+        return move( destReg, reg, tac );
     }
 
     public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain) {
@@ -52,30 +52,31 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         visitor.isMain = isMain;
         visitor.instrnum = 0;
         visitor.numSpills = 0;
-        visitor.numSavedRegisters = 4;
+        visitor.numSavedRegisters = -1;
         visitor.cfg = cfg;
 
         for( var entry : visitor.registers.entrySet() ) {
             if( entry.getValue() == -1 ) visitor.numSpills++;
         }
 
+        // System.out.printf("Register Allocation: %s\n", visitor.registers );
         List<DLXCode> instructions = new ArrayList<>();
 
         // if is main, generate the necessary start of stack bullshit
         if( isMain ) {
 
-            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, 4 * cfg.getSymbols().size() ) );
-            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0) );
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, 4 * cfg.getSymbols().size(), null ) );
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0, null) );
 
         }
         else { // Generate Stack Frame Shit
-            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0 )); // Save return address
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0, null )); // Save return address
 
             // Load Args
             int arg = 1;
             for( var param : cfg.function.getArgList() ) {
                 int dest = visitor.registers.get(new Variable(param));
-                instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * arg));
+                instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * arg, null));
                 System.out.printf("R%d <=> %s (R%d)\n", arg++, param, dest );
             }
 
@@ -90,7 +91,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                     int dest = visitor.registers.get(symvar);
                     System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
-                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -4 * sym.globalLoc ));
+                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -4 * sym.globalLoc, null ));
                 }
             }
         }
@@ -115,7 +116,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             instructions.addAll( ret.accept(visitor) );
         }
 
-        // Set the address of all branches properly
+        // Remove all silly branches
         var iter = instructions.listIterator();
         int counter = 0;
         while( iter.hasNext() ) {
@@ -127,23 +128,40 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 if( c == 1 || c == 0 ) {
                     iter.remove();
                     int finalCounter = counter;
-                    for( var key : visitor.labels.keySet() ) {
-                        int val = visitor.labels.get( key );
-                        if( val > counter ) {
+                    for (var key : visitor.labels.keySet()) {
+                        int val = visitor.labels.get(key);
+                        if (val > counter) {
                             visitor.labels.put(key, val - 1);
                         }
                     }
                     continue; // avoid incrementing counter
-                } else {
-                    iter.set(DLXCode.immediateOp(asm.opcode, asm.regA, asm.regB, c));
                 }
             }
-
-            iter.nextIndex();
 
             counter++;
         }
 
+        // Add all good branches
+        iter = instructions.listIterator();
+        counter = 0;
+        while( iter.hasNext() ) {
+            var asm = iter.next();
+
+            if( asm.getFormat().equals(DLXCode.FORMAT.UNRESOLVED_BRANCH) ) {
+                int bb = visitor.labels.get(asm.immediate);
+                int c = bb - counter;
+                if( c == 1 || c == 0 ) {
+                    iter.set( DLXCode.immediateOp(asm.opcode, asm.regA, asm.regB, 1, asm.source));
+                    // throw new RuntimeException("All silly branches should have been removed");
+                } else {
+                    iter.set(DLXCode.immediateOp(asm.opcode, asm.regA, asm.regB, c, asm.source));
+                }
+            }
+
+            counter++;
+        }
+
+        // System.out.printf("Branch Locations: %s\n", visitor.labels);
 
         return instructions;
     }
@@ -151,7 +169,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     @Override
     public List<DLXCode> visit(Return ret) {
         if( isMain ) {
-            return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.RET, 0, 0, 0));
+            return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.RET, 0, 0, 0, ret));
         }
         else {
             List<DLXCode> code = new ArrayList<>();
@@ -159,10 +177,10 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             // Save Return Value
             if( ret.var instanceof Assignable ) {
                 int dest = registers.get( (Assignable) ret.var );
-                code.addAll( move(1, dest) );
+                code.addAll( move(1, dest, ret) );
             }
             else if( ret.var instanceof Literal ){
-                code.addAll( move( 1, (Literal) ret.var));
+                code.addAll( move( 1, (Literal) ret.var, ret));
             }
 
             // Save global variables
@@ -176,21 +194,21 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                     int dest = registers.get(symvar);
                     System.out.printf("Global variable %s store to GLOBL[%d] from reg %d\n", sym, sym.globalLoc, dest);
-                    code.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -4 * sym.globalLoc ));
+                    code.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -4 * sym.globalLoc, ret ));
                 }
             }
 
             // Restore RA to R31
-            code.add( DLXCode.regOp(DLXCode.OPCODE.LDX, 31, FRAME_PTR, 0 ) );
+            code.add( DLXCode.regOp(DLXCode.OPCODE.LDX, 31, FRAME_PTR, 0, ret ) );
 
             // Restore SP and FP
             // old SP is at [SP + 1] and old FP is at [SP]
-            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, STACK_PTR, FRAME_PTR, 8) );
+            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, STACK_PTR, FRAME_PTR, 8, ret) );
 
-            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, FRAME_PTR, FRAME_PTR, 4) );
+            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, FRAME_PTR, FRAME_PTR, 4, ret) );
 
             // Issue Return
-            code.add( DLXCode.regOp(DLXCode.OPCODE.RET, 0, 0, 31));
+            code.add( DLXCode.regOp(DLXCode.OPCODE.RET, 0, 0, 31, ret));
 
             return code;
         }
@@ -209,21 +227,21 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         // Default Function Name
         switch( call.function.name() ) {
             case "printInt" -> {
-                return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.WRI, 0, registers.get(call.args.get(0)), 0));
+                return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.WRI, 0, registers.get(call.args.get(0)), 0, call));
             }
             case "println" -> {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.WRL, 0, 0, 0));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.WRL, 0, 0, 0, call));
             }
             case "printBool" -> {
-                return List.of( DLXCode.regOp(DLXCode.OPCODE.WRB, 0, registers.get(call.args.get(0)), 0) );
+                return List.of( DLXCode.regOp(DLXCode.OPCODE.WRB, 0, registers.get(call.args.get(0)), 0, call) );
             }
 
             case "readInt" -> {
-                return List.of( DLXCode.regOp( DLXCode.OPCODE.RDI, registers.get(call.dest), 0, 0) );
+                return List.of( DLXCode.regOp( DLXCode.OPCODE.RDI, registers.get(call.dest), 0, 0, call) );
             }
 
             case "readBool" -> {
-                return List.of( DLXCode.regOp( DLXCode.OPCODE.RDB, registers.get(call.dest), 0, 0) );
+                return List.of( DLXCode.regOp( DLXCode.OPCODE.RDB, registers.get(call.dest), 0, 0, call) );
             }
         }
 
@@ -231,22 +249,31 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
 
         // Save Each Register
-        for( int i = 1; i <= numSavedRegisters; i++ ) {
-            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, i, FRAME_PTR, -1 * 4 * (numSpills+i)) );
+        // for( int i = 1; i <= numSavedRegisters; i++ ) {
+        //     callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, i, FRAME_PTR, -1 * 4 * (numSpills+i)) );
+        // }
+        // Save all variable live past this point
+        int saveno = 1;
+        for( var sym : call.liveAfterPP ) {
+            int dest = registers.get(sym);
+            sym.saveLocation = saveno++;
+            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
         }
+
+
         // Save the current SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 1)) );
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 2)) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 1), call) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 2), call) );
 
 
         // Set the new SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, 4 * (numSpills + numSavedRegisters + 2)) );
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 4)); // TODO: Stack spilled args
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, 4 * (numSpills + numSavedRegisters + 2), call) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 4, call)); // TODO: Stack spilled args
 
         // Set the arguments on the stack
         for ( int arg = 0; arg < call.args.size(); arg++ ) {
             int srcReg = registers.get(call.args.get(arg));
-            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, srcReg, FRAME_PTR, -4 * (arg + 1) ) );
+            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, srcReg, FRAME_PTR, -4 * (arg + 1), call ) );
             // if( srcReg != (arg + 1) ) {
             //     callCode.addAll( move(arg+1, srcReg) );
             // }
@@ -263,23 +290,24 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                 int dest = registers.get(symvar);
                 System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
-                callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -4 * sym.globalLoc ));
+                callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -4 * sym.globalLoc, call ));
             }
         }
 
-        callCode.add(DLXCode.unresolvedCall(DLXCode.OPCODE.JSR, ((FunctionSymbol)call.function).typeSignatures()));
+        callCode.add(DLXCode.unresolvedCall(DLXCode.OPCODE.JSR, ((FunctionSymbol)call.function).typeSignatures(), call));
 
         // Have Return?
         if( !((FunctionSymbol) call.function).getRealReturnType().equals(new VoidType()) ) {
-            callCode.addAll( move(31, 1) ); // Store safely
+            callCode.addAll( move(31, 1, call) ); // Store safely
         }
 
 
-        // Restore Registers (but not R1)
-        for( int i = 2; i <= numSavedRegisters; i++ ) {
-            callCode.add( DLXCode.immediateOp( DLXCode.OPCODE.LDW, i, FRAME_PTR, -1 * 4  * ( numSpills + i ) ) );
+        // Restore Saved Variables
+        for( var sym : call.liveAfterPP ) {
+            int dest = registers.get(sym);
+            sym.saveLocation = saveno++;
+            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
         }
-
 
         // Restore Global Variables
         for( var sym : cfg.getSymbols().keySet() ) {
@@ -292,7 +320,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                 int dest = registers.get(symvar);
                 System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
-                callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -4 * sym.globalLoc ));
+                callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -4 * sym.globalLoc, call ));
             }
         }
 
@@ -301,8 +329,11 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             // Save Return to proper variable
             if(registers.containsKey(call.dest)){
                 int dest = registers.get(call.dest);
-                if( dest != 1 ) {
-                    callCode.addAll( move(dest, 31) );
+                if( dest != -1 ) {
+                    callCode.addAll( move(dest, 31, call) );
+                }
+                else {
+                    throw new RuntimeException("Store return value to spill");
                 }
             }
         }
@@ -325,17 +356,17 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     lit_rhs = add.right instanceof Literal;
             if( lit_rhs && lit_lhs ) {
                 return List.of(
-                        DLXCode.immediateOp(DLXCode.OPCODE.ADDI, SPILL_LHS, 0, ((Literal) add.left).getInt()),
-                        DLXCode.immediateOp(DLXCode.OPCODE.ADDI, dest, SPILL_LHS, ((Literal) add.right).getInt())
+                        DLXCode.immediateOp(DLXCode.OPCODE.ADDI, SPILL_LHS, 0, ((Literal) add.left).getInt(), add),
+                        DLXCode.immediateOp(DLXCode.OPCODE.ADDI, dest, SPILL_LHS, ((Literal) add.right).getInt(), add)
                 );
             }else if( lit_lhs ) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ADDI, dest, registers.get(add.right), ((Literal) add.left).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ADDI, dest, registers.get(add.right), ((Literal) add.left).getInt(), add));
             }
             else {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ADDI, dest, registers.get(add.left), ((Literal) add.right).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ADDI, dest, registers.get(add.left), ((Literal) add.right).getInt(), add));
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.ADD, dest, registers.get(add.left), registers.get(add.right)));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.ADD, dest, registers.get(add.left), registers.get(add.right), add));
     }
 
     @Override
@@ -351,20 +382,20 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     lit_rhs = div.right instanceof Literal;
             if( lit_rhs && lit_lhs ) {
                 return List.of(
-                        move( SPILL_LHS, (Literal) div.left).get(0),
-                        DLXCode.immediateOp(DLXCode.OPCODE.DIVI, dest, SPILL_LHS, ((Literal) div.right).getInt())
+                        move( SPILL_LHS, (Literal) div.left, div).get(0),
+                        DLXCode.immediateOp(DLXCode.OPCODE.DIVI, dest, SPILL_LHS, ((Literal) div.right).getInt(), div)
                 );
             }else if( lit_rhs ) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.DIVI, dest, registers.get(div.left), ((Literal) div.right).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.DIVI, dest, registers.get(div.left), ((Literal) div.right).getInt(), div));
             }
             else {
                 return List.of(
-                        move( SPILL_LHS, (Literal) div.left).get(0),
-                        DLXCode.regOp(DLXCode.OPCODE.DIV, dest, SPILL_LHS, registers.get(div.right))
+                        move( SPILL_LHS, (Literal) div.left, div).get(0),
+                        DLXCode.regOp(DLXCode.OPCODE.DIV, dest, SPILL_LHS, registers.get(div.right), div)
                 );
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.DIV, dest, registers.get(div.left), registers.get(div.right)));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.DIV, dest, registers.get(div.left), registers.get(div.right), div));
     }
 
     @Override
@@ -375,20 +406,20 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     lit_rhs = mod.right instanceof Literal;
             if( lit_rhs && lit_lhs ) {
                 return List.of(
-                        move( SPILL_LHS, (Literal) mod.left).get(0),
-                        DLXCode.immediateOp(DLXCode.OPCODE.MODI, dest, SPILL_LHS, ((Literal) mod.right).getInt())
+                        move( SPILL_LHS, (Literal) mod.left, mod).get(0),
+                        DLXCode.immediateOp(DLXCode.OPCODE.MODI, dest, SPILL_LHS, ((Literal) mod.right).getInt(), mod)
                 );
             }else if( lit_rhs ) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.MODI, dest, registers.get(mod.left), ((Literal) mod.right).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.MODI, dest, registers.get(mod.left), ((Literal) mod.right).getInt(), mod));
             }
             else {
                 return List.of(
-                        move( SPILL_LHS, (Literal) mod.left).get(0),
-                        DLXCode.regOp(DLXCode.OPCODE.MOD, dest, SPILL_LHS, registers.get(mod.right))
+                        move( SPILL_LHS, (Literal) mod.left, mod).get(0),
+                        DLXCode.regOp(DLXCode.OPCODE.MOD, dest, SPILL_LHS, registers.get(mod.right), mod)
                 );
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.MOD, dest, registers.get(mod.left), registers.get(mod.right)));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.MOD, dest, registers.get(mod.left), registers.get(mod.right), mod));
     }
 
     @Override
@@ -399,17 +430,17 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     lit_rhs = mul.right instanceof Literal;
             if( lit_rhs && lit_lhs ) {
                 return List.of(
-                        move( SPILL_LHS, (Literal) mul.left).get(0),
-                        DLXCode.immediateOp(DLXCode.OPCODE.MULI, dest, SPILL_LHS, ((Literal) mul.right).getInt())
+                        move( SPILL_LHS, (Literal) mul.left, mul).get(0),
+                        DLXCode.immediateOp(DLXCode.OPCODE.MULI, dest, SPILL_LHS, ((Literal) mul.right).getInt(), mul)
                 );
             }else if( lit_lhs ) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.MULI, dest, registers.get(mul.right), ((Literal) mul.left).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.MULI, dest, registers.get(mul.right), ((Literal) mul.left).getInt(), mul));
             }
             else {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.MULI, dest, registers.get(mul.left), ((Literal) mul.right).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.MULI, dest, registers.get(mul.left), ((Literal) mul.right).getInt(), mul));
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.MUL, dest, registers.get(mul.left), registers.get(mul.right)));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.MUL, dest, registers.get(mul.left), registers.get(mul.right), mul));
     }
 
     @Override
@@ -420,27 +451,27 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     lit_rhs = sub.right instanceof Literal;
             if( lit_rhs && lit_lhs ) {
                 return List.of(
-                        move( SPILL_LHS, (Literal) sub.left).get(0),
-                        DLXCode.immediateOp(DLXCode.OPCODE.SUBI, dest, SPILL_LHS, ((Literal) sub.right).getInt())
+                        move( SPILL_LHS, (Literal) sub.left, sub).get(0),
+                        DLXCode.immediateOp(DLXCode.OPCODE.SUBI, dest, SPILL_LHS, ((Literal) sub.right).getInt(), sub)
                 );
             }else if( lit_rhs ) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.SUBI, dest, registers.get(sub.left), ((Literal) sub.right).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.SUBI, dest, registers.get(sub.left), ((Literal) sub.right).getInt(), sub));
             }
             else {
                 return List.of(
-                        move( SPILL_LHS, (Literal) sub.left).get(0),
-                        DLXCode.regOp(DLXCode.OPCODE.SUB, dest, SPILL_LHS, registers.get(sub.right))
+                        move( SPILL_LHS, (Literal) sub.left, sub).get(0),
+                        DLXCode.regOp(DLXCode.OPCODE.SUB, dest, SPILL_LHS, registers.get(sub.right), sub)
                 );
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.SUB, dest, registers.get(sub.left), registers.get(sub.right)));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.SUB, dest, registers.get(sub.left), registers.get(sub.right), sub));
     }
 
     @Override
     public List<DLXCode> visit(LoadStack lstack) {
         int dest = registers.get( lstack.val );
         if( dest == -1 ) throw new RuntimeException("Load stack into spill???");
-        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * lstack.loc.spillNo) );
+        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * lstack.loc.spillNo, lstack) );
     }
 
     @Override
@@ -473,10 +504,10 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
         //if( !labels.containsKey(dest) ) {
         if( bra.isConditional() ) {
-            return List.of(DLXCode.unresolvedBranch(opcode, registers.get((Assignable) bra.getVal()), dest));
+            return List.of(DLXCode.unresolvedBranch(opcode, registers.get((Assignable) bra.getVal()), dest, bra));
         }
         else {
-            return List.of(DLXCode.unresolvedBranch(opcode, 0, dest));
+            return List.of(DLXCode.unresolvedBranch(opcode, 0, dest, bra));
         }
         // }
         // else {
@@ -504,20 +535,20 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     lit_rhs = cmp.right instanceof Literal;
             if( lit_rhs && lit_lhs ) {
                 return List.of(
-                        move( SPILL_LHS, (Literal) cmp.left).get(0),
-                        DLXCode.immediateOp(DLXCode.OPCODE.CMPI, dest, SPILL_LHS, ((Literal) cmp.right).getInt())
+                        move( SPILL_LHS, (Literal) cmp.left, cmp).get(0),
+                        DLXCode.immediateOp(DLXCode.OPCODE.CMPI, dest, SPILL_LHS, ((Literal) cmp.right).getInt(), cmp)
                 );
             }else if( lit_rhs ) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.CMPI, dest, registers.get(cmp.left), ((Literal) cmp.right).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.CMPI, dest, registers.get(cmp.left), ((Literal) cmp.right).getInt(), cmp));
             }
             else {
                 return List.of(
-                        move( SPILL_LHS, (Literal) cmp.left).get(0),
-                        DLXCode.regOp(DLXCode.OPCODE.CMP, dest, SPILL_LHS, registers.get(cmp.right))
+                        move( SPILL_LHS, (Literal) cmp.left, cmp).get(0),
+                        DLXCode.regOp(DLXCode.OPCODE.CMP, dest, SPILL_LHS, registers.get(cmp.right), cmp)
                 );
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.CMP, dest, registers.get(cmp.left), registers.get(cmp.right)));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.CMP, dest, registers.get(cmp.left), registers.get(cmp.right), cmp));
     }
 
     @Override
@@ -528,15 +559,15 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
         if( store.source instanceof Literal ) {
             // DEST = R0(always 0) + literal
-            return move( dest, (Literal) store.source);
+            return move( dest, (Literal) store.source, store);
         }
 
-        return move( dest, (Assignable) store.source);
+        return move( dest, (Assignable) store.source, store);
     }
 
     @Override
     public List<DLXCode> visit(StoreStack sstack) {
-        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo) );
+        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo, sstack) );
     }
 
     @Override
@@ -554,13 +585,13 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         if( not.src instanceof Literal ) {
             // DEST = !literal
             return List.of(
-                    move( SPILL_DEST, Literal.get(1) ).get(0),
-                    DLXCode.immediateOp(DLXCode.OPCODE.SUB, registers.get(not.dest), SPILL_DEST, ((Literal) not.src).getInt() )
+                    move( SPILL_DEST, Literal.get(1), not ).get(0),
+                    DLXCode.immediateOp(DLXCode.OPCODE.SUB, registers.get(not.dest), SPILL_DEST, ((Literal) not.src).getInt(), not )
             );
         }
         return List.of(
-                move( SPILL_DEST, Literal.get(1)).get(0),
-                DLXCode.regOp(DLXCode.OPCODE.SUB, registers.get(not.dest), SPILL_DEST, registers.get((Assignable) not.src) )
+                move( SPILL_DEST, Literal.get(1), not).get(0),
+                DLXCode.regOp(DLXCode.OPCODE.SUB, registers.get(not.dest), SPILL_DEST, registers.get((Assignable) not.src), not )
         );
     }
 
@@ -572,17 +603,17 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     lit_rhs = and.right instanceof Literal;
             if( lit_rhs && lit_lhs ) {
                 return List.of(
-                        move( SPILL_LHS, (Literal) and.left).get(0),
-                        DLXCode.immediateOp(DLXCode.OPCODE.ANDI, dest, SPILL_LHS, ((Literal) and.right).getInt())
+                        move( SPILL_LHS, (Literal) and.left, and).get(0),
+                        DLXCode.immediateOp(DLXCode.OPCODE.ANDI, dest, SPILL_LHS, ((Literal) and.right).getInt(), and)
                 );
             }else if( lit_lhs ) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ANDI, dest, registers.get(and.right), ((Literal) and.left).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ANDI, dest, registers.get(and.right), ((Literal) and.left).getInt(), and));
             }
             else {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ANDI, dest, registers.get(and.left), ((Literal) and.right).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ANDI, dest, registers.get(and.left), ((Literal) and.right).getInt(), and));
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.AND, dest, registers.get(and.left), registers.get(and.right)));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.AND, dest, registers.get(and.left), registers.get(and.right), and));
     }
 
     @Override
@@ -593,16 +624,16 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     lit_rhs = or.right instanceof Literal;
             if (lit_rhs && lit_lhs) {
                 return List.of(
-                        move( SPILL_LHS, (Literal) or.left).get(0),
-                        DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, SPILL_LHS, ((Literal) or.right).getInt())
+                        move( SPILL_LHS, (Literal) or.left, or).get(0),
+                        DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, SPILL_LHS, ((Literal) or.right).getInt(), or)
                 );
             } else if (lit_lhs) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, registers.get(or.right), ((Literal) or.left).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, registers.get(or.right), ((Literal) or.left).getInt(), or));
             } else {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, registers.get(or.left), ((Literal) or.right).getInt()));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, registers.get(or.left), ((Literal) or.right).getInt(), or));
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.OR, dest, registers.get(or.left), registers.get(or.right)));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.OR, dest, registers.get(or.left), registers.get(or.right), or));
     }
 
     @Override
@@ -612,17 +643,17 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 lit_rhs = xor.right instanceof Literal;
         if( lit_rhs && lit_lhs ) {
             return List.of(
-                    move( SPILL_LHS, (Literal) xor.left).get(0),
-                    DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, SPILL_LHS, ((Literal) xor.right).getInt())
+                    move( SPILL_LHS, (Literal) xor.left, xor).get(0),
+                    DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, SPILL_LHS, ((Literal) xor.right).getInt(), xor)
             );
         }else if( lit_lhs ) {
-            return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, registers.get(xor.right), ((Literal) xor.left).getInt()));
+            return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, registers.get(xor.right), ((Literal) xor.left).getInt(), xor));
         }
         else if( lit_rhs ) {
-            return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, registers.get(xor.left), ((Literal) xor.right).getInt()));
+            return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.XORI, dest, registers.get(xor.left), ((Literal) xor.right).getInt(), xor));
         }
         else {
-            return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.XOR, dest, registers.get(xor.left), registers.get(xor.right)));
+            return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.XOR, dest, registers.get(xor.left), registers.get(xor.right), xor));
         }
     }
 
@@ -645,8 +676,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 rhs = SPILL_RHS;
 
                 int exp = ((Literal) lsh.right).getInt();
-                code.addAll( move( SPILL_LHS, (Literal) lsh.left) );
-                code.add( DLXCode.immediateOp(DLXCode.OPCODE.LSHI, dest, lhs, exp));
+                code.addAll( move( SPILL_LHS, (Literal) lsh.left, lsh) );
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.LSHI, dest, lhs, exp, lsh));
 
             }
             else if( lit_rhs ) {
@@ -655,7 +686,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                 int exp = ((Literal) lsh.right).getInt();
 
-                code.add( DLXCode.immediateOp(DLXCode.OPCODE.LSHI, dest, lhs, exp));
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.LSHI, dest, lhs, exp, lsh));
 
             }
             else {
@@ -664,8 +695,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                 int base = ((Literal) lsh.left).getInt();
 
-                code.addAll( move( SPILL_LHS, (Literal) lsh.left) );
-                code.add( DLXCode.regOp(DLXCode.OPCODE.LSH, dest, lhs, rhs));
+                code.addAll( move( SPILL_LHS, (Literal) lsh.left, lsh) );
+                code.add( DLXCode.regOp(DLXCode.OPCODE.LSH, dest, lhs, rhs, lsh));
 
             }
         }
@@ -675,7 +706,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             rhs = registers.get(lsh.right);
             if( rhs < 0 ) rhs = SPILL_RHS;
 
-            code.add( DLXCode.regOp(DLXCode.OPCODE.LSH, dest, lhs, rhs));
+            code.add( DLXCode.regOp(DLXCode.OPCODE.LSH, dest, lhs, rhs, lsh));
         }
         return code;
     }
@@ -699,8 +730,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 rhs = SPILL_RHS;
 
                 int exp = ((Literal) ash.right).getInt();
-                code.addAll( move( SPILL_LHS, (Literal) ash.left) );
-                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ASHI, dest, lhs, exp));
+                code.addAll( move( SPILL_LHS, (Literal) ash.left, ash) );
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ASHI, dest, lhs, exp, ash));
 
             }
             else if( lit_rhs ) {
@@ -709,7 +740,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                 int exp = ((Literal) ash.right).getInt();
 
-                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ASHI, dest, lhs, exp));
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ASHI, dest, lhs, exp, ash));
 
             }
             else {
@@ -718,8 +749,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                 int base = ((Literal) ash.left).getInt();
 
-                code.addAll( move( SPILL_LHS, (Literal) ash.left) );
-                code.add( DLXCode.regOp(DLXCode.OPCODE.ASH, dest, lhs, rhs));
+                code.addAll( move( SPILL_LHS, (Literal) ash.left, ash) );
+                code.add( DLXCode.regOp(DLXCode.OPCODE.ASH, dest, lhs, rhs, ash));
 
             }
         }
@@ -729,7 +760,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             rhs = registers.get(ash.right);
             if( rhs < 0 ) rhs = SPILL_RHS;
 
-            code.add( DLXCode.regOp(DLXCode.OPCODE.ASH, dest, lhs, rhs));
+            code.add( DLXCode.regOp(DLXCode.OPCODE.ASH, dest, lhs, rhs, ash));
         }
         return code;
     }
@@ -753,8 +784,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 rhs = SPILL_RHS;
 
                 int exp = ((Literal) pow.right).getInt();
-                code.addAll( move( SPILL_LHS, (Literal) pow.left) );
-                code.add( DLXCode.immediateOp(DLXCode.OPCODE.POWI, dest, lhs, exp));
+                code.addAll( move( SPILL_LHS, (Literal) pow.left, pow) );
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.POWI, dest, lhs, exp, pow));
 
             }
             else if( lit_rhs ) {
@@ -763,15 +794,15 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
                 int exp = ((Literal) pow.right).getInt();
 
-                code.add( DLXCode.immediateOp(DLXCode.OPCODE.POWI, dest, lhs, exp));
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.POWI, dest, lhs, exp, pow));
 
             }
             else {
                 lhs = SPILL_LHS;
                 rhs = registers.get((Assignable) pow.right);
 
-                code.addAll( move( SPILL_LHS, (Literal) pow.left) );
-                code.add( DLXCode.regOp(DLXCode.OPCODE.POW, dest, lhs, rhs));
+                code.addAll( move( SPILL_LHS, (Literal) pow.left, pow) );
+                code.add( DLXCode.regOp(DLXCode.OPCODE.POW, dest, lhs, rhs, pow));
 
             }
         }
@@ -781,7 +812,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             rhs = registers.get(pow.right);
             if( rhs < 0 ) rhs = SPILL_RHS;
 
-            code.add( DLXCode.regOp(DLXCode.OPCODE.POW, dest, lhs, rhs));
+            code.add( DLXCode.regOp(DLXCode.OPCODE.POW, dest, lhs, rhs, pow));
         }
         return code;
     }

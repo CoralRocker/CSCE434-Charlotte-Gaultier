@@ -1,5 +1,7 @@
 package ir.cfg.CodeGen;
 
+import ir.tac.TAC;
+
 import java.util.function.Function;
 
 public class DLXCode {
@@ -79,6 +81,12 @@ public class DLXCode {
     protected int regC;
     protected int immediate;
 
+    public TAC getSource() {
+        return source;
+    }
+
+    protected TAC source = null;
+
     public String getFuncSig() {
         return funcSig;
     }
@@ -147,9 +155,10 @@ public class DLXCode {
     }
 
 
-    public static DLXCode immediateOp(OPCODE opcode, int regA, int regB, int immediate) {
+    public static DLXCode immediateOp(OPCODE opcode, int regA, int regB, int immediate, TAC tac) {
         DLXCode dlx = new DLXCode();
 
+        dlx.source = tac;
         dlx.opcode = opcode;
         dlx.regA = regA;
         dlx.regB = regB;
@@ -162,9 +171,10 @@ public class DLXCode {
         return dlx;
     }
 
-    public static DLXCode regOp(OPCODE opcode, int regA, int regB, int regC) {
+    public static DLXCode regOp(OPCODE opcode, int regA, int regB, int regC, TAC tac) {
         DLXCode dlx = new DLXCode();
 
+        dlx.source = tac;
         dlx.opcode = opcode;
         dlx.regA = regA;
         dlx.regB = regB;
@@ -177,9 +187,10 @@ public class DLXCode {
         return dlx;
     }
 
-    public static DLXCode jumpOp(OPCODE opcode, int regC) {
+    public static DLXCode jumpOp(OPCODE opcode, int regC, TAC tac) {
         DLXCode dlx = new DLXCode();
 
+        dlx.source = tac;
         dlx.opcode = opcode;
         dlx.regC = regC;
 
@@ -190,8 +201,9 @@ public class DLXCode {
         return dlx;
     }
 
-    public static DLXCode unresolvedCall(OPCODE opcode, String funcSig ) {
+    public static DLXCode unresolvedCall(OPCODE opcode, String funcSig, TAC tac ) {
         DLXCode dlx = new DLXCode();
+        dlx.source = tac;
         dlx.opcode = opcode;
         dlx.funcSig = funcSig;
         dlx.format = FORMAT.UNRESOLVED_CALL;
@@ -201,8 +213,9 @@ public class DLXCode {
         return dlx;
     }
 
-    public static DLXCode unresolvedBranch(OPCODE opcode, int regA, int C) {
+    public static DLXCode unresolvedBranch(OPCODE opcode, int regA, int C, TAC tac) {
         DLXCode dlx = new DLXCode();
+        dlx.source = tac;
         dlx.format = FORMAT.UNRESOLVED_BRANCH;
         dlx.opcode = opcode;
         dlx.regA = regA;
@@ -220,24 +233,29 @@ public class DLXCode {
     }
 
 
-    public String generateAssembly() {
+    public String generateAssembly(boolean srcline) {
+        String debug = (source == null || !srcline) ? "" : String.format(":: %s", source.genDot());
         switch( format ) {
             case F1 -> {
-                return String.format("%-4s R%d, R%d, %d", opcode.name(), regA, regB, immediate);
+                return String.format("%-4s R%-2d, R%-2d,  %-2d %s", opcode.name(), regA, regB, immediate, debug);
             }
             case F2 -> {
-                return String.format("%-4s R%d, R%d, R%d", opcode.name(), regA, regB, regC);
+                return String.format("%-4s R%-2d, R%-2d, R%-2d %s", opcode.name(), regA, regB, regC, debug);
             }
 
             case F3 -> {
-                return String.format("%-4s R%d", opcode.name(), regC);
+                return String.format("%-4s R%-2d               %s", opcode.name(), regC, debug);
             }
 
             case UNRESOLVED_CALL -> {
-                return String.format("%-4s -> %s", opcode.name(), funcSig);
+                return String.format("%-4s -> %s               %s", opcode.name(), funcSig, debug);
             }
         }
         throw new RuntimeException("Unknown DLX format?");
+    }
+
+    public String generateAssembly() {
+        return generateAssembly(false);
     }
 
     public int generateInstruction() {
