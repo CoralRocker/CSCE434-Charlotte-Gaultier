@@ -139,6 +139,8 @@ public class ProgramPointLiveness {
 
             }
 
+            cfg.markUnvisited();
+
 
             if( do_print ) {
                 System.out.printf("Liveness Analysis Iteration %d:\n", iterations);

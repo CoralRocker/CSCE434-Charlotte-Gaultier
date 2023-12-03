@@ -243,15 +243,20 @@ public class Compiler {
             DLXCode asm = iter.next();
 
             if( asm.getFormat() == DLXCode.FORMAT.UNRESOLVED_CALL ) {
-                iter.set( DLXCode.jumpOp(DLXCode.OPCODE.JSR, 4*funcMap.get(asm.getFuncSig())));
+                iter.set( DLXCode.jumpOp(DLXCode.OPCODE.JSR, 4*funcMap.get(asm.getFuncSig()), asm.getSource()) );
             }
         }
 
         if( debug )
             System.out.printf("Instructions: \n");
         for( int i = 0; i < assembly.size(); i++ ) {
-            if( debug )
-                System.out.printf("%3d : %-32s => 0x%08x\n", i, assembly.get(i).generateAssembly(), assembly.get(i).generateInstruction());
+            DLXCode asm = assembly.get(i);
+            if( debug ) {
+                if( asm.getSource() != null )
+                    System.out.printf("%3d : %-32s => 0x%08x :: %3d :: %s\n", i, asm.generateAssembly(), asm.generateInstruction(), asm.getSource().getId(), asm.getSource().genDot());
+                else
+                    System.out.printf("%3d : %-32s => 0x%08x\n", i, asm.generateAssembly(), asm.generateInstruction());
+            }
             instructions.add( assembly.get(i).generateInstruction() );
         }
 
