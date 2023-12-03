@@ -93,7 +93,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value array = idx.getArray().accept(this) ;
         asnDest = tmpdest;
 
-        // TODO make array always be a variable
         int size = ((Variable)array).getSym().type().getSize();
         Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), size));
         // size in bytes of the array object
@@ -106,17 +105,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         // add offset to base address (array)
         Temporary addy = new Temporary(tempNum);
+        tempNum += 1;
         Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
         curBlock.add(addInst);
 
         // Temporary ret = new Temporary(tempNum);
         Variable ret = new Variable(((Variable)array).getSym());
-        Load tac2 = new Load(curCFG.instrNumberer.push(), ret, addy);
+        Temporary toRet = new Temporary(tempNum);
+        tempNum += 1;
+        Load tac2 = new Load(curCFG.instrNumberer.push(), toRet, addy);
         curBlock.add(tac2);
 
-        // TODO: calculate offset with datatype sizes etc, put it in a variable in a register. pass variable to load
-
-        return ret;
+        return toRet;
     }
 
     @Override
@@ -132,7 +132,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
             dst = new Variable(destSym, instr);
         }else if(asn.getTarget() instanceof ast.ArrayIndex){
-            dst = (Variable)asn.getTarget().accept(this);
+            dst = (Assignable)asn.getTarget().accept(this);
 //            destSym = ((ArrayIndex) asn.getTarget()).getSymbol();
         }
 

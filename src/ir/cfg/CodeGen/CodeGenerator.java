@@ -455,6 +455,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, ((Literal) load.offset).getInt() ));
         }else{
             int offset = registers.get(load.offset);
+            // BUG: offset is always 1. why
             return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset ));
         }
     }
