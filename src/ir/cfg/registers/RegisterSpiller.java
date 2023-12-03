@@ -35,17 +35,20 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
             int i = 0;
             List<TAC> instructions = blk.getInstructions();
             while( i < instructions.size() ) {
-                TacPair ls = instructions.get(i).accept(this);
+                TAC tac = instructions.get(i);
+                TacPair ls = tac.accept(this);
                 if( ls != null ) {
                     if( instructions.get(i) instanceof Store && ls.before != null && ls.after == null )  {
-                        instructions.set(i, ls.before);
-                    }
-                    else if( ls.before != null ) {
+                        // instructions.set(i, ls.before);
                         instructions.add(i++, ls.before);
                     }
-
-                    else if( ls.after != null ) {
-                        instructions.add(++i, ls.after);
+                    else {
+                        if (ls.before != null) {
+                            instructions.add(i++, ls.before);
+                        }
+                        if (ls.after != null) {
+                            instructions.add(++i, ls.after);
+                        }
                     }
                 }
                 i++;
@@ -59,7 +62,7 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
     public TacPair visit(Return ret) {
         if( ret.dest.equals(toSpill) ) {
             TacID newId = ret.getIdObj().pushPrevious();
-            var instr = new LoadStack(newId, ret.dest, new Spill(loc, Spill.Register.DEST));
+            var instr = new LoadStack(newId, ret.dest, new Spill(loc, Spill.Register.DEST), ret);
             ret.dest.spilled.reg = Spill.Register.DEST;
             return new TacPair(instr, null);
         }
@@ -75,7 +78,7 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
     public TacPair visit(Call call) {
         if( call.dest.equals(toSpill) ) {
             TacID newId = call.getIdObj().pushNext();
-            var instr = new StoreStack(newId, call.dest, new Spill(loc, Spill.Register.DEST));
+            var instr = new StoreStack(newId, call.dest, new Spill(loc, Spill.Register.DEST), call);
             return new TacPair(null, instr);
         }
         return null;
@@ -98,16 +101,18 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
 
         if( asn.left.equals(toSpill) ) {
             TacID newId = asn.getIdObj().pushPrevious();
-            load = new LoadStack(newId, (Assignable)asn.left, new Spill(loc, Spill.Register.LHS));
+            load = new LoadStack(newId, (Assignable)asn.left, new Spill(loc, Spill.Register.LHS), asn);
         }
-        else if( asn.right.equals(toSpill) ) {
+
+        if( asn.right.equals(toSpill) ) {
+            if( load != null ) throw new RuntimeException("Need more spill locations!");
             TacID newId = asn.getIdObj().pushPrevious();
-            load = new LoadStack(newId, (Assignable)asn.right, new Spill(loc, Spill.Register.RHS));
+            load = new LoadStack(newId, (Assignable)asn.right, new Spill(loc, Spill.Register.RHS), asn);
         }
 
         if( asn.dest.equals(toSpill) ) {
             TacID newId = asn.getIdObj().pushNext();
-            store = new StoreStack(newId, asn.dest, new Spill(loc, Spill.Register.DEST));
+            store = new StoreStack(newId, asn.dest, new Spill(loc, Spill.Register.DEST), asn);
         }
 
         if( load == null && store == null )
@@ -161,12 +166,13 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
         LoadStack before = null;
         if( store.dest.equals(toSpill) ) {
             TacID newId = store.getIdObj().pushNext();
-            after = new StoreStack(newId, store.dest, new Spill(loc, Spill.Register.DEST));
+            after = new StoreStack(newId, store.dest, new Spill(loc, Spill.Register.DEST), store);
         }
 
         if( store.source.equals(toSpill) ) {
             TacID newId = store.getIdObj().pushPrevious();
-            before = new LoadStack(newId, store.dest, new Spill(loc, Spill.Register.DEST));
+            // Store directly from stack to destination
+            before = new LoadStack(newId, (Assignable) store.source, new Spill(loc, Spill.Register.DEST), store);
         }
 
         if( after == null && before == null ) {
@@ -198,12 +204,12 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
         LoadStack before = null;
         if( not.dest.equals(toSpill) ) {
             TacID newId = not.getIdObj().pushNext();
-            after = new StoreStack(newId, not.dest, new Spill(loc, Spill.Register.DEST));
+            after = new StoreStack(newId, not.dest, new Spill(loc, Spill.Register.DEST), not);
         }
 
         if( not.src.equals(toSpill) ) {
             TacID newId = not.getIdObj().pushPrevious();
-            before = new LoadStack(newId, not.dest, new Spill(loc, Spill.Register.DEST));
+            before = new LoadStack(newId, not.dest, new Spill(loc, Spill.Register.DEST), not);
         }
 
         if( after == null && before == null ) {

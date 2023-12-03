@@ -327,7 +327,7 @@ class TACLiveness implements TACVisitor<LiveData> {
 
     @Override
     public LiveData visit(LoadStack lstack) {
-        return new LiveData(null, lstack.val, null);
+        return new LiveData(null, lstack.dest, null);
     }
 
     public LiveData visit(Load load) {

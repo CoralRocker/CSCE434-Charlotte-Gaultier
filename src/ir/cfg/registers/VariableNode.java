@@ -13,10 +13,21 @@ public class VariableNode {
 
     public Integer assignedRegister = null;
 
+    public void assign(VariableNode other) {
+        if( !var.equals(other.var) ) throw new RuntimeException("Cannot assign to variablenode for different variable!");
+
+        spill = other.spill;
+        exclude = other.exclude;
+        assignedRegister = other.assignedRegister;
+    }
+
     @Override
     public String toString() {
-        if( assignedRegister == null ) {
+        if( assignedRegister == null && !spill ) {
             return var.toString();
+        }
+        else if( spill ) {
+            return String.format("%s spilled", var);
         }
         else {
             return String.format("%s -> %%R%d", var, assignedRegister);

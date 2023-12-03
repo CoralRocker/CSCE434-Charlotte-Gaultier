@@ -116,9 +116,9 @@ public class RegisterInteferenceGraph {
             VariableNode node = entry.getKey();
             if( node.exclude ) continue;
 
-            sb.append(String.format("%s [shape=circle style=filled", node.var));
+            sb.append(String.format("%s [shape=circle style=filled", node.var, node.var,node));
             if( node.assignedRegister != null ) {
-                sb.append(String.format(" color=%d", node.assignedRegister+1));
+                sb.append(String.format(" color=%d label=\"%s %d\"", node.assignedRegister+1, node.var, node.assignedRegister));
             }
             else if( node.spill ) {
                 sb.append(" colorscheme=x11 color=red");
@@ -227,5 +227,12 @@ public class RegisterInteferenceGraph {
                 ourNode.exclude = var.exclude;
             }
         }
+    }
+
+    public void updateNode( VariableNode node ) {
+        VariableNode inRig = nodeResovler.get(node);
+        if( inRig == null ) throw new RuntimeException("VariableNode " + node + " is not in RIG");
+
+        inRig.assign(node);
     }
 }

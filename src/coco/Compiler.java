@@ -48,9 +48,11 @@ public class Compiler {
         if( cmd.hasOption("max") )
             optArguments.add("max");
 
+        if( optArguments.isEmpty() )
+            return flowGraphs.get(flowGraphs.size()-1).asDotGraph();
 
         for( CFG cfg : flowGraphs ) {
-            if( debug )
+            if( debug  )
                 System.out.printf("Pre-optimization: \n%s\n", cfg.asDotGraph());
             for (String opt : optArguments) {
                 // System.out.printf("Running opt: %s\n", opt);
