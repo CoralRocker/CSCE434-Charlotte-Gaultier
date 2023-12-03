@@ -117,10 +117,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock.add(tac2);
 
         return toRet;
+
         // toRet should be the value at arr[i]
         // how to handle stores?
         // we hit an array value, do all the math to figure out its offset in memory, and then need to store some value into it
         // so should array access return the mem offset?
+
 
 
     }
@@ -195,6 +197,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
             return null;
 //            dst = (Assignable)asn.getTarget().accept(this);
+
         }
 
 
