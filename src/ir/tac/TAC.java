@@ -37,4 +37,12 @@ public abstract class TAC implements Visitable{
         return dest;
     }
 
+    public String errMsg() {
+        return String.format("%d : %s", getId(), genDot());
+    }
+
+    @Override
+    public String toString() {
+        return genDot();
+    }
 }

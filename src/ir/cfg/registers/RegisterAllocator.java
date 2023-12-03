@@ -70,7 +70,7 @@ public class RegisterAllocator {
         RegisterInteferenceGraph newRIG = new RegisterInteferenceGraph();
         for( var blk : cfg.allNodes ) {
             for (TAC tac : blk.getInstructions()) {
-                List<Assignable> liveAtPoint = new ArrayList<>();
+                Set<Assignable> liveAtPoint = new HashSet<>();
                 liveAtPoint.addAll( tac.liveAfterPP );
 
                 if( tac.dest != null && !tac.liveBeforePP.contains(tac.dest) ) {
@@ -133,6 +133,7 @@ public class RegisterAllocator {
             available.removeAll(connections);
             if( !available.isEmpty() ) {
                 node.assignedRegister = available.first();
+                rig.updateNode(node);
                 allocation.put(node.var, node.assignedRegister);
             }
             else {
@@ -143,16 +144,17 @@ public class RegisterAllocator {
                 liveness.calculate(false);
                 rig = calculateRIG(cfg);
 
+                rig.updateNode(node);
+
                 allocation.put(node.var, -1);
             }
 
         }
 
-
-        // System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
+        rig.resetExclusion();
+        System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
         // System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());
-
-        // System.out.printf("Allocation Map: %s\n", allocation);
+        System.out.printf("Allocation Map: %s\n", allocation);
 
         return allocation;
     }

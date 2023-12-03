@@ -250,6 +250,10 @@ public class DLXCode {
             case UNRESOLVED_CALL -> {
                 return String.format("%-4s -> %s               %s", opcode.name(), funcSig, debug);
             }
+
+            case UNRESOLVED_BRANCH -> {
+                return String.format("%-4s R%-2d, BB%d         %s", opcode.name(), regA, immediate, debug);
+            }
         }
         throw new RuntimeException("Unknown DLX format?");
     }

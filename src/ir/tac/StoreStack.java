@@ -1,19 +1,20 @@
 package ir.tac;
 
 public class StoreStack extends TAC {
-
-    public final Assignable val;
     public final Spill loc;
 
-    public StoreStack(TacID id, Assignable val, Spill l) {
+    public final TAC cause;
+
+    public StoreStack(TacID id, Assignable val, Spill l, TAC cause) {
         super(id);
-        this.val = val;
+        this.dest = val;
         this.loc = l;
+        this.cause = cause;
     }
 
     @Override
     public String genDot() {
-        return String.format("StoreStack[%d] %s", loc.spillNo, val);
+        return String.format("StoreStack[%d from %s] %s (Caused by: %s)", -4 * loc.spillNo, loc.reg.name(), dest, cause.genDot());
     }
 
     @Override
