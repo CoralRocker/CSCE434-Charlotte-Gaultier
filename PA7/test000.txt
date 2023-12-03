@@ -6,6 +6,7 @@ int [8] arrA;
 
 // cp cf dce
 {
-    a = 1;
+    arrA[2] = 15;
+    a = arrA[2];
     call printInt( a );
 }.

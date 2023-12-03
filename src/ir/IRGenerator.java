@@ -85,13 +85,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(ast.ArrayIndex idx) {
-        Assignable tmpdest = asnDest;
 
-        asnDest = null;
         Value index = idx.getIndex().accept(this);
         tempNum += 1;
-        Value array = idx.getArray().accept(this) ;
-        asnDest = tmpdest;
+        Value array = idx.getArray().accept(this);
 
         int size = ((Variable)array).getSym().type().getSize();
         Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), size));
@@ -101,12 +98,14 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         tempNum += 1;
 
         Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
+        tempNum -= 1;
         curBlock.add(mulInst);
 
         // add offset to base address (array)
         Temporary addy = new Temporary(tempNum);
         tempNum += 1;
         Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
+        tempNum -= 1;
         curBlock.add(addInst);
 
         // Temporary ret = new Temporary(tempNum);
@@ -117,6 +116,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock.add(tac2);
 
         return toRet;
+        // toRet should be the value at arr[i]
+        // how to handle stores?
+        // we hit an array value, do all the math to figure out its offset in memory, and then need to store some value into it
+        // so should array access return the mem offset?
     }
 
     @Override
@@ -132,8 +135,61 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
             dst = new Variable(destSym, instr);
         }else if(asn.getTarget() instanceof ast.ArrayIndex){
-            dst = (Assignable)asn.getTarget().accept(this);
-//            destSym = ((ArrayIndex) asn.getTarget()).getSymbol();
+            // ARRAY CASE
+
+            ArrayIndex idx = (ArrayIndex) asn.getTarget();
+            Value index = idx.getIndex().accept(this);
+            tempNum += 1;
+            Value array = idx.getArray().accept(this);
+
+            int size = ((Variable)array).getSym().type().getSize();
+            Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), size));
+
+            Temporary offset = new Temporary(tempNum);
+            tempNum += 1;
+
+            Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
+            tempNum -= 1;
+            curBlock.add(mulInst);
+
+            // add offset to base address (array)
+            Temporary addy = new Temporary(tempNum);
+            tempNum += 1;
+            Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
+            tempNum -= 1;
+            curBlock.add(addInst);
+
+            AST astSource = asn.getRvalue();
+            Value src = null;
+
+            src = astSource.accept(this);
+            if( src == null ) {
+                throw new RuntimeException(String.format("%s does not work!", astSource));
+            }
+
+            if(src instanceof Literal){
+                tempNum += 1;
+                Temporary srcTemp = new Temporary(tempNum);
+                Store strSrc = new Store(curCFG.instrNumberer.push(), srcTemp, src);
+                curBlock.add(strSrc);
+
+                tempNum += 1;
+                StoreStack tac2 = new StoreStack(curCFG.instrNumberer.push(), srcTemp, addy);
+                curBlock.add(tac2);
+                // do all array shit in here, stores and all etc
+
+                return null;
+            }
+
+            // Temporary ret = new Temporary(tempNum);
+
+            tempNum += 1;
+            StoreStack tac2 = new StoreStack(curCFG.instrNumberer.push(), src, addy);
+            curBlock.add(tac2);
+            // do all array shit in here, stores and all etc
+
+            return null;
+//            dst = (Assignable)asn.getTarget().accept(this);
         }
 
 
@@ -141,6 +197,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value src = null;
 
         asnDest = dst;
+
         src = astSource.accept(this);
         if( src == null ) {
             throw new RuntimeException(String.format("%s does not work!", astSource));
