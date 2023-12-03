@@ -1,7 +1,7 @@
 package ir.tac;
 
 public class StoreStack extends TAC {
-<<<<<<< HEAD
+
 
     public Assignable val;
     public Spill loc;
@@ -9,11 +9,9 @@ public class StoreStack extends TAC {
     public Value src;
 
     public Value offset;
-=======
-    public final Spill loc;
->>>>>>> 5fdc4c2 (RegAlloc and spill fixes)
 
-    public final TAC cause;
+
+    public TAC cause;
 
     public StoreStack(TacID id, Assignable val, Spill l, TAC cause) {
         super(id);
@@ -34,6 +32,7 @@ public class StoreStack extends TAC {
         if (this.val == null){
             return String.format("StoreStack[%s] %s", offset, src);
         }
+
 
         return String.format("StoreStack[%d from %s] %s (Caused by: %s)", -4 * loc.spillNo, loc.reg.name(), dest, cause.genDot());
 

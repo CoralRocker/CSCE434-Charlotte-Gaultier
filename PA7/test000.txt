@@ -13,5 +13,4 @@ int [8] arrA;
     a = arrA[2];
     call printInt( a );
 
-
 }.
