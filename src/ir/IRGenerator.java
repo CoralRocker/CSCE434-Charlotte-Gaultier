@@ -86,10 +86,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     @Override
     public Value visit(ast.ArrayIndex idx) {
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 767445c (ssssssssssssssssssssssssssssssssssssssssssssssssxxload store stuff... getting closer)
         Value index = idx.getIndex().accept(this);
         tempNum += 1;
         Value array = idx.getArray().accept(this);
@@ -121,20 +117,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curBlock.add(tac2);
 
         return toRet;
-<<<<<<< HEAD
 
-=======
->>>>>>> 767445c (ssssssssssssssssssssssssssssssssssssssssssssssssxxload store stuff... getting closer)
-        // toRet should be the value at arr[i]
-        // how to handle stores?
-        // we hit an array value, do all the math to figure out its offset in memory, and then need to store some value into it
-        // so should array access return the mem offset?
-<<<<<<< HEAD
-
-
-
-=======
->>>>>>> 767445c (ssssssssssssssssssssssssssssssssssssssssssssssssxxload store stuff... getting closer)
     }
 
     @Override

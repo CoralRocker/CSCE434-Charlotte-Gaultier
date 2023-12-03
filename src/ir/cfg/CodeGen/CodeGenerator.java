@@ -686,7 +686,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
             return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, FRAME_PTR, offset, sstack) );
         }
-        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo. sstack) );
+        return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo, sstack) );
 
     }
 
