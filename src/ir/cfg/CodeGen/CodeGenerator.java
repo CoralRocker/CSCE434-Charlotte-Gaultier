@@ -70,12 +70,12 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         return move( destReg, reg, tac );
     }
 
-    public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain) {
+    public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain, boolean do_print) {
         cfg.genAllNodes();
 
         CodeGenerator visitor = new CodeGenerator();
 
-        RegisterAllocator allocator = new RegisterAllocator(nRegs);
+        RegisterAllocator allocator = new RegisterAllocator(nRegs, do_print);
         visitor.registers = allocator.allocateRegisters(cfg);
         visitor.labels = new HashMap<>();
         visitor.isMain = isMain;
@@ -84,27 +84,30 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         visitor.numSavedRegisters = -1;
         visitor.cfg = cfg;
 
-        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, true);
+        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, do_print);
         cleaner.clean();
 
         for( var entry : visitor.registers.entrySet() ) {
             if( entry.getValue() == -1 ) {
                 visitor.numSpills++;
 
-                System.out.printf( "Variable %s is spilled to location %2d <=> %2d\n", entry.getKey(), entry.getKey().spilled.spillNo, -4 * entry.getKey().spilled.spillNo );
+                if( do_print )
+                    System.out.printf( "Variable %s is spilled to location %2d <=> %2d\n", entry.getKey(), entry.getKey().spilled.spillNo, -4 * entry.getKey().spilled.spillNo );
             }
         }
 
-        System.out.printf("Register Allocation: %s\n", visitor.registers );
-        System.out.printf("%s\n", cfg.asDotGraph());
+        if( do_print ) {
+            System.out.printf("Register Allocation: %s\n", visitor.registers);
+            System.out.printf("%s\n", cfg.asDotGraph());
 
-        for (BasicBlock blk : cfg.allNodes) {
-            System.out.printf("BB%d:\n", blk.getNum());
-            for (TAC tac : blk.getInstructions()) {
-                System.out.printf("%3d: %-20s %15s -> %-15s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
+            for (BasicBlock blk : cfg.allNodes) {
+                System.out.printf("BB%d:\n", blk.getNum());
+                for (TAC tac : blk.getInstructions()) {
+                    System.out.printf("%3d: %-20s %15s -> %-15s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
+                }
             }
+            System.out.println("\n");
         }
-        System.out.println("\n");
 
         List<DLXCode> instructions = new ArrayList<>();
 
@@ -207,7 +210,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             counter++;
         }
 
-        System.out.printf("Branch Locations: %s\n", visitor.labels);
+        if( do_print )
+            System.out.printf("Branch Locations: %s\n", visitor.labels);
 
         return instructions;
     }

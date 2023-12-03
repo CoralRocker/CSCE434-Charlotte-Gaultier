@@ -28,8 +28,11 @@ public class RegisterAllocator {
     private RegisterInteferenceGraph rig;
     private int numRegisters;
 
-    public RegisterAllocator(int n) {
+    private boolean do_print;
+
+    public RegisterAllocator(int n, boolean do_print) {
         numRegisters = n;
+        this.do_print = do_print;
     }
 
     public HashMap<Assignable, ArrayList<LiveRange>> calculateLiveRange(CFG cfg) {
@@ -96,12 +99,14 @@ public class RegisterAllocator {
         ProgramPointLiveness liveness = new ProgramPointLiveness(cfg);
         liveness.calculate(false);
 
-        // System.out.printf("%-25s | %-20s | %-20s\n", "Instruction", "Live Before", "Live After");
-        // for(BasicBlock blk : cfg.allNodes ) {
-        //     for( TAC tac : blk.getInstructions() ) {
-        //         System.out.printf("%3d: %-20s | %-20s | %-20s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
-        //     }
-        // }
+        if( do_print ) {
+            System.out.printf("%-25s | %-20s | %-20s\n", "Instruction", "Live Before", "Live After");
+            for (BasicBlock blk : cfg.allNodes) {
+                for (TAC tac : blk.getInstructions()) {
+                    System.out.printf("%3d: %-20s | %-20s | %-20s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
+                }
+            }
+        }
 
         rig = calculateRIG(cfg);
 
@@ -151,10 +156,12 @@ public class RegisterAllocator {
 
         }
 
-        rig.resetExclusion();
-        System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
-        // System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());
-        System.out.printf("Allocation Map: %s\n", allocation);
+        if( do_print ) {
+            rig.resetExclusion();
+            System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
+            // System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());
+            System.out.printf("Allocation Map: %s\n", allocation);
+        }
 
         return allocation;
     }

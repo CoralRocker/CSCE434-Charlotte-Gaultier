@@ -224,7 +224,7 @@ public class Compiler {
     public int[] genCode(){
 
         // TODO Generate code for functions (add below main code)
-        List<DLXCode> assembly = CodeGenerator.generate(flowGraphs.get(flowGraphs.size()-1), numDataRegisters, true);
+        List<DLXCode> assembly = CodeGenerator.generate(flowGraphs.get(flowGraphs.size()-1), numDataRegisters, true, debug);
 
         instructions = new ArrayList<>();
         HashMap<String, Integer> funcMap = new HashMap<>();
@@ -233,7 +233,7 @@ public class Compiler {
         for( int cfg = 0; cfg < (flowGraphs.size()-1); cfg++ ) {
             CFG graph = flowGraphs.get(cfg);
             funcMap.put(graph.cfgID, assembly.size());
-            List<DLXCode> func = CodeGenerator.generate(graph, numDataRegisters, false);
+            List<DLXCode> func = CodeGenerator.generate(graph, numDataRegisters, false, debug);
 
             assembly.addAll(func);
         }
