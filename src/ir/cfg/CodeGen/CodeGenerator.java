@@ -84,8 +84,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         visitor.numSavedRegisters = -1;
         visitor.cfg = cfg;
 
-        // LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, do_print);
-        // cleaner.clean();
+        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, do_print);
+        cleaner.clean();
 
         for( var entry : visitor.registers.entrySet() ) {
             if( entry.getValue() == -1 ) {

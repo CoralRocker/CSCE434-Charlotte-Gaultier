@@ -47,6 +47,30 @@ public class Compiler {
         if( cmd.hasOption("max") )
             optArguments.add("max");
 
+        var argIter = optArguments.listIterator();
+        while( argIter.hasNext() ) {
+            String opt = argIter.next();
+
+            if( opt.equals("cf") ) {
+                int nxt = argIter.nextIndex();
+                if( nxt < optArguments.size() && optArguments.get(nxt).equals("cp") ) {
+                    argIter.remove();
+                    argIter.next();
+                    argIter.set("cpcf");
+                }
+            }
+            else if( opt.equals("cp") ) {
+                int nxt = argIter.nextIndex();
+                if( nxt < optArguments.size() && optArguments.get(nxt).equals("cf") ) {
+                    argIter.remove();
+                    argIter.next();
+                    argIter.set("cpcf");
+                }
+            }
+
+
+        }
+
         if( optArguments.isEmpty() )
             return flowGraphs.get(flowGraphs.size()-1).asDotGraph();
 
@@ -56,6 +80,9 @@ public class Compiler {
             for (String opt : optArguments) {
                 // System.out.printf("Running opt: %s\n", opt);
                 switch (opt) {
+                    case "cpcf" -> {
+                        ReachingDefinition def = new ReachingDefinition(cfg, true, true, false, debug);
+                    }
                     case "cf" -> {
                         ReachingDefinition def = new ReachingDefinition(cfg, false, true, false, debug);
                     }
