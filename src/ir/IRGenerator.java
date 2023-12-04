@@ -58,11 +58,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
     @Override
     public Value visit(ArgList list) {
-        tempNum = 0;
         List<Assignable> args = new ArrayList<>();
-        int ctr = 0;
         for( AST ast : list.getArgs() ) {
-            tempNum = ctr;
             Value val = ast.accept(this);
 
             if( val instanceof Assignable ) {
@@ -70,12 +67,10 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
                 continue;
             }
             else {
-                tempNum = ctr;
-                var temp = new Temporary(tempNum);
+                var temp = new Temporary(tempNum++);
                 curBlock.add(new Store(curCFG.instrNumberer.push(), temp, val));
                 args.add(temp);
             }
-            ctr++;
         }
 
         list.argTAC = args;
@@ -306,7 +301,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         fc.getArgs().accept(this);
 
-        tempNum = 0;
         Assignable retval = asnDest;
         Call tac;
         if( retval == null ) {

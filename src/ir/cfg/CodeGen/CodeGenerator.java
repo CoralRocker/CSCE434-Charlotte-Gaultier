@@ -405,13 +405,14 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         // Issue jump
         callCode.add(DLXCode.unresolvedCall(DLXCode.OPCODE.JSR, ((FunctionSymbol)call.function).typeSignatures(), call));
 
+        int returnReg = -1;
         // Have Return?
         if( !((FunctionSymbol) call.function).getRealReturnType().equals(new VoidType()) ) {
             // Save Return to proper variable
             if( registers.containsKey(call.dest) ){
-                int dest = registers.get(call.dest);
-                if( dest != -1 ) {
-                    callCode.addAll( move(dest, 1, call) );
+                returnReg = registers.get(call.dest);
+                if( returnReg != -1 ) {
+                    callCode.addAll( move(returnReg, 1, call) );
                 }
                 else {
                     throw new RuntimeException("Store return value to spill");
@@ -433,6 +434,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             }
 
             int dest = registers.get(sym);
+            if( returnReg != -1 && dest == returnReg ) continue;
             callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
         }
 
@@ -455,6 +457,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 }
 
                 int dest = registers.get(symvar);
+                if( returnReg != -1 && dest == returnReg ) continue;
                 if( do_print )
                     System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
                 callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -1 * sym.globalLoc, call ));

@@ -28,6 +28,12 @@ public class Pow extends Assign{
             throw new RuntimeException("Cannot mul bools");
         }
 
-        return Literal.get( lhs.getInt() * rhs.getInt() );
+        Double pow = Math.pow( lhs.getInt(), rhs.getInt() );
+        if( pow > Integer.MAX_VALUE ) {
+            throw new RuntimeException(String.format("In constant folding of [%d : %s] : %f is larger than max value of int", getId(), toString(), pow));
+        }
+
+
+        return Literal.get( pow.intValue() );
     }
 }
