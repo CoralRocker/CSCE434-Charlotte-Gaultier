@@ -344,6 +344,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
         List<DLXCode> callCode = new ArrayList<>();
 
+        int numSaved = 0;
 
         // Save Each Register
         // for( int i = 1; i <= numSavedRegisters; i++ ) {
@@ -362,6 +363,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
             int dest = registers.get(sym);
             sym.saveLocation = saveno++;
+            numSaved++;
             callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
         }
 
@@ -384,15 +386,16 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 if( do_print )
                     System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
                 callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -1 * sym.globalLoc, call ));
+                numSaved++;
             }
         }
 
         // Save the current SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 1), call) );
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * 4 * (numSpills + numSavedRegisters + 2), call) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * 4 * (numSaved + 1), call) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * 4 * (numSaved + 2), call) );
 
         // Set the new SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, 4 * (numSpills + numSavedRegisters + 2), call) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, 4 * (numSaved + 2), call) );
         callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 4, call)); // TODO: Stack spilled args
 
         // Set the arguments on the stack

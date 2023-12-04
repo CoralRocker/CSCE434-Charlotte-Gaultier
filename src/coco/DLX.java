@@ -297,7 +297,6 @@ public class DLX {
                         }
                         break;
                     case JSR:
-                        System.err.printf("Jumping to %3d from %3d\n", c / 4, PC);
                         R[31] = 4 * (PC + 1);
                         nextPC = c / 4;
                         if (nextPC < 0 || nextPC > MEM_SIZE/4) {
