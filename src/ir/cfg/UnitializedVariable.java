@@ -119,7 +119,53 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
         boolean cfgchanged = false;
 
+
         // Perform Initialization
+        var blk1 = cfg.allNodes.get(0);
+        boolean isArray = false;
+        HashSet<Assignable> uninit1 = (HashSet<Assignable>) blk1.state;
+        int ctr1 = 0;
+        var instructions1 = blk1.getInstructions();
+        TacID blkfront1 = null;
+        for( var var : uninit1 ) {
+            if (((Variable) var).getSym().type().getDims() != null) {
+                // is array
+                isArray = true;
+            }
+            TacID ntac = null;
+            if (blkfront1 == null) {
+                ntac = instructions1.get(0).getIdObj().pushPrevious();
+                blkfront1 = ntac;
+            } else {
+                ntac = blkfront1.pushNext();
+                blkfront1 = ntac;
+            }
+            if (isArray) {
+                ArrayList<Integer> dims = ((Variable) var).getSym().type().getDims();
+                int size = dims.get(0);
+                if (dims.size() == 2) {
+                    size *= dims.get(0);
+                }
+                for (int i = 0; i < size - 1; i++) {
+                    Temporary temp = new Temporary(0);
+                    TAC addy = new Add(ntac, temp, var, Literal.get(-i * 4));
+                    instructions1.add(ctr1, addy);
+                    ctr1++;
+                    ntac = blkfront1.pushNext();
+                    blkfront1 = ntac;
+                    TAC tac = new StoreStack(ntac, Literal.get(0), temp);
+                    instructions1.add(ctr1, tac);
+                    if (do_print) {
+                        System.out.printf("Adding %s as instruction %d in block %s\n", tac, ctr1, blk1);
+                    }
+                    ctr1++;
+                    ntac = blkfront1.pushNext();
+                    blkfront1 = ntac;
+                }
+            }
+        }
+
+
         for( var blk : cfg.allNodes ) {
             HashSet<Assignable> uninit = (HashSet<Assignable>) blk.state;
 
@@ -128,12 +174,18 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
             cfgchanged = true;
 
             var preds = blk.getPredecessors();
+
+
             // If 1 or less predecessors, trivial to init
             if( preds.size() <= 1 ) {
                 int ctr = 0;
                 var instructions = blk.getInstructions();
                 TacID blkfront = null;
                 for( var var : uninit ) {
+                    if (((Variable) var).getSym().type().getDims() != null) {
+                        // is array
+                        isArray = true;
+                    }
                     TacID ntac = null;
                     if( blkfront == null ) {
                         ntac = instructions.get(0).getIdObj().pushPrevious();
@@ -144,12 +196,14 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                         blkfront = ntac;
                     }
 
-                    TAC tac = new Store(ntac, var, Literal.get(0) );
-                    instructions.add(ctr, tac);
-                    if( do_print ) {
-                        System.out.printf("Adding %s as instruction %d in block %s\n", tac, ctr, blk);
+                    if(!isArray) {
+                        TAC tac = new Store(ntac, var, Literal.get(0));
+                        instructions.add(ctr, tac);
+                        if (do_print) {
+                            System.out.printf("Adding %s as instruction %d in block %s\n", tac, ctr, blk);
+                        }
+                        ctr++;
                     }
-                    ctr++;
                 }
             }
             else {
@@ -164,6 +218,10 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
                 // Repartition the variables to each block for initialization
                 for( var var : uninit ) {
+                    if(((Variable)var).getSym().type().getDims() != null ){
+                        // is array
+                        isArray = true;
+                    }
                     boolean p1 = isInit.apply(prev1, var);
                     boolean p2 = isInit.apply(prev2, var);
 

@@ -2,17 +2,19 @@ main
 
 int x, y, z, a;
 
-
-int [8][8] arrA;
-
+int [8] arrA;
+int [8] arrB;
 
 // cp cf dce
 {
+    y = 3;
 
-    arrA[3][0] = 10;
-    arrA[3][1] = 11;
+    arrA[3] = 10;
+    arrB[3] = 11;
 
-    call printInt( arrA[3][0] );
-    call printInt( arrA[3][1] );
+    call printInt( arrA[3] );
+    call printInt( arrB[3] );
+    call printInt( y );
+
 
 }.

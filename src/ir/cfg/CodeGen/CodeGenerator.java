@@ -740,15 +740,24 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     @Override
     public List<DLXCode> visit(StoreStack sstack) {
         if (sstack.dest == null) {
-            int src;
-            if(sstack.src instanceof Literal){
-                src = ((Literal) sstack.src).getInt();
-                int offset = registers.get(sstack.offset);
-                return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, -1 * offset, FRAME_PTR, src, sstack) );
-            }else{
-                src = registers.get(sstack.src);
+            int offset;
+            if(sstack.src instanceof Literal) {
+                // initing to 0 case
+                offset = registers.get(sstack.offset);
+                if (sstack.isArray()) {
+                    return List.of(DLXCode.regOp(DLXCode.OPCODE.STX, 0, GLOB_VAR, offset, sstack));
+                }
             }
-            int offset = registers.get(sstack.offset);
+            if(sstack.offset instanceof Literal){
+                offset = ((Literal) sstack.offset).getInt();
+                if(sstack.isArray()){
+                    return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, 0, GLOB_VAR, offset, sstack) );
+                }
+            }else{
+                offset = registers.get(sstack.offset);
+            }
+
+            int src = registers.get(sstack.src);
             if(sstack.offset.isGlobal) {
                 return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, GLOB_VAR, offset, sstack) );
             }
