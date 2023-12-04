@@ -124,6 +124,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                     }
                     else {
                         ntac = blkfront.pushNext();
+                        blkfront = ntac;
                     }
 
                     TAC tac = new Store(ntac, var, Literal.get(0) );
