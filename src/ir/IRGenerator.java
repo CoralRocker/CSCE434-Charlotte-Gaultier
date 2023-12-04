@@ -375,6 +375,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             ((Relation) is.getIfrel()).isBranchRel = true;
 
         Value val = is.getIfrel().accept(this);
+        if( val instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) val;
+            val = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) val) );
+        }
 
         BasicBlock nextBlock = new BasicBlock(-1, "Post-If"); // Block After If and Else
         BasicBlock ifblock = new BasicBlock(-1, "If"); // Block with if case
@@ -695,6 +700,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         if( rep.getRelation() instanceof Relation )
             ((Relation) rep.getRelation()).isBranchRel = true;
         Value val = rep.getRelation().accept(this);
+        if( val instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) val;
+            val = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) val) );
+        }
 
         // Get the inverse of the relation (to restart loop)
         postRep.setNum(blockNo++);
@@ -842,6 +852,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         if( wstat.getRelation() instanceof Relation )
             ((Relation) wstat.getRelation()).isBranchRel = true;
         Value stmt = wstat.getRelation().accept(this);
+        if( stmt instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) stmt;
+            stmt = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) stmt) );
+        }
 
         BasicBlock loopBlk = new BasicBlock(blockNo++, "While"),
                    postLoop = new BasicBlock(-1, "Post-While");
@@ -889,6 +904,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         tempNum = 0;
 
         stmt = wstat.getRelation().accept(this);
+        if( stmt instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) stmt;
+            stmt = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) stmt) );
+        }
         if( !(stmt instanceof Assignable) ) {
             Temporary tmp = new Temporary( tempNum++);
             Store str = new Store(curCFG.instrNumberer.push(), tmp, stmt);
