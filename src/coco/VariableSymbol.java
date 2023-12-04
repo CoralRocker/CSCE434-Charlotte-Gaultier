@@ -8,7 +8,7 @@ public class VariableSymbol extends Symbol implements Comparable<VariableSymbol>
     private Object value;
 
 
-    public boolean isInitialized = false;
+    public boolean isGlobal = false;
     public int globalLoc = -1;
     public boolean isFunctionParam = false;
 

@@ -91,7 +91,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value array = idx.getArray().accept(this);
 
         int size = ((Variable)array).getSym().type().getSize();
-        Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), size));
+        Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), -1 * size));
         // size in bytes of the array object
         // calculate ind * size = offset
         Temporary offset = new Temporary(tempNum);
@@ -108,16 +108,16 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
         tempNum -= 1;
         curBlock.add(addInst);
+        addy.isGlobal = ((VariableSymbol)((Variable) array).getSym()).isGlobal;
 
         // Temporary ret = new Temporary(tempNum);
         Variable ret = new Variable(((Variable)array).getSym());
         Temporary toRet = new Temporary(tempNum);
         tempNum += 1;
-        Load tac2 = new Load(curCFG.instrNumberer.push(), toRet, addy);
+        Load tac2 = new Load(curCFG.instrNumberer.push(), ret, addy);
         curBlock.add(tac2);
 
-        return toRet;
-
+        return ret;
     }
 
     @Override
@@ -142,7 +142,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             Value array = idx.getArray().accept(this);
 
             int size = ((Variable)array).getSym().type().getSize();
-            Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), size));
+            Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), -1 * size));
 
             Temporary offset = new Temporary(tempNum);
             tempNum += 1;
@@ -157,6 +157,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
             tempNum -= 1;
             curBlock.add(addInst);
+            addy.isGlobal = ((VariableSymbol)((Variable) array).getSym()).isGlobal;
 
             AST astSource = asn.getRvalue();
             Value src = null;
@@ -776,10 +777,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         if( root.getVars() != null )
             root.getVars().accept(this);
 
+
         int i = 0;
         if( curCFG.getSymbols() != null ) {
             for( var sym : curCFG.getSymbols().keySet() ) {
                 sym.globalLoc = i++; // Global counter
+                if(curCFG.cfgID == "main") sym.isGlobal = true;
             }
         }
 

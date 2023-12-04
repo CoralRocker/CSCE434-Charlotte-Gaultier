@@ -140,7 +140,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 ((VariableSymbol) sym.getValue()).globalLoc = varSize;
                 if( !(((VariableSymbol)sym.getValue()).type().getDims() == null) ){
                     Variable var = new Variable((VariableSymbol)sym.getValue());
-                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, visitor.registers.get(var), FRAME_PTR, -1 * varSize, null) );
+                    var.isGlobal = true;
+                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, visitor.registers.get(var), 0, -1 * varSize, null) );
                     // just do new Variable instead of this
                     ArrayList<Integer> dims = ((VariableSymbol)sym.getValue()).type().getDims();
                     if(dims.size() == 2){
@@ -152,9 +153,12 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     varSize += 4;
                 }
             }
+
         }
         else { // Generate Stack Frame Shit
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0, null )); // Save return address
+
+            // load local arrays
 
             // Load Args
             int arg = 1;
@@ -705,31 +709,35 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         if( dest == -1 ) {
             dest = SPILL_DEST;
         }
+
         if( load.offset instanceof Literal ) {
             // DEST = R0(always 0) + literal
             return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt(), load ));
         }else{
+
             int offset = registers.get(load.offset);
-            // BUG: offset is always 1. why
+            if(load.offset.isGlobal) {
+                return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, GLOB_VAR, offset, load ));
+            }
             return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset, load ));
         }
-
     }
 
     @Override
     public List<DLXCode> visit(StoreStack sstack) {
-
         if (sstack.dest == null) {
             int src;
             if(sstack.src instanceof Literal){
                 src = ((Literal) sstack.src).getInt();
                 int offset = registers.get(sstack.offset);
-                return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, offset, FRAME_PTR, src, sstack) );
+                return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, -1 * offset, FRAME_PTR, src, sstack) );
             }else{
                 src = registers.get(sstack.src);
             }
             int offset = registers.get(sstack.offset);
-
+            if(sstack.offset.isGlobal) {
+                return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, GLOB_VAR, offset, sstack) );
+            }
             return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, FRAME_PTR, offset, sstack) );
         }
         return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo, sstack) );
