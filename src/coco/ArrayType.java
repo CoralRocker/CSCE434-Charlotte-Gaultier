@@ -22,6 +22,14 @@ public class ArrayType {
     private ArrayList< ArrayType > arglist = null;
 
     private ArrayList< Integer > dims;
+    public ArrayList<Integer> getDims() {
+        return dims;
+    }
+
+    public void setDims(ArrayList<Integer> dims) {
+        this.dims = dims;
+    }
+
 
     private int paramdims = 0;
 

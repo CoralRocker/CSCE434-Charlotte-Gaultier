@@ -2,6 +2,7 @@ package ir.cfg.CodeGen;
 
 import coco.DLX;
 import coco.FunctionSymbol;
+import coco.VariableSymbol;
 import ir.cfg.BasicBlock;
 import ir.cfg.*;
 import ir.cfg.registers.LoadStoreCleaner;
@@ -15,7 +16,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     public static final int STACK_PTR = 29, FRAME_PTR = 28, SPILL_DEST = 27, SPILL_LHS = 26, SPILL_RHS = 25, GLOB_VAR = 30, PREV_PC = 31;
 
-    private HashMap<Assignable, Integer> registers;
+    private static HashMap<Assignable, Integer> registers;
     private Map<Integer, Integer> labels; // Associate label number to instruction number at start of label (relative to CFG numbering, not global)
 
     private int numSpills;
@@ -110,10 +111,41 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
         // if is main, generate the necessary start of stack bullshit
         if( isMain ) {
-
-            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, 4 * cfg.getSymbols().size(), null ) );
+            int varSize = 0;
+            for (Map.Entry sym : cfg.getSymbols().entrySet()){
+                ((VariableSymbol) sym.getValue()).globalLoc = varSize;
+                if( !(((VariableSymbol)sym.getValue()).type().getDims() == null) ){
+                    // this means it's an array
+                    ArrayList<Integer> dims = ((VariableSymbol)sym.getValue()).type().getDims();
+                    if(dims.size() == 2){
+                        varSize += 4 * dims.get(0) * dims.get(1);
+                    }else{
+                        varSize += 4 * dims.get(0);
+                    }
+                }else{
+                    varSize += 4;
+                }
+            }
+            // store array start addresses into correct vars
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, varSize, null ) );
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0, null) );
-
+            varSize = 0;
+            for (Map.Entry sym : cfg.getSymbols().entrySet()){
+                ((VariableSymbol) sym.getValue()).globalLoc = varSize;
+                if( !(((VariableSymbol)sym.getValue()).type().getDims() == null) ){
+                    Variable var = new Variable((VariableSymbol)sym.getValue());
+                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, registers.get(var), FRAME_PTR, -1 * varSize, null) );
+                    // just do new Variable instead of this
+                    ArrayList<Integer> dims = ((VariableSymbol)sym.getValue()).type().getDims();
+                    if(dims.size() == 2){
+                        varSize += 4 * dims.get(0) * dims.get(1);
+                    }else{
+                        varSize += 4 * dims.get(0);
+                    }
+                }else{
+                    varSize += 4;
+                }
+            }
         }
         else { // Generate Stack Frame Shit
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0, null )); // Save return address
