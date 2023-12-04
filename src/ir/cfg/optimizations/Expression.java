@@ -14,6 +14,21 @@ public class Expression {
         args = expr.args;
     }
 
+    public boolean isCopy() {
+        return args.length == 1 && op instanceof Store;
+    }
+
+    public boolean isSubexpression() {
+        return args.length == 2 && (op instanceof Assign || op instanceof Not);
+    }
+
+    protected void setExprNotDest( Expression expr ) {
+        if( !expr.dest.equals(dest) ) throw new RuntimeException("Cannot merge two expressions with differing destinations!");
+
+        op = expr.op;
+        args = expr.args;
+    }
+
     private boolean isValidOp(TAC op) {
         if (op instanceof Assign) {
             return true;

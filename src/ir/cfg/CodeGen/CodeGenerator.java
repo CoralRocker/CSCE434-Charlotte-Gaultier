@@ -16,7 +16,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     public static final int STACK_PTR = 29, FRAME_PTR = 28, SPILL_DEST = 27, SPILL_LHS = 26, SPILL_RHS = 25, GLOB_VAR = 30, PREV_PC = 31;
 
-    private static HashMap<Assignable, Integer> registers;
+    private HashMap<Assignable, Integer> registers;
     private Map<Integer, Integer> labels; // Associate label number to instruction number at start of label (relative to CFG numbering, not global)
 
     private int numSpills;
@@ -71,12 +71,12 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         return move( destReg, reg, tac );
     }
 
-    public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain) {
+    public static List<DLXCode> generate(CFG cfg, int nRegs, boolean isMain, boolean do_print) {
         cfg.genAllNodes();
 
         CodeGenerator visitor = new CodeGenerator();
 
-        RegisterAllocator allocator = new RegisterAllocator(nRegs);
+        RegisterAllocator allocator = new RegisterAllocator(nRegs, do_print);
         visitor.registers = allocator.allocateRegisters(cfg);
         visitor.labels = new HashMap<>();
         visitor.isMain = isMain;
@@ -85,7 +85,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         visitor.numSavedRegisters = -1;
         visitor.cfg = cfg;
 
-        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, true);
+        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, do_print);
         cleaner.clean();
 
         for( var entry : visitor.registers.entrySet() ) {
@@ -146,6 +146,10 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     varSize += 4;
                 }
             }
+
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, 4 * cfg.getSymbols().size(), null ) );
+            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0, null) );
+
         }
         else { // Generate Stack Frame Shit
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0, null )); // Save return address
@@ -239,7 +243,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             counter++;
         }
 
-        System.out.printf("Branch Locations: %s\n", visitor.labels);
+        if( do_print )
+            System.out.printf("Branch Locations: %s\n", visitor.labels);
 
         return instructions;
     }
@@ -666,13 +671,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     }
 
     @Override
-
-    public List<DLXCode> visit(Store store) {int dest = registers.get(store.dest);
-        if( dest == -1 ) {
-            dest = SPILL_DEST;
-        }
-
-
+    public List<DLXCode> visit(Store store) {
+        int dest = getDest(store.dest);
         if( store.source instanceof Literal ) {
             // DEST = R0(always 0) + literal
             return move( dest, (Literal) store.source, store);

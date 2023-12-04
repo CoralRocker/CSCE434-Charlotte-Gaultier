@@ -15,12 +15,23 @@ public class ExprInBlock implements TACVisitor<Expression> {
 
     // Given a store "a = Store b"
     // Searches for an expression which stores to b (can only have one by definition)
+    // Used to replace `b` with whatever is returned (if it's a store)
     //
+    // Not safe to give null
     private Expression containsStoreDest( Expression cont ) {
         if( cont.args.length != 1 ) throw new RuntimeException("Can only check for store source of a store expression!");
         if( !(cont.args[0] instanceof Assignable) ) return null; // No redefining literals
 
         Assignable str = (Assignable) cont.args[0];
+
+        return containsStoreDest(str);
+    }
+
+    // Returns the first expression which stores to the given Assignable
+    // Safe to give null
+    private Expression containsStoreDest( Assignable str ) {
+        if( str == null ) return null;
+
         for( Expression expr : avail.keySet() ) {
             if( expr.dest.equals(str) ) {
                 return expr;
@@ -30,6 +41,11 @@ public class ExprInBlock implements TACVisitor<Expression> {
         return null;
     }
 
+    /**
+     * Returns the first expression which has the same destination as the given one
+     * @param cont
+     * @return
+     */
     private Expression containsByDest( Expression cont ) {
         for( Expression expr : avail.keySet() ) {
             if( expr.dest.equals(cont.dest) )
@@ -73,7 +89,7 @@ public class ExprInBlock implements TACVisitor<Expression> {
             // System.out.printf("Post instruction %2d: %s\n", instr.getId(), visitor.avail.keySet());
             if (ret != null && ret.op.getId() != instr.getId()) {
                 // Do Copy Propagation
-                if (instr instanceof Store && do_cpp && !(((Store) instr).source instanceof Literal) ) {
+                if (instr instanceof Store && do_cpp && !(((Store) instr).source instanceof Literal) && ret.isCopy() ) {
                     Store str = new Store( instr.getIdObj(), ((Store)instr).dest, ret.args[0]);
                     blk.getInstructions().set(ctr, str);
                     Expression expr = new Expression(str.dest, str, str.source);
@@ -145,6 +161,23 @@ public class ExprInBlock implements TACVisitor<Expression> {
 
     @Override
     public Expression visit(Assign asn) {
+        // Perform CPP on Asn before adding to expressions
+        if( do_cpp ) {
+            Assignable lhs = (asn.left instanceof Assignable) ? (Assignable) asn.left : null;
+            Assignable rhs = (asn.right instanceof Assignable) ? (Assignable) asn.right : null;
+
+            Expression lexpr = containsStoreDest(lhs);
+            Expression rexpr = containsStoreDest(rhs);
+
+            if( lexpr != null && lexpr.isCopy() && lexpr.args[0] instanceof Assignable ) {
+                asn.left = lexpr.args[0];
+            }
+
+            if( rexpr != null && rexpr.isCopy() && rexpr.args[0] instanceof Assignable ) {
+                asn.right = rexpr.args[0];
+            }
+        }
+
         Expression expr = new Expression(asn.dest, asn, asn.left, asn.right);
 
         Expression contained = contains(expr);

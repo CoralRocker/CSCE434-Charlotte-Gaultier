@@ -89,6 +89,10 @@ public class ProgramPointLiveness {
         cfg.breadthFirst(blk -> {
             blk.live_in = new HashSet<>();  // Live in: Variable live at block entry
             blk.live_out = new HashSet<>(); // Live out: Variables live at block exit
+            for( TAC tac : blk.getInstructions() ) {
+                tac.liveBeforePP = new HashSet<>();
+                tac.liveAfterPP = new HashSet<>();
+            }
         });
 
         var changed = new Object(){ boolean b = true; };
@@ -96,6 +100,7 @@ public class ProgramPointLiveness {
         while( changed.b ) {
             changed.b = false;
             iterations++;
+            if( iterations == 1 ) changed.b = true;
             cfg.reverseBreadthFirst(blk -> {
                 HashSet<Assignable> old_live = blk.live_out;
                 blk.live_out = new HashSet<>(old_live.size());
@@ -406,6 +411,9 @@ class DeadCode implements TACVisitor<Boolean> {
                 boolean dead = instr.accept(dce);
                 changed |= dead;
                 if( dead ) {
+                    if( do_print ) {
+                        System.out.printf("Removing %-3d : %-20s : Before %-30s : After %-30s\n", instr.getId(), instr, instr.liveBeforePP, instr.liveAfterPP);
+                    }
                     iter.remove();
                     removed.add(instr.getIdObj());
                 }
