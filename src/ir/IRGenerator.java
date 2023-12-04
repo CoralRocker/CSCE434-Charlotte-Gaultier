@@ -45,8 +45,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = add.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         tempNum += 1;
         Value rval = add.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         tempNum -= 1;
         asnDest = tmpdest;
 
@@ -70,7 +80,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             else if( val instanceof ArrayValue ) {
                 ArrayValue arrval = (ArrayValue) val;
                 Temporary dest = new Temporary(tempNum++);
-                Load ld = new Load(curCFG.instrNumberer.push(), dest, arrval.array, arrval.offset);
+                Load ld = arrval.genLoad(curCFG, dest); // new Load(curCFG.instrNumberer.push(), dest, arrval.array, arrval.offset);
                 curBlock.add(ld);
                 args.add( dest );
             }
@@ -138,32 +148,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         else {
             throw new RuntimeException("Array return not Variable or ArrayValue?");
         }
-        // int size = ((Variable)array).getSym().type().getSize();
-        // Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), -1 * size));
-        // // size in bytes of the array object
-        // // calculate ind * size = offset
-        // Temporary offset = new Temporary(tempNum);
-        // tempNum += 1;
-
-        // Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
-        // tempNum -= 1;
-        // curBlock.add(mulInst);
-
-        // // add offset to base address (array)
-        // Temporary addy = new Temporary(tempNum);
-
-        // tempNum += 1;
-        // Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
-        // tempNum -= 1;
-        // curBlock.add(addInst);
-        // addy.isGlobal = ((VariableSymbol)((Variable) array).getSym()).isGlobal;
-
-        // // Temporary ret = new Temporary(tempNum);
-        // // Variable ret = new Variable(((Variable)array).getSym());
-        // Temporary toRet = new Temporary(tempNum);
-        // tempNum += 1;
-        // Load tac2 = new Load(curCFG.instrNumberer.push(), toRet, addy);
-        // curBlock.add(tac2);
 
     }
 
@@ -182,6 +166,12 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         if( src == null ) {
             throw new RuntimeException(String.format("%s does not work!", astSource));
         }
+        if( src instanceof ArrayValue ) {
+            ArrayValue arrval = (ArrayValue) src;
+            src = new Temporary(tempNum++);
+            Load ld = arrval.genLoad(curCFG, (Assignable) src);
+            curBlock.add(ld);
+        }
         asnDest = null;
 
         if (asn.getTarget() instanceof Designator){
@@ -196,7 +186,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             // ARRAY CASE
             ArrayValue arrval = (ArrayValue) asn.getTarget().accept(this);
 
-            StoreStack store = new StoreStack(curCFG.instrNumberer.push(), arrval.array, src, arrval.offset);
+            StoreStack store = arrval.genStore(curCFG, src); // new StoreStack(curCFG.instrNumberer.push(), arrval.array, src, arrval.offset);
             curBlock.add( store );
 
             return null;
@@ -271,8 +261,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = div.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         tempNum += 1;
         Value rval = div.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         tempNum -= 1;
         asnDest = tmpdest;
 
@@ -456,8 +456,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = la.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         tempNum += 1;
         Value rval = la.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         tempNum -= 1;
         asnDest = tmpdest;
 
@@ -475,6 +485,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value val = ln.getRvalue().accept(this);
+        if( val instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) val;
+            val = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) val) );
+        }
         asnDest = tmpdest;
 
         Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
@@ -491,8 +506,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = lo.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         tempNum += 1;
         Value rval = lo.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         tempNum -= 1;
         asnDest = tmpdest;
 
@@ -511,8 +536,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = mod.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         tempNum += 1;
         Value rval = mod.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         tempNum -= 1;
         asnDest = tmpdest;
 
@@ -531,8 +566,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = mul.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         tempNum+=1;
         Value rval = mul.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         tempNum-=1;
         asnDest = tmpdest;
 
@@ -552,7 +597,17 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = pwr.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         Value rval = pwr.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         asnDest = tmpdest;
 
         Assignable target = asnDest == null ? new Temporary(tempNum) : asnDest;
@@ -571,7 +626,17 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = rel.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         Value rval = rel.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         asnDest = tempdest;
 
         Assignable target = asnDest == null ? new Temporary(tempNum++) : asnDest;
@@ -666,6 +731,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             return null;
         }
         Value v = ret.getReturn().accept(this);
+        if( v instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) v;
+            v = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) v) );
+        }
         curBlock.add( new ir.tac.Return(curCFG.instrNumberer.push(), v) );
 
         return null;
@@ -736,8 +806,18 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         asnDest = null;
         Value lval = sub.getLvalue().accept(this);
+        if( lval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) lval;
+            lval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
+        }
         tempNum += 1;
         Value rval = sub.getRvalue().accept(this);
+        if( rval instanceof ArrayValue ) {
+            ArrayValue arr = (ArrayValue) rval;
+            rval = new Temporary(tempNum++);
+            curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
+        }
         tempNum -= 1;
         asnDest = tmpdest;
 

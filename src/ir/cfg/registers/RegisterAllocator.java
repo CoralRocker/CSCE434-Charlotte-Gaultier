@@ -157,10 +157,10 @@ public class RegisterAllocator {
         }
 
         if( do_print ) {
-            // rig.resetExclusion();
-            // System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
+            rig.resetExclusion();
+            System.out.printf("Interference Graph: \n%s\n", rig.asDotGraph());
             // System.out.printf("Modified CFG: \n%s\n", cfg.asDotGraph());
-            // System.out.printf("Allocation Map: %s\n", allocation);
+            System.out.printf("Allocation Map: %s\n", allocation);
         }
 
         return allocation;

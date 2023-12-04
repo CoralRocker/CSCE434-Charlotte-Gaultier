@@ -7,7 +7,7 @@ import ir.cfg.CodeGen.CodeGenerator;
  * index of the spill beneath the frame pointer. Must be positive and not 0.
  */
 public class Spill {
-    public final int spillNo;
+    public int spillNo;
 
     public enum Register {
         NONE(0),

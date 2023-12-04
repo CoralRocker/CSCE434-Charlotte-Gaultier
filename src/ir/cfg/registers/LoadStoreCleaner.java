@@ -49,13 +49,19 @@ public class LoadStoreCleaner {
 
 
                         if( load.dest.equals(((Store) curr).source) && !isSpilled(curr.dest) ) {
-                            load.dest = curr.dest;
 
-                            // Remove store
-                            instructions.remove(i);
-                            curr.getIdObj().remove();
+                            if( load.isLoadSpill() ) {
+                                load.dest = curr.dest;
+
+                                // Remove store
+                                instructions.remove(i);
+                                curr.getIdObj().remove();
                             continue; // don't increment index
+                            }
                         }
+                        // else if( load.isLoadDest() && load.dest.equals(((Store) curr).source) && !isSpilled(curr.dest) ) {
+                        //     System.out.printf("%s, %s\n", load, curr);
+                        // }
                     }
                 }
 

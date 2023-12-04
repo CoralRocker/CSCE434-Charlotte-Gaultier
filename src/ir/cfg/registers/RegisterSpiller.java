@@ -167,12 +167,12 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
 
         if( asn.left.equals(toSpill) ) {
             TacID newId = asn.getIdObj().pushPrevious();
-            load1 = new LoadStack(newId, (Assignable)asn.left, new Spill(loc, Spill.Register.LHS), asn);
+            load1 = new LoadStack(newId, (Assignable)asn.left, (Assignable) asn.left, asn, Spill.Register.LHS);
         }
 
         if( asn.right.equals(toSpill) ) {
             TacID newId = asn.getIdObj().pushPrevious();
-            load2 = new LoadStack(newId, (Assignable)asn.right, new Spill(loc, Spill.Register.RHS), asn);
+            load2 = new LoadStack(newId, (Assignable)asn.right, (Assignable) asn.right, asn, Spill.Register.RHS);
         }
 
         if( asn.dest.equals(toSpill) ) {
@@ -237,7 +237,7 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
         if( store.source.equals(toSpill) ) {
             TacID newId = store.getIdObj().pushPrevious();
             // Store directly from stack to destination
-            before = new LoadStack(newId, (Assignable) store.source, new Spill(loc, Spill.Register.DEST), store);
+            before = new LoadStack(newId, (Assignable) store.source, store.dest, store);
         }
 
         if( after == null && before == null ) {

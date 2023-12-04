@@ -1,5 +1,7 @@
 package ir.tac;
 
+import ir.cfg.CFG;
+
 import java.util.Deque;
 
 public class ArrayValue extends Value {
@@ -7,6 +9,14 @@ public class ArrayValue extends Value {
     public Deque<Integer> dimensions;
     public Variable array;
     public Temporary offset;
+
+    public StoreStack genStore(CFG cfg, Value src) {
+        return new StoreStack(cfg.instrNumberer.push(), array, src, offset);
+    }
+
+    public Load genLoad(CFG cfg, Assignable dest) {
+        return new Load(cfg.instrNumberer.push(), dest, array, offset);
+    }
 
     @Override
     public String toString() {
