@@ -244,7 +244,8 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     public Assignable visit(Return ret) {
         if( ret.var instanceof Assignable ) {
             if( !initialized.containsKey(ret.var) ) {
-                System.out.printf("Variable %s is not initialized : %3d : %s\n", ret.var, ret.getId(), ret);
+                if( do_print )
+                    System.out.printf("Variable %s is not initialized : %3d : %s\n", ret.var, ret.getId(), ret);
                 uninitialized.add((Assignable) ret.var);
             }
         }
@@ -270,13 +271,15 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     public Assignable visit(Assign asn) {
         if( asn.left instanceof Assignable ) {
             if( !initialized.containsKey(asn.left) ) {
-                System.out.printf("Variable %s is not initialized : %3d : %s\n", asn.left, asn.getId(), asn);
+                if( do_print )
+                    System.out.printf("Variable %s is not initialized : %3d : %s\n", asn.left, asn.getId(), asn);
                 uninitialized.add((Assignable) asn.left);
             }
         }
         if( asn.right instanceof Assignable ) {
             if( !initialized.containsKey(asn.right) ) {
-                System.out.printf("Variable %s is not initialized : %3d : %s\n", asn.right, asn.getId(), asn);
+                if( do_print )
+                    System.out.printf("Variable %s is not initialized : %3d : %s\n", asn.right, asn.getId(), asn);
                 uninitialized.add((Assignable) asn.right);
             }
         }
@@ -297,7 +300,8 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     @Override
     public Assignable visit(Store store) {
         if( store.source instanceof Assignable && !initialized.containsKey(store.source) ) {
-            System.out.printf("Variable %s is not initialized : %3d : %s\n", store.source, store.getId(), store);
+            if( do_print )
+                System.out.printf("Variable %s is not initialized : %3d : %s\n", store.source, store.getId(), store);
             uninitialized.add((Assignable) store.source);
         }
         return store.dest;
@@ -306,7 +310,8 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     @Override
     public Assignable visit(StoreStack sstack) {
         if( sstack.isSpill() && !initialized.containsKey(sstack.dest) ) {
-            System.out.printf("Variable %s is not initialized : %3d : %s\n", sstack.dest, sstack.getId(), sstack);
+            if( do_print )
+                System.out.printf("Variable %s is not initialized : %3d : %s\n", sstack.dest, sstack.getId(), sstack);
             uninitialized.add(sstack.dest);
         }
         return null;
@@ -325,7 +330,8 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     @Override
     public Assignable visit(Not not) {
         if( not.src instanceof Assignable && !initialized.containsKey(not.src) ) {
-            System.out.printf("Variable %s is not initialized : %3d : %s\n", not.dest, not.getId(), not);
+            if( do_print )
+                System.out.printf("Variable %s is not initialized : %3d : %s\n", not.dest, not.getId(), not);
             uninitialized.add((Assignable) not.src);
         }
         return not.dest;
