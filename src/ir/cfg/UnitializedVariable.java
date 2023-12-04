@@ -35,6 +35,14 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
             blk.exit = new HashMap<Assignable, Assignable>();
         });
 
+        HashMap<Assignable, Assignable> funcParams = new HashMap<>();
+        if( cfg.function != null ) {
+            for( var varsym : cfg.function.getArgList() ) {
+                var var = new Variable(varsym);
+                funcParams.put(var, var);
+            }
+        }
+
         boolean changed = true;
         while( changed ) {
             changed = false;
@@ -51,9 +59,13 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                     visitor.initialized = intersect((HashMap<Assignable, Assignable>) preds.get(0).exit, (HashMap<Assignable, Assignable>) preds.get(1).exit);
                 } else if (preds.size() == 1) {
                     visitor.initialized = new HashMap<>((HashMap<Assignable, Assignable>) preds.get(0).exit);
-                } else {
-                    visitor.initialized = new HashMap<>();
+                } else if (preds.isEmpty()) {
+                    visitor.initialized = new HashMap<>(funcParams);
                 }
+                else {
+                    throw new RuntimeException("Predecessors size for " + blk + " is out of range [0, 2]");
+                }
+
                 blk.entry = new HashMap<>(visitor.initialized);
 
                 blk.exit = visitor.getInitialized(blk);
@@ -171,7 +183,8 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
                 // Add to end of first predecessor
                 if( !b1.isEmpty() ) {
-                    System.out.printf("Variables %s need to be init'd in %s\n", b1, prev1 );
+                    if( do_print )
+                        System.out.printf("Variables %s need to be init'd in %s\n", b1, prev1 );
 
                     var instructions = prev1.getInstructions();
                     int ctr = 0;
@@ -195,7 +208,8 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                 }
 
                 if( !b2.isEmpty() ) {
-                    System.out.printf("Variables %s need to be init'd in %s\n", b2, prev2 );
+                    if( do_print )
+                        System.out.printf("Variables %s need to be init'd in %s\n", b2, prev2 );
 
                     var instructions = prev2.getInstructions();
                     int ctr = 0;
