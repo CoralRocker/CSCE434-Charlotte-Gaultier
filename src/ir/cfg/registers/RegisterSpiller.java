@@ -140,7 +140,7 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
                 TacID newId = call.getIdObj().pushPrevious();
                 if( args == null ) args = new ArrayList<>();
                 // TODO What register for this?
-                args.add( new LoadStack(newId, arg, new Spill(loc, Spill.Register.LHS), call) );
+                args.add( new LoadStack(newId, arg, arg, call, Spill.Register.LHS) );
             }
         }
 

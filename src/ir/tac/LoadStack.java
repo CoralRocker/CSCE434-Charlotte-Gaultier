@@ -26,6 +26,7 @@ public class LoadStack extends TAC {
         this.cause = cause;
         this.target = null;
         this.regHint = null;
+        throw new RuntimeException("Don't use this anymore.");
     }
 
     public LoadStack(TacID id, Assignable val, Assignable dest, TAC cause, Spill.Register hint) {

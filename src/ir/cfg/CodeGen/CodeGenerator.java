@@ -158,6 +158,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
             // load local arrays
 
+            int varsize = 0;
             // Load Args
             int arg = 1;
             for( var param : cfg.function.getArgList() ) {
@@ -166,9 +167,11 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 if( do_print )
                     System.out.printf("R%d <=> %s (R%d)\n", arg, param, dest );
                 arg++;
+                varsize += 4;
             }
 
-            // Load Globals
+            int varSize = 0;
+            // Load Globals And Local Arrays
             for( var sym : cfg.getSymbols().keySet() ) {
                 if( sym.globalLoc != -1 ) {
                     var symvar = new Variable(sym);
@@ -198,6 +201,15 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                         dest = visitor.registers.get(symvar);
                         instructions.add(DLXCode.immediateOp(DLXCode.OPCODE.STW, SPILL_DEST, FRAME_PTR, 4 * dest, null ));
                     }
+                }
+                else if( sym.type().getDims() != null ) { // Local Array Time B-)
+                    var symvar = new Variable(sym);
+                    int dest = visitor.registers.get(symvar);
+                    if( dest <= -1 ) throw new RuntimeException("Spilt local array init");
+
+                    instructions.add(DLXCode.immediateOp(DLXCode.OPCODE.SUBI, dest, FRAME_PTR, (4 * visitor.numSpills) + varsize, null));
+
+                    varSize += sym.type().getDims().stream().reduce(4, (a, b) -> a * b);
                 }
             }
         }
