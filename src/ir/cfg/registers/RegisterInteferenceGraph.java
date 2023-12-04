@@ -1,12 +1,15 @@
 package ir.cfg.registers;
 
+import ir.cfg.CFG;
 import ir.tac.Assignable;
 import ir.tac.Variable;
 
 import java.util.*;
+import java.util.function.BiFunction;
 
 
 public class RegisterInteferenceGraph {
+
 
     public enum EdgeType {
         NONE,
@@ -81,7 +84,7 @@ public class RegisterInteferenceGraph {
         nodes.get(n2).add(edge);
     }
 
-    public void addVariables( Collection<Assignable> vars ) {
+    public void addVariables(CFG cfg, Collection<Assignable> vars ) {
         var iter = vars.iterator();
 
         List<VariableNode> added = new ArrayList<>(vars.size());
@@ -103,6 +106,8 @@ public class RegisterInteferenceGraph {
             }
 
             added.add( node );
+
+            node.useCount = cfg.useCounts.get(var);
         }
 
     }
@@ -190,8 +195,45 @@ public class RegisterInteferenceGraph {
         return res;
     }
 
+    public VariableNode spillHeuristic() {
+
+        // Heuristic Cost Function
+        //
+        // Want to penalize spilling commonly used variables, even if it has a lot of connections
+        BiFunction<Integer, Integer, Integer> scoreFunc = (deg, uses) -> {
+            return 2*deg - uses;
+        };
+
+        VariableNode res = null;
+        int maxScore = Integer.MIN_VALUE;
+
+        for( var entry : nodes.entrySet() ) {
+            if( entry.getKey().exclude ) continue;
+
+            int degree = degree(entry.getKey());
+
+            int score = scoreFunc.apply(degree, entry.getKey().useCount);
+
+            if( score > maxScore ) {
+                res = entry.getKey();
+                maxScore = score;
+            }
+            else if( score == maxScore && res.useCount > entry.getKey().useCount ) {
+                res = entry.getKey();
+                maxScore = score;
+            }
+        }
+
+        return res;
+    }
+
     public int degree( VariableNode node ) {
-        return nodes.get(node).size();
+        int degree = 0;
+        for( var edge : nodes.get(node) ) {
+            if(edge.isExcluded()) continue;
+            degree++;
+        }
+        return degree;
     }
     public Set<Integer> connections( VariableNode node ) {
         var degree = new HashSet<Integer>();

@@ -80,7 +80,7 @@ public class RegisterAllocator {
                     liveAtPoint.add( tac.dest );
                 }
 
-                newRIG.addVariables(liveAtPoint);
+                newRIG.addVariables(cfg, liveAtPoint);
             }
         }
 
@@ -117,9 +117,9 @@ public class RegisterAllocator {
         Stack<VariableNode> popped = new Stack<>();
 
         while( !rig.isEmpty() ) {
-            VariableNode ltK = rig.nodeDegreeLessThan(K);
+            VariableNode ltK =  rig.nodeDegreeLessThan(K);
             if( ltK == null ) {
-                ltK = rig.getNodeHighDegree();
+                ltK = rig.spillHeuristic();
                 if( ltK == null )
                     throw new RuntimeException("No spillable nodes???");
             }

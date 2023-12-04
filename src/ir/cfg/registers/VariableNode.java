@@ -13,6 +13,8 @@ public class VariableNode {
 
     public Integer assignedRegister = null;
 
+    public int useCount = 0;
+
     public void assign(VariableNode other) {
         if( !var.equals(other.var) ) throw new RuntimeException("Cannot assign to variablenode for different variable!");
 

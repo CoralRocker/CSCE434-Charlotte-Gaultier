@@ -774,7 +774,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             // DEST = !literal
             return List.of(
                     move( SPILL_DEST, Literal.get(1), not ).get(0),
-                    DLXCode.immediateOp(DLXCode.OPCODE.SUB, getDest(not.dest), SPILL_DEST, ((Literal) not.src).getInt(), not )
+                    DLXCode.immediateOp(DLXCode.OPCODE.SUBI, getDest(not.dest), SPILL_DEST, ((Literal) not.src).getInt(), not )
             );
         }
         return List.of(

@@ -16,6 +16,15 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     private CFG cfg;
     private boolean do_print;
 
+    private void incrementUse(Value val) {
+        if( val instanceof Assignable ) {
+            int uses = useCounts.getOrDefault(val, 0);
+            useCounts.put((Assignable) val, uses+1);
+        }
+    }
+
+    private HashMap<Assignable, Integer> useCounts = new HashMap<>();
+
     private static HashMap<Assignable, Assignable> intersect(HashMap<Assignable, Assignable> s1, HashMap<Assignable, Assignable> s2) {
         HashMap<Assignable, Assignable> result = new HashMap<>();
 
@@ -34,6 +43,9 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     }
 
     public static boolean checkUnitializedVars( CFG cfg, boolean do_print ) {
+
+        HashMap<Assignable, Integer> useCounts = new HashMap<>();
+        cfg.useCounts = useCounts;
 
         cfg.breadthFirst(blk -> {
             blk.entry = null;
@@ -91,6 +103,10 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                     }
                 }
 
+                visitor.useCounts.forEach((asn, val) -> {
+                    val += useCounts.getOrDefault(asn, 0);
+                    useCounts.put(asn, val);
+                });
 
                 if (do_print) {
                     System.out.printf("Block %s changed? %s\n", blk, changed);
@@ -266,6 +282,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
     @Override
     public Assignable visit(Return ret) {
+        incrementUse(ret.var);
         if( ret.var instanceof Assignable ) {
             if( !initialized.containsKey(ret.var) ) {
                 if( do_print )
@@ -283,6 +300,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
     @Override
     public Assignable visit(Call call) {
+        incrementUse(call.dest);
         return call.dest;
     }
 
@@ -293,6 +311,10 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
     @Override
     public Assignable visit(Assign asn) {
+        incrementUse(asn.left);
+        incrementUse(asn.right);
+        incrementUse(asn.dest);
+
         if( asn.left instanceof Assignable ) {
             if( !initialized.containsKey(asn.left) ) {
                 if( do_print )
@@ -313,16 +335,23 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
     @Override
     public Assignable visit(LoadStack lstack) {
+        incrementUse(lstack.dest);
+
         return lstack.dest;
     }
 
     @Override
     public Assignable visit(Branch bra) {
+        incrementUse(bra.getVal());
+
         return null;
     }
 
     @Override
     public Assignable visit(Store store) {
+        incrementUse(store.source);
+        incrementUse(store.dest);
+
         if( store.source instanceof Assignable && !initialized.containsKey(store.source) ) {
             if( do_print )
                 System.out.printf("Variable %s is not initialized : %3d : %s\n", store.source, store.getId(), store);
@@ -333,6 +362,10 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
     @Override
     public Assignable visit(StoreStack sstack) {
+        incrementUse(sstack.dest);
+        incrementUse(sstack.offset);
+        incrementUse(sstack.src);
+
         if( sstack.isSpill() && !initialized.containsKey(sstack.dest) ) {
             if( do_print )
                 System.out.printf("Variable %s is not initialized : %3d : %s\n", sstack.dest, sstack.getId(), sstack);
@@ -353,6 +386,9 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
     @Override
     public Assignable visit(Not not) {
+        incrementUse(not.src);
+        incrementUse(not.dest);
+
         if( not.src instanceof Assignable && !initialized.containsKey(not.src) ) {
             if( do_print )
                 System.out.printf("Variable %s is not initialized : %3d : %s\n", not.dest, not.getId(), not);
@@ -363,6 +399,10 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
     @Override
     public Assignable visit(Load load) {
+        incrementUse(load.dest);
+        incrementUse(load.base);
+        incrementUse(load.offset);
+
         return load.dest;
     }
 }

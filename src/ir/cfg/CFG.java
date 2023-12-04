@@ -7,6 +7,7 @@ import ast.FuncDecl;
 import coco.FunctionSymbol;
 
 import coco.VariableSymbol;
+import ir.tac.Assignable;
 import ir.tac.TacIDGenerator;
 
 import java.util.*;
@@ -21,6 +22,8 @@ public class CFG implements Visitable<Object> {
 
     public FunctionSymbol func = null;
     protected HashMap<VariableSymbol, VariableSymbol> symbols;
+
+    public HashMap<Assignable, Integer> useCounts = null;
 
     public final FuncDecl function;
 
