@@ -40,6 +40,6 @@ public class Load extends TAC{
         if (base == null) {
             return String.format("load %s %s %s", dest.toString(), "base", offset.toString());
         }
-        return String.format("load %s %s %s", dest.toString(), base.toString(), offset.toString());
+        return String.format("load %s %s[ %s ]", dest.toString(), base.toString(), offset.toString());
     }
 }

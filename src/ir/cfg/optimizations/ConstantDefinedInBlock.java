@@ -275,12 +275,15 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
     @Override
     public SymbolVal visit(LoadStack lstack) {
-        return null;
+        if(lstack.isLoadDest() ) {
+            return new SymbolVal(lstack.target.name(), lstack.getId());
+        }
+        return new SymbolVal(lstack.dest.name(), lstack.getId());
     }
 
     public SymbolVal visit(Load load) {
         // TODO implement
-        return null;
+        return new SymbolVal(load.dest.name(), load.getId());
     }
 
 

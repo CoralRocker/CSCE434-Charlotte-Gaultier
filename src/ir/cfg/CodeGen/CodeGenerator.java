@@ -130,6 +130,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             for (Map.Entry sym : cfg.getSymbols().entrySet()){
                 ((VariableSymbol) sym.getValue()).globalLoc = varSize;
                 if( !(((VariableSymbol)sym.getValue()).type().getDims() == null) ){
+                    if( do_print )
+                        System.out.printf("Global Array %s at offset %d from R30\n", sym.getKey(), varSize);
                     // this means it's an array
                     ArrayList<Integer> dims = ((VariableSymbol)sym.getValue()).type().getDims();
                     varSize += dims.stream().reduce(4, (a, b) -> a*b);
@@ -749,7 +751,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
         //if( !labels.containsKey(dest) ) {
         if( bra.isConditional() ) {
-            return List.of(DLXCode.unresolvedBranch(opcode, registers.get((Assignable) bra.getVal()), dest, bra));
+            return List.of(DLXCode.unresolvedBranch(opcode, getDest((Assignable) bra.getVal()), dest, bra));
         }
         else {
             return List.of(DLXCode.unresolvedBranch(opcode, 0, dest, bra));
@@ -833,43 +835,25 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         int dest = getDest( load.dest );
 
         int base = registers.get( load.base );
-        if( base <= -1 ) throw new RuntimeException("Load from spilled array ptr");
+        if( base <= -1 ) {
+            // throw new RuntimeException("Load from spilled array ptr");
+            int loc = base;
+            base = SPILL_LHS;
+            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, base, FRAME_PTR, 4 * loc, load));
+        }
 
         int offset = registers.get( load.offset );
-        if( offset <= -1 ) throw new RuntimeException("Array pointer load spilled offset");
+        if( offset <= -1 ) {
+            // throw new RuntimeException("Array pointer load spilled offset");
+            int loc = offset;
+            offset = SPILL_RHS;
+            code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, offset, FRAME_PTR, 4 * loc, load));
+        }
 
         code.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, base, offset, load));
 
         return code;
 
-        // int dest = registers.get(load.dest);
-        // if( dest <= -1 ) {
-        //     dest = SPILL_DEST;
-        // }
-        // ArrayList<DLXCode> toRet = new ArrayList<>();
-        // if(load.dest instanceof Variable){
-        //     if(((Variable) load.dest).getSym() instanceof VariableSymbol){
-        //         if(((Variable) load.dest).getSym().type().getDims() != null){
-        //             ArrayList<Integer> dims = ((Variable) load.dest).getSym().type().getDims();
-        //             // array case
-        //             // need to check bounds
-//      //               toRet.add(DLXCode.immediateOp(DLXCode.OPCODE.CHKI, registers.get(load.offset),0, -4 * dims.get(0), load ));
-        //         }
-        //     }
-        // }
-        // if( load.offset instanceof Literal ) {
-        //     // DEST = R0(always 0) + literal
-        //     toRet.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt(), load ));
-        //     return toRet;
-        // }else{
-        //     int offset = registers.get(load.offset);
-        //     if(load.offset.isGlobal) {
-        //         toRet.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, GLOB_VAR, offset, load ));
-        //         return toRet;
-        //     }
-        //     toRet.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset, load ));
-        //     return toRet;
-        // }
     }
 
     @Override
@@ -899,8 +883,13 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 src = SPILL_DEST;
             }
             else {
-                src = getDest((Assignable) sstack.src);
-                if( src == SPILL_DEST ) throw new RuntimeException("Store spilled reg to array ptr on stack");
+                src = registers.get((Assignable) sstack.src);
+                if( src <= -1 ) {
+                    // throw new RuntimeException("Store spilled reg to array ptr on stack");
+                    int loc = src;
+                    src = SPILL_RHS;
+                    code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, src, FRAME_PTR, 4 * loc, sstack));
+                }
             }
 
             offset = getRight( sstack.offset );

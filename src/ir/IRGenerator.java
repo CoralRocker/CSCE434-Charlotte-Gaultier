@@ -633,13 +633,13 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Value lval = rel.getLvalue().accept(this);
         if( lval instanceof ArrayValue ) {
             ArrayValue arr = (ArrayValue) lval;
-            lval = new Temporary(tempNum++);
+            lval = new Temporary(tempNum);
             curBlock.add( arr.genLoad(curCFG, (Assignable) lval) );
         }
         Value rval = rel.getRvalue().accept(this);
         if( rval instanceof ArrayValue ) {
             ArrayValue arr = (ArrayValue) rval;
-            rval = new Temporary(tempNum++);
+            rval = new Temporary(tempNum);
             curBlock.add( arr.genLoad(curCFG, (Assignable) rval) );
         }
         asnDest = tempdest;
