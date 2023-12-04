@@ -3,12 +3,16 @@ main
 int x, y, z, a;
 
 
-int [8] arrA;
+int [8][8] arrA;
 
 
 // cp cf dce
 {
-    arrA[2] = 15;
-    a = arrA[2];
-    call printInt( a );
+
+    arrA[3][0] = 10;
+    arrA[3][1] = 11;
+
+    call printInt( arrA[3][0] );
+    call printInt( arrA[3][1] );
+
 }.
