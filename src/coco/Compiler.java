@@ -235,7 +235,7 @@ public class Compiler {
         flowGraphs = gen.getAllCFGs();
 
         for( CFG cfg : flowGraphs ) {
-            UnitializedVariable.checkUnitializedVars(cfg, true);
+            UnitializedVariable.checkUnitializedVars(cfg, debug);
         }
 
         return gen.getMainCFG();

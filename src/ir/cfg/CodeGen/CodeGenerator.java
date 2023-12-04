@@ -134,6 +134,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             // store array start addresses into correct vars
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, varSize, null ) );
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0, null) );
+
             varSize = 0;
             for (Map.Entry sym : cfg.getSymbols().entrySet()){
                 ((VariableSymbol) sym.getValue()).globalLoc = varSize;
@@ -151,10 +152,6 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     varSize += 4;
                 }
             }
-
-            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, GLOB_VAR, 4 * cfg.getSymbols().size(), null ) );
-            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, FRAME_PTR, STACK_PTR, 0, null) );
-
         }
         else { // Generate Stack Frame Shit
             instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, PREV_PC, FRAME_PTR, 0, null )); // Save return address

@@ -12,6 +12,7 @@ public abstract class Block implements Visitable<Object> {
 
     public Object entry;
     public Object exit;
+    public Object state;
 
     public HashSet<Assignable> live_in;
     public HashSet<Assignable> live_out;

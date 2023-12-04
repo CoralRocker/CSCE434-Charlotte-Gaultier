@@ -9,8 +9,15 @@ public class StoreStack extends TAC {
 
     public Value offset;
 
-
     public TAC cause;
+
+    public boolean isSpill() {
+        return dest != null && loc != null && cause != null;
+    }
+
+    public boolean isArray() {
+        return src != null && offset != null;
+    }
 
     public StoreStack(TacID id, Assignable val, Spill l, TAC cause) {
         super(id);
