@@ -26,6 +26,15 @@ public class StoreStack extends TAC {
         this.cause = cause;
     }
 
+    // Store an item (src) onto the stack at some offsett from the contents of dest
+    // Used for array storing...
+    public StoreStack(TacID id, Assignable dest, Value src, Value offset ) {
+        super(id);
+        this.dest = dest;
+        this.src = src;
+        this.offset = offset;
+    }
+
     public StoreStack (TacID id, Value src, Value offset){
         super(id);
         this.src = src;
@@ -35,7 +44,10 @@ public class StoreStack extends TAC {
     @Override
     public String genDot() {
 
-        if (this.dest == null){
+        if ( isArray() ){
+            if( dest != null ) {
+                return String.format("StoreStack %s[%s] %s", dest, offset, src);
+            }
             return String.format("StoreStack[%s] %s", offset, src);
         }
 

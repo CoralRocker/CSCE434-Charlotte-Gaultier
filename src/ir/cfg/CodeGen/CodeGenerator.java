@@ -30,13 +30,13 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     private int getDest(Assignable dest) {
         int reg = registers.get(dest);
-        if( reg == -1 ) reg = SPILL_DEST;
+        if( reg <= -1 ) reg = SPILL_DEST;
         return reg;
     }
     private int getRight(Value dest) {
         if( dest instanceof Assignable ) {
             int reg = registers.get(dest);
-            if( reg == -1 ) reg = SPILL_RHS;
+            if( reg <= -1 ) reg = SPILL_RHS;
             return reg;
         }
         return -1;
@@ -45,7 +45,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     private int getLeft(Value dest) {
         if( dest instanceof Assignable ) {
             int reg = registers.get(dest);
-            if( reg == -1 ) reg = SPILL_LHS;
+            if( reg <= -1 ) reg = SPILL_LHS;
             return reg;
         }
         return -1;
@@ -55,9 +55,9 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         if( destReg == srcReg )
             return Collections.emptyList();
 
-        if( srcReg == -1 )
+        if( srcReg <= -1 )
             throw new RuntimeException("Cannot move from a spill (src) : " + tac.errMsg());
-        if( destReg == -1 )
+        if( destReg <= -1 )
             throw new RuntimeException("Cannot move to a spill (dest) : " + tac.errMsg());
 
         return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.ADD, destReg, 0, srcReg, tac));
@@ -91,9 +91,10 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         cleaner.clean();
 
         for( var entry : visitor.registers.entrySet() ) {
-            if( entry.getValue() == -1 ) {
+            if( entry.getValue() <= -1 ) {
                 visitor.numSpills++;
 
+                entry.setValue(-1 * visitor.numSpills);
                 if( do_print )
                     System.out.printf( "Variable %s is spilled to location %2d <=> %2d\n", entry.getKey(), entry.getKey().spilled.spillNo, -4 * entry.getKey().spilled.spillNo );
             }
@@ -122,11 +123,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 if( !(((VariableSymbol)sym.getValue()).type().getDims() == null) ){
                     // this means it's an array
                     ArrayList<Integer> dims = ((VariableSymbol)sym.getValue()).type().getDims();
-                    if(dims.size() == 2){
-                        varSize += 4 * dims.get(0) * dims.get(1);
-                    }else{
-                        varSize += 4 * dims.get(0);
-                    }
+                    varSize += dims.stream().reduce(4, (a, b) -> a*b);
                 }else{
                     varSize += 4;
                 }
@@ -137,22 +134,12 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
             varSize = 0;
             for (Map.Entry sym : cfg.getSymbols().entrySet()){
-                ((VariableSymbol) sym.getValue()).globalLoc = varSize;
                 if( !(((VariableSymbol)sym.getValue()).type().getDims() == null) ){
                     Variable var = new Variable((VariableSymbol)sym.getValue());
                     var.isGlobal = true;
                     if (visitor.registers.containsKey(var)) {
-                        instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, visitor.registers.get(var), 0, -1 * varSize, null) );
+                        instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, visitor.getDest(var), GLOB_VAR, -1 * ((VariableSymbol)sym.getValue()).globalLoc, null) );
                     }
-                    // just do new Variable instead of this
-                    ArrayList<Integer> dims = ((VariableSymbol)sym.getValue()).type().getDims();
-                    if(dims.size() == 2){
-                        varSize += 4 * dims.get(0) * dims.get(1);
-                    }else{
-                        varSize += 4 * dims.get(0);
-                    }
-                }else{
-                    varSize += 4;
                 }
             }
 
@@ -182,10 +169,26 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                         continue;
                     }
 
-                    int dest = visitor.registers.get(symvar);
+                    int dest = visitor.getDest(symvar);
+
                     if( do_print )
                         System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
-                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -1 * sym.globalLoc, null ));
+                    if( sym.type().getDims() != null ) {
+                        if( sym.isGlobal ) {
+                            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, dest, GLOB_VAR,  sym.globalLoc, null) );
+                        }
+                        else {
+                            throw new RuntimeException("Non-global array");
+                        }
+                    }
+                    else {
+                        instructions.add(DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -1 * sym.globalLoc, null));
+                    }
+
+                    if( dest == SPILL_DEST ) {
+                        dest = visitor.registers.get(symvar);
+                        instructions.add(DLXCode.immediateOp(DLXCode.OPCODE.STW, SPILL_DEST, FRAME_PTR, 4 * dest, null ));
+                    }
                 }
             }
         }
@@ -288,10 +291,20 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                         continue;
                     }
 
-                    int dest = registers.get(symvar);
+                    if( sym.type().getDims() != null ) continue;
+
+                    int dest = getDest(symvar);
+
                     if( do_print )
                         System.out.printf("Global variable %s store to GLOBL[%d] from reg %d\n", sym, sym.globalLoc, dest);
+
+                    if( dest == SPILL_DEST ) {
+                        int loc = registers.get(symvar);
+                        code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, 4 * loc, ret));
+                    }
+
                     code.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -1 * sym.globalLoc, ret ));
+
                 }
             }
 
@@ -355,16 +368,27 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         for( var sym : call.liveAfterPP ) {
             if( !call.liveBeforePP.contains(sym) ) continue; // If var becomes live at return, don't save
 
+            int dest = registers.get(sym);
+            sym.saveLocation = saveno + numSpills;
+            boolean isArray = false;
+
             // If variable is global, no need to save twice
             if( sym instanceof Variable ) {
                 Variable var = (Variable) sym;
-                if( cfg.getSymbols().get(var.getSym()).globalLoc != -1 ) continue;
+                if( var.getSym().type().getDims() != null ) {
+                   isArray = true;
+                   callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, FRAME_PTR, -4 * sym.saveLocation, call));
+                }
+                else {
+                    if (cfg.getSymbols().get(var.getSym()).globalLoc != -1) continue;
+                }
             }
 
-            int dest = registers.get(sym);
-            sym.saveLocation = saveno++;
+            saveno++;
             numSaved++;
-            callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
+
+            if( ! isArray )
+                callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
         }
 
         // Save Globals
@@ -376,13 +400,14 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                         System.out.printf("Global variable %s not live for function %s\n", sym, cfg.func);
                     continue;
                 }
+                if( sym.type().getDims() != null ) continue;
                 // if( !((FunctionSymbol)call.function).getCfg().useCounts.containsKey(symvar) ) {
                 //     if( do_print )
                 //         System.out.printf("Global variable %s is not used by function %s\n", sym, cfg.func);
                 //     continue;
                 // }
 
-                int dest = registers.get(symvar);
+                int dest = getDest(symvar);
                 if( do_print )
                     System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
                 callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -1 * sym.globalLoc, call ));
@@ -391,16 +416,16 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
 
         // Save the current SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * 4 * (numSaved + 1), call) );
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * 4 * (numSaved + 2), call) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, STACK_PTR, FRAME_PTR, -1 * 4 * (saveno + numSpills + 1), call) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, FRAME_PTR, FRAME_PTR, -1 * 4 * (saveno + numSpills + 2), call) );
 
         // Set the new SP and FP
-        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, 4 * (numSaved + 2), call) );
+        callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, STACK_PTR, FRAME_PTR, 4 * (saveno + numSpills + 2), call) );
         callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.SUBI, FRAME_PTR, STACK_PTR, 4, call)); // TODO: Stack spilled args
 
         // Set the arguments on the stack
         for ( int arg = 0; arg < call.args.size(); arg++ ) {
-            int srcReg = registers.get(call.args.get(arg));
+            int srcReg = getDest(call.args.get(arg));
             callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, srcReg, FRAME_PTR, -4 * (arg + 1), call ) );
             // if( srcReg != (arg + 1) ) {
             //     callCode.addAll( move(arg+1, srcReg) );
@@ -432,14 +457,17 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         for( var sym : call.liveAfterPP ) {
             if( !call.liveBeforePP.contains(sym) ) continue; // If var becomes live at return, don't restore
 
+            int dest = registers.get(sym);
+            if( returnReg != -1 && dest == returnReg ) continue;
+
             // If variable is global, no need to restore twice
             if( sym instanceof Variable ) {
                 Variable var = (Variable) sym;
-                if( cfg.getSymbols().get(var.getSym()).globalLoc != -1 ) continue;
+                if( var.getSym().type().getDims() == null ) {
+                    if (cfg.getSymbols().get(var.getSym()).globalLoc != -1) continue;
+                }
             }
 
-            int dest = registers.get(sym);
-            if( returnReg != -1 && dest == returnReg ) continue;
             callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
         }
 
@@ -461,11 +489,19 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     // continue;
                 }
 
-                int dest = registers.get(symvar);
+                if( sym.type().getDims() != null ) continue;
+
+                int dest = getDest(symvar);
                 if( returnReg != -1 && dest == returnReg ) continue;
                 if( do_print )
                     System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
-                callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -1 * sym.globalLoc, call ));
+
+                if( sym.type().getDims() != null ) {
+                    callCode.add(DLXCode.immediateOp(DLXCode.OPCODE.SUBI, dest, GLOB_VAR, sym.globalLoc, call));
+                }
+                else {
+                    callCode.add(DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -1 * sym.globalLoc, call));
+                }
             }
         }
 
@@ -557,7 +593,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     @Override
     public List<DLXCode> visit(Mul mul) {
         int dest = getDest(mul.dest);
-        if( dest == -1 )
+        if( dest <= -1 )
             dest = SPILL_DEST;
 
         if( mul.hasImmediate() ) {
@@ -570,23 +606,23 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 );
             }else if( lit_lhs ) {
                 int rhs = getRight(mul.right);
-                if( rhs == -1 )
+                if( rhs <= -1 )
                     rhs = SPILL_RHS;
                 return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.MULI, dest, rhs, ((Literal) mul.left).getInt(), mul));
             }
             else {
                 int lhs = getLeft(mul.left);
-                if( lhs == -1 )
+                if( lhs <= -1 )
                     lhs = SPILL_LHS;
                 return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.MULI, dest, lhs, ((Literal) mul.right).getInt(), mul));
             }
         }
 
         int lhs = getLeft(mul.left);
-        if( lhs == -1 )
+        if( lhs <= -1 )
             lhs = SPILL_LHS;
         int rhs = getRight(mul.right);
-        if( rhs == -1 )
+        if( rhs <= -1 )
             rhs = SPILL_RHS;
 
         return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.MUL, dest, lhs, rhs, mul));
@@ -595,7 +631,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     @Override
     public List<DLXCode> visit(Sub sub) {
         int dest = getDest(sub.dest);
-        if( dest == -1 ) dest = SPILL_DEST;
+        if( dest <= -1 ) dest = SPILL_DEST;
         if( sub.hasImmediate() ) {
             boolean lit_lhs = sub.left instanceof Literal,
                     lit_rhs = sub.right instanceof Literal;
@@ -615,9 +651,9 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             }
         }
         int lhs = getLeft(sub.left);
-        if( lhs == -1 ) lhs = SPILL_LHS;
+        if( lhs <= -1 ) lhs = SPILL_LHS;
         int rhs = getRight(sub.right);
-        if( rhs == -1 ) rhs = SPILL_RHS;
+        if( rhs <= -1 ) rhs = SPILL_RHS;
 
         return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.SUB, dest, getLeft(sub.left), getRight(sub.right), sub));
     }
@@ -625,7 +661,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     @Override
     public List<DLXCode> visit(LoadStack lstack) {
         int dest = registers.get( lstack.dest );
-        if( dest == -1 )  // throw new RuntimeException("Load stack into spill???: " + lstack.errMsg());
+        if( dest <= -1 )  // throw new RuntimeException("Load stack into spill???: " + lstack.errMsg());
             dest = lstack.loc.reg.num;
         return List.of( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * lstack.loc.spillNo, lstack) );
     }
@@ -704,16 +740,16 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 );
             }
         }
-        if( dest == -1 ) {
+        if( dest <= -1 ) {
             throw new RuntimeException("Unresolved spill: " + cmp.genDot() );
         }
 
         int lhs = getLeft(cmp.left);
-        if( lhs == -1 )
+        if( lhs <= -1 )
             lhs = SPILL_LHS;
 
         int rhs = getRight(cmp.right);
-        if( rhs == -1 )
+        if( rhs <= -1 )
             rhs = SPILL_RHS;
 
         return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.CMP, dest, lhs, rhs, cmp));
@@ -728,7 +764,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         }
 
         int srcReg = registers.get((Assignable) store.source);
-        if( srcReg == -1 && dest == SPILL_DEST ) { // Move should be taken care of by StoreStack
+        if( srcReg <= -1 && dest == SPILL_DEST ) { // Move should be taken care of by StoreStack
             return Collections.emptyList();
         }
         return move( dest, srcReg, store);
@@ -736,61 +772,98 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     @Override
     public List<DLXCode> visit(Load load) {
-        int dest = registers.get(load.dest);
-        if( dest == -1 ) {
-            dest = SPILL_DEST;
-        }
-        ArrayList<DLXCode> toRet = new ArrayList<>();
-        if(load.dest instanceof Variable){
-            if(((Variable) load.dest).getSym() instanceof VariableSymbol){
-                if(((Variable) load.dest).getSym().type().getDims() != null){
-                    ArrayList<Integer> dims = ((Variable) load.dest).getSym().type().getDims();
-                    // array case
-                    // need to check bounds
-//                    toRet.add(DLXCode.immediateOp(DLXCode.OPCODE.CHKI, registers.get(load.offset),0, -4 * dims.get(0), load ));
-                }
-            }
-        }
-        if( load.offset instanceof Literal ) {
-            // DEST = R0(always 0) + literal
-            toRet.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt(), load ));
-            return toRet;
-        }else{
-            int offset = registers.get(load.offset);
-            if(load.offset.isGlobal) {
-                toRet.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, GLOB_VAR, offset, load ));
-                return toRet;
-            }
-            toRet.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset, load ));
-            return toRet;
-        }
+        List<DLXCode> code = new ArrayList<>();
+
+        int dest = getDest( load.dest );
+
+        int base = registers.get( load.base );
+        if( base <= -1 ) throw new RuntimeException("Load from spilled array ptr");
+
+        int offset = registers.get( load.offset );
+        if( offset <= -1 ) throw new RuntimeException("Array pointer load spilled offset");
+
+        code.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, base, offset, load));
+
+        return code;
+
+        // int dest = registers.get(load.dest);
+        // if( dest <= -1 ) {
+        //     dest = SPILL_DEST;
+        // }
+        // ArrayList<DLXCode> toRet = new ArrayList<>();
+        // if(load.dest instanceof Variable){
+        //     if(((Variable) load.dest).getSym() instanceof VariableSymbol){
+        //         if(((Variable) load.dest).getSym().type().getDims() != null){
+        //             ArrayList<Integer> dims = ((Variable) load.dest).getSym().type().getDims();
+        //             // array case
+        //             // need to check bounds
+//      //               toRet.add(DLXCode.immediateOp(DLXCode.OPCODE.CHKI, registers.get(load.offset),0, -4 * dims.get(0), load ));
+        //         }
+        //     }
+        // }
+        // if( load.offset instanceof Literal ) {
+        //     // DEST = R0(always 0) + literal
+        //     toRet.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt(), load ));
+        //     return toRet;
+        // }else{
+        //     int offset = registers.get(load.offset);
+        //     if(load.offset.isGlobal) {
+        //         toRet.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, GLOB_VAR, offset, load ));
+        //         return toRet;
+        //     }
+        //     toRet.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset, load ));
+        //     return toRet;
+        // }
     }
 
     @Override
     public List<DLXCode> visit(StoreStack sstack) {
-        if (sstack.dest == null) {
+        if (sstack.isArray()) {
+            List<DLXCode> code = new ArrayList<>();
+            int base = registers.get(sstack.dest);
+            int src;
             int offset;
-            if(sstack.src instanceof Literal) {
-                // initing to 0 case
-                offset = registers.get(sstack.offset);
-                if (sstack.isArray()) {
-                    return List.of(DLXCode.regOp(DLXCode.OPCODE.STX, 0, GLOB_VAR, offset, sstack));
-                }
-            }
-            if(sstack.offset instanceof Literal){
-                offset = ((Literal) sstack.offset).getInt();
-                if(sstack.isArray()){
-                    return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, 0, GLOB_VAR, offset, sstack) );
-                }
-            }else{
-                offset = registers.get(sstack.offset);
+            if( base <= -1 ) {
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, SPILL_LHS, FRAME_PTR, 4 * base, sstack) );
+                base = SPILL_LHS;
             }
 
-            int src = registers.get(sstack.src);
-            if(sstack.offset.isGlobal) {
-                return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, GLOB_VAR, offset, sstack) );
+            if( sstack.src instanceof  Literal ) {
+                code.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, SPILL_DEST, 0, ((Literal) sstack.src).getInt(), sstack) );
+                src = SPILL_DEST;
             }
-            return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, FRAME_PTR, offset, sstack) );
+            else {
+                src = getDest((Assignable) sstack.src);
+                if( src == SPILL_DEST ) throw new RuntimeException("Store spilled reg to array ptr on stack");
+            }
+
+            offset = getRight( sstack.offset );
+
+            code.add( DLXCode.regOp(DLXCode.OPCODE.STX, src, base, offset, sstack) );
+
+            return code;
+            // int offset;
+            // if(sstack.src instanceof Literal) {
+            //     // initing to 0 case
+            //     offset = registers.get(sstack.offset);
+            //     if (sstack.isArray()) {
+            //         return List.of(DLXCode.regOp(DLXCode.OPCODE.STX, 0, GLOB_VAR, offset, sstack));
+            //     }
+            // }
+            // if(sstack.offset instanceof Literal){
+            //     offset = ((Literal) sstack.offset).getInt();
+            //     if(sstack.isArray()){
+            //         return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, 0, GLOB_VAR, offset, sstack) );
+            //     }
+            // }else{
+            //     offset = registers.get(sstack.offset);
+            // }
+
+            // int src = registers.get(sstack.src);
+            // if(sstack.offset.isGlobal) {
+            //     return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, GLOB_VAR, offset, sstack) );
+            // }
+            // return List.of( DLXCode.regOp(DLXCode.OPCODE.STX, src, FRAME_PTR, offset, sstack) );
         }
         return List.of( DLXCode.immediateOp(DLXCode.OPCODE.STW, sstack.loc.reg.num, FRAME_PTR, -4 * sstack.loc.spillNo, sstack) );
 
@@ -887,7 +960,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     public List<DLXCode> visit(Lsh lsh) {
         List<DLXCode> code = new ArrayList<>();
         int dest = getDest(lsh.dest);
-        if( dest == -1 ) {
+        if( dest <= -1 ) {
             dest = SPILL_DEST;
         }
         int lhs;
@@ -941,7 +1014,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     public List<DLXCode> visit(Ash ash) {
         List<DLXCode> code = new ArrayList<>();
         int dest = getDest(ash.dest);
-        if( dest == -1 ) {
+        if( dest <= -1 ) {
             dest = SPILL_DEST;
         }
         int lhs;
@@ -995,7 +1068,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     public List<DLXCode> visit(Pow pow) {
         List<DLXCode> code = new ArrayList<>();
         int dest = getDest(pow.dest);
-        if( dest == -1 ) {
+        if( dest <= -1 ) {
             dest = SPILL_DEST;
         }
         int lhs;

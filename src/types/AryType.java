@@ -3,9 +3,14 @@ package types;
 import coco.ArrayType;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class AryType extends Type {
+
+    public List<Integer> getDimensions() {
+        return Collections.unmodifiableList(dimensions);
+    }
 
     protected List<Integer> dimensions;
     protected Type type;

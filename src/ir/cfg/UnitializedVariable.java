@@ -60,6 +60,13 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                 var var = new Variable(varsym);
                 funcParams.put(var, var);
             }
+
+            for( var varsym : cfg.getSymbols().keySet() ) {
+                if( varsym.isGlobal ) {
+                    var var = new Variable(varsym);
+                    funcParams.put(var, var);
+                }
+            }
         }
 
         boolean changed = true;
@@ -361,7 +368,14 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     @Override
     public Assignable visit(Call call) {
         incrementUse(call.dest);
-        for( var arg : call.args ) incrementUse(arg);
+        for( var arg : call.args ) {
+            incrementUse(arg);
+            if( !initialized.containsKey(arg) ) {
+                if( do_print )
+                    System.out.printf("Variable %s is not initialized : %3d : %s\n", arg, call.getId(), call);
+                uninitialized.add(arg);
+            }
+        }
         return call.dest;
     }
 

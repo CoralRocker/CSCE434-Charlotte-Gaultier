@@ -356,7 +356,13 @@ class TACLiveness implements TACVisitor<LiveData> {
     }
 
     public LiveData visit(Load load) {
-        return null; //TODO implement
+        List<Assignable> used = new ArrayList<>();
+        used.add( load.dest );
+
+        if( load.offset instanceof Assignable ) used.add((Assignable) load.offset);
+        if( load.base instanceof Assignable ) used.add((Assignable) load.base);
+
+        return new LiveData(null, used);
     }
 
 
@@ -377,7 +383,13 @@ class TACLiveness implements TACVisitor<LiveData> {
 
     @Override
     public LiveData visit(StoreStack sstack) {
-        return new LiveData(sstack.dest, sstack.offset, null);
+        List<Assignable> used = new ArrayList<>();
+        used.add( sstack.dest );
+
+        if( sstack.offset instanceof Assignable ) used.add((Assignable) sstack.offset);
+        if( sstack.src instanceof Assignable ) used.add((Assignable) sstack.src);
+
+        return new LiveData(null, used);
     }
 
     @Override

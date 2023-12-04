@@ -107,7 +107,7 @@ public class RegisterInteferenceGraph {
 
             added.add( node );
 
-            node.useCount = cfg.useCounts.get(var);
+            node.useCount = cfg.useCounts.getOrDefault(var, 0);
         }
 
     }

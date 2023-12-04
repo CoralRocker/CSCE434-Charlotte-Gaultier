@@ -13,6 +13,9 @@ public abstract class AST implements Visitable, IsLiteral{
     }
 
     Type type;
+    public Type getType() {
+        return type;
+    }
 
     public void setType(Type t){
         this.type = t;

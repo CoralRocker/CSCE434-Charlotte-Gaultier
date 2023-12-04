@@ -9,8 +9,10 @@ import coco.*;
 
 import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
+import ir.cfg.SSACreator;
 import ir.tac.*;
 import ir.tac.Variable;
+import types.AryType;
 import types.VoidType;
 
 import java.sql.Array;
@@ -64,7 +66,13 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
             if( val instanceof Assignable ) {
                 args.add( (Assignable) val );
-                continue;
+            }
+            else if( val instanceof ArrayValue ) {
+                ArrayValue arrval = (ArrayValue) val;
+                Temporary dest = new Temporary(tempNum++);
+                Load ld = new Load(curCFG.instrNumberer.push(), dest, arrval.array, arrval.offset);
+                curBlock.add(ld);
+                args.add( dest );
             }
             else {
                 var temp = new Temporary(tempNum++);
@@ -79,40 +87,84 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     }
 
     @Override
-    public Value visit(ast.ArrayIndex idx) {
+    public Value visit(ArrayIndex idx) {
 
         Value index = idx.getIndex().accept(this);
         tempNum += 1;
         Value array = idx.getArray().accept(this);
 
-        int size = ((Variable)array).getSym().type().getSize();
-        Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), -1 * size));
-        // size in bytes of the array object
-        // calculate ind * size = offset
-        Temporary offset = new Temporary(tempNum);
-        tempNum += 1;
+        if( array instanceof Variable ) {
+            ArrayValue arrval = new ArrayValue();
+            arrval.array = new Variable(((Variable)array).getSym());
+            arrval.dimensions = new LinkedList<>(((AryType)idx.getArray().getType()).getDimensions());
 
-        Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
-        tempNum -= 1;
-        curBlock.add(mulInst);
+            // Pop front of dimensions
+            arrval.dimensions.removeFirst();
+            int perLine = arrval.dimensions.stream().mapToInt(i -> i).reduce(1, (a, b) -> a * b);
+            arrval.offset = new Temporary(tempNum++);
 
-        // add offset to base address (array)
-        Temporary addy = new Temporary(tempNum);
+            Mul mul = new Mul(curCFG.instrNumberer.push(), arrval.offset, index, Literal.get(perLine * -4));
+            curBlock.add(mul);
 
-        tempNum += 1;
-        Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
-        tempNum -= 1;
-        curBlock.add(addInst);
-        addy.isGlobal = ((VariableSymbol)((Variable) array).getSym()).isGlobal;
+            // System.out.printf("Array val: %s\n", arrval);
+            return arrval;
+        }
+        else if( array instanceof ArrayValue ) {
+            ArrayValue arrval = (ArrayValue) array;
 
-        // Temporary ret = new Temporary(tempNum);
-        Variable ret = new Variable(((Variable)array).getSym());
-        Temporary toRet = new Temporary(tempNum);
-        tempNum += 1;
-        Load tac2 = new Load(curCFG.instrNumberer.push(), ret, addy);
-        curBlock.add(tac2);
+            arrval.dimensions.removeFirst();
 
-        return ret;
+            if( arrval.dimensions.isEmpty() ) {
+                Temporary multemp = new Temporary(tempNum);
+                Mul mul = new Mul(curCFG.instrNumberer.push(), multemp, index, Literal.get(-4) );
+                curBlock.add(mul);
+                Add add = new Add(curCFG.instrNumberer.push(), arrval.offset, arrval.offset,  multemp);
+                curBlock.add(add);
+
+                return arrval;
+            }
+            else {
+                int perLine = arrval.dimensions.stream().mapToInt(i -> i).reduce(1, (a, b) -> a * b);
+                Temporary newOffset = new Temporary(tempNum++);
+                Mul mul = new Mul(curCFG.instrNumberer.push(), newOffset, index, Literal.get(perLine * -4)); // perLine + index items * 4 bytes / item
+                curBlock.add(mul);
+                Add add = new Add(curCFG.instrNumberer.push(), arrval.offset, arrval.offset, newOffset );
+                curBlock.add(add);
+
+            }
+
+            return arrval;
+        }
+        else {
+            throw new RuntimeException("Array return not Variable or ArrayValue?");
+        }
+        // int size = ((Variable)array).getSym().type().getSize();
+        // Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), -1 * size));
+        // // size in bytes of the array object
+        // // calculate ind * size = offset
+        // Temporary offset = new Temporary(tempNum);
+        // tempNum += 1;
+
+        // Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
+        // tempNum -= 1;
+        // curBlock.add(mulInst);
+
+        // // add offset to base address (array)
+        // Temporary addy = new Temporary(tempNum);
+
+        // tempNum += 1;
+        // Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
+        // tempNum -= 1;
+        // curBlock.add(addInst);
+        // addy.isGlobal = ((VariableSymbol)((Variable) array).getSym()).isGlobal;
+
+        // // Temporary ret = new Temporary(tempNum);
+        // // Variable ret = new Variable(((Variable)array).getSym());
+        // Temporary toRet = new Temporary(tempNum);
+        // tempNum += 1;
+        // Load tac2 = new Load(curCFG.instrNumberer.push(), toRet, addy);
+        // curBlock.add(tac2);
+
     }
 
     @Override
@@ -120,74 +172,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         Symbol destSym = null;
         Assignable dst = null;
         tempNum = 0;
-        if (asn.getTarget() instanceof Designator){
-            Designator dest = (Designator) asn.getTarget();
-            destSym = dest.getSymbol();
-
-            destSym.isInitialized = true;
-
-            dst = new Variable(destSym, instr);
-        }else if(asn.getTarget() instanceof ast.ArrayIndex){
-
-            // ARRAY CASE
-
-            ArrayIndex idx = (ArrayIndex) asn.getTarget();
-            Value index = idx.getIndex().accept(this);
-            tempNum += 1;
-            Value array = idx.getArray().accept(this);
-
-            int size = ((Variable)array).getSym().type().getSize();
-            Literal sizeVal = new Literal(new IntegerLiteral(new Token(Token.Kind.INT, 0, 0), -1 * size));
-
-            Temporary offset = new Temporary(tempNum);
-            tempNum += 1;
-
-            Mul mulInst = new Mul(curCFG.instrNumberer.push(), offset, sizeVal, index);
-            tempNum -= 1;
-            curBlock.add(mulInst);
-
-            // add offset to base address (array)
-            Temporary addy = new Temporary(tempNum);
-            tempNum += 1;
-            Add addInst = new Add(curCFG.instrNumberer.push(), addy, offset, array);
-            tempNum -= 1;
-            curBlock.add(addInst);
-            addy.isGlobal = ((VariableSymbol)((Variable) array).getSym()).isGlobal;
-
-            AST astSource = asn.getRvalue();
-            Value src = null;
-
-            src = astSource.accept(this);
-            if( src == null ) {
-                throw new RuntimeException(String.format("%s does not work!", astSource));
-            }
-
-            if(src instanceof Literal){
-                tempNum += 1;
-                Temporary srcTemp = new Temporary(tempNum);
-                Store strSrc = new Store(curCFG.instrNumberer.push(), srcTemp, src);
-                curBlock.add(strSrc);
-
-                tempNum += 1;
-                StoreStack tac2 = new StoreStack(curCFG.instrNumberer.push(), srcTemp, addy);
-                curBlock.add(tac2);
-                // do all array shit in here, stores and all etc
-
-                return null;
-            }
-
-            // Temporary ret = new Temporary(tempNum);
-
-            tempNum += 1;
-            StoreStack tac2 = new StoreStack(curCFG.instrNumberer.push(), src, addy);
-            curBlock.add(tac2);
-            // do all array shit in here, stores and all etc
-
-            return null;
-//            dst = (Assignable)asn.getTarget().accept(this);
-
-        }
-
 
         AST astSource = asn.getRvalue();
         Value src = null;
@@ -200,6 +184,23 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         }
         asnDest = null;
 
+        if (asn.getTarget() instanceof Designator){
+            Designator dest = (Designator) asn.getTarget();
+            destSym = dest.getSymbol();
+
+            destSym.isInitialized = true;
+
+            dst = new Variable(destSym, instr);
+        }else if(asn.getTarget() instanceof ast.ArrayIndex){
+
+            // ARRAY CASE
+            ArrayValue arrval = (ArrayValue) asn.getTarget().accept(this);
+
+            StoreStack store = new StoreStack(curCFG.instrNumberer.push(), arrval.array, src, arrval.offset);
+            curBlock.add( store );
+
+            return null;
+        }
 
         if( src != dst ) {
             Store tac = new Store(curCFG.instrNumberer.push(), dst, src);
@@ -714,6 +715,8 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         curCFG.genAllNodes();
 
+        // System.out.println(curCFG.asDotGraph());
+
         return null;
     }
 
@@ -836,6 +839,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         postLoop.setNum(blockNo++);
         curCFG.instrNumberer.newBlock(postLoop);
 
+        // System.out.println(curCFG.asDotGraph());
         return null;
     }
 
