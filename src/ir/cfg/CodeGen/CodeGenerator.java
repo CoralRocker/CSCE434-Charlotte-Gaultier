@@ -141,7 +141,9 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 if( !(((VariableSymbol)sym.getValue()).type().getDims() == null) ){
                     Variable var = new Variable((VariableSymbol)sym.getValue());
                     var.isGlobal = true;
-                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, visitor.registers.get(var), 0, -1 * varSize, null) );
+                    if (visitor.registers.containsKey(var)) {
+                        instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, visitor.registers.get(var), 0, -1 * varSize, null) );
+                    }
                     // just do new Variable instead of this
                     ArrayList<Integer> dims = ((VariableSymbol)sym.getValue()).type().getDims();
                     if(dims.size() == 2){
@@ -732,17 +734,29 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         if( dest == -1 ) {
             dest = SPILL_DEST;
         }
-
+        ArrayList<DLXCode> toRet = new ArrayList<>();
+        if(load.dest instanceof Variable){
+            if(((Variable) load.dest).getSym() instanceof VariableSymbol){
+                if(((Variable) load.dest).getSym().type().getDims() != null){
+                    ArrayList<Integer> dims = ((Variable) load.dest).getSym().type().getDims();
+                    // array case
+                    // need to check bounds
+//                    toRet.add(DLXCode.immediateOp(DLXCode.OPCODE.CHKI, registers.get(load.offset),0, -4 * dims.get(0), load ));
+                }
+            }
+        }
         if( load.offset instanceof Literal ) {
             // DEST = R0(always 0) + literal
-            return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt(), load ));
+            toRet.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * ((Literal) load.offset).getInt(), load ));
+            return toRet;
         }else{
-
             int offset = registers.get(load.offset);
             if(load.offset.isGlobal) {
-                return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, GLOB_VAR, offset, load ));
+                toRet.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, GLOB_VAR, offset, load ));
+                return toRet;
             }
-            return List.of( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset, load ));
+            toRet.add( DLXCode.regOp(DLXCode.OPCODE.LDX, dest, FRAME_PTR, offset, load ));
+            return toRet;
         }
     }
 
