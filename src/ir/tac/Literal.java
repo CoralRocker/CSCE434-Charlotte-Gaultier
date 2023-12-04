@@ -24,7 +24,7 @@ public class Literal extends Value implements Cloneable{
     }
 
     public static Literal get(boolean b) {
-        return new Literal(new BoolLiteral( new Token(String.valueOf(b), 0, 0)));
+        return new Literal(new BoolLiteral( Token.BOOL_VAL(b) ));
     }
 
     public static Literal get(float f) {

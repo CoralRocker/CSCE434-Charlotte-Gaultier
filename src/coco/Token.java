@@ -234,6 +234,20 @@ public class Token {
         return token;
     }
 
+    public static Token BOOL_VAL(boolean val) {
+        Token token = new Token(0, 0);
+        if( val ) {
+            token.kind = Kind.TRUE;
+            token.lexeme = "true";
+        }
+        else {
+            token.kind = Kind.FALSE;
+            token.lexeme = "false";
+        }
+
+        return token;
+    }
+
     public static Token FLOAT_VAL( String lexeme, int linePos, int charPos ) {
         Token token = new Token( linePos, charPos );
         token.kind = Kind.FLOAT_VAL;

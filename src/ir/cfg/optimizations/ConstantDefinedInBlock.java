@@ -67,12 +67,21 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
 
             // Must replace Assign with Store
             if (do_fold && sym != null ){
-                if( sym.isConstant() && tac instanceof Assign){
-                    Store str = new Store(tac.getIdObj(), ((Assign)tac).dest, sym.val);
-                    if( do_print )
-                        System.out.printf("Setting BB%d::%d  %s to %s\n", blk.getNum(), ctr, tac, str);
-                    blk.getInstructions().set(ctr, str);
-                    changed = true;
+                if( sym.isConstant() ) {
+                    if ( tac instanceof Assign) {
+                        Store str = new Store(tac.getIdObj(), ((Assign) tac).dest, sym.val);
+                        if (do_print)
+                            System.out.printf("Setting BB%d::%d  %s to %s\n", blk.getNum(), ctr, tac, str);
+                        blk.getInstructions().set(ctr, str);
+                        changed = true;
+                    }
+                    else if( tac instanceof Not ) {
+                        Store str = new Store(tac.getIdObj(), tac.dest, sym.val);
+                        if (do_print)
+                            System.out.printf("Setting BB%d::%d  %s to %s\n", blk.getNum(), ctr, tac, str);
+                        blk.getInstructions().set(ctr, str);
+                        changed = true;
+                    }
                 }
             }
             if( do_branch_dce && sym != null && tac instanceof Branch ) {
@@ -330,7 +339,8 @@ public class ConstantDefinedInBlock implements TACVisitor<SymbolVal> {
     @Override
     public SymbolVal visit(Not not) {
         if (not.getSrc() instanceof Literal) {
-            return new SymbolVal( not.dest.name(), not.getId(), (Literal) not.getSrc());
+            Literal lit = not.calculate();
+            return new SymbolVal( not.dest.name(), not.getId(), lit );
         }
         else if ( not.getSrc() instanceof Assignable ) {
             if( do_prop ) {

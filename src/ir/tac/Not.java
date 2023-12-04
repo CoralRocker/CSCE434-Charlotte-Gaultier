@@ -14,7 +14,8 @@ public class Not extends TAC {
     }
 
     public Literal calculate() {
-        return Literal.get( !((Literal)src).getBool() );
+        boolean lit = ((Literal)src).getBool();
+        return Literal.get( !lit );
     }
 
     @Override
