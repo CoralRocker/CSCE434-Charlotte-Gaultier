@@ -3,7 +3,6 @@ package ir.tac;
 public class StoreStack extends TAC {
 
 
-    public Assignable val;
     public Spill loc;
 
     public Value src;
@@ -29,7 +28,7 @@ public class StoreStack extends TAC {
     @Override
     public String genDot() {
 
-        if (this.val == null){
+        if (this.dest == null){
             return String.format("StoreStack[%s] %s", offset, src);
         }
 

@@ -26,6 +26,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     private int numSavedRegisters;
 
     private int instrnum;
+    private boolean do_print;
 
     private int getDest(Assignable dest) {
         int reg = registers.get(dest);
@@ -84,6 +85,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         visitor.numSpills = 0;
         visitor.numSavedRegisters = -1;
         visitor.cfg = cfg;
+        visitor.do_print = do_print;
 
         LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, do_print);
         cleaner.clean();
@@ -92,20 +94,23 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             if( entry.getValue() == -1 ) {
                 visitor.numSpills++;
 
-                System.out.printf( "Variable %s is spilled to location %2d <=> %2d\n", entry.getKey(), entry.getKey().spilled.spillNo, -4 * entry.getKey().spilled.spillNo );
+                if( do_print )
+                    System.out.printf( "Variable %s is spilled to location %2d <=> %2d\n", entry.getKey(), entry.getKey().spilled.spillNo, -4 * entry.getKey().spilled.spillNo );
             }
         }
 
-        System.out.printf("Register Allocation: %s\n", visitor.registers );
-        System.out.printf("%s\n", cfg.asDotGraph());
+        if( do_print ) {
+            System.out.printf("Register Allocation: %s\n", visitor.registers);
+            System.out.printf("%s\n", cfg.asDotGraph());
 
-        for (BasicBlock blk : cfg.allNodes) {
-            System.out.printf("BB%d:\n", blk.getNum());
-            for (TAC tac : blk.getInstructions()) {
-                System.out.printf("%3d: %-20s %15s -> %-15s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
+            for (BasicBlock blk : cfg.allNodes) {
+                System.out.printf("BB%d:\n", blk.getNum());
+                for (TAC tac : blk.getInstructions()) {
+                    System.out.printf("%3d: %-20s %15s -> %-15s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
+                }
             }
+            System.out.println("\n");
         }
-        System.out.println("\n");
 
         List<DLXCode> instructions = new ArrayList<>();
 
@@ -134,7 +139,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 ((VariableSymbol) sym.getValue()).globalLoc = varSize;
                 if( !(((VariableSymbol)sym.getValue()).type().getDims() == null) ){
                     Variable var = new Variable((VariableSymbol)sym.getValue());
-                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, registers.get(var), FRAME_PTR, -1 * varSize, null) );
+                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, visitor.registers.get(var), FRAME_PTR, -1 * varSize, null) );
                     // just do new Variable instead of this
                     ArrayList<Integer> dims = ((VariableSymbol)sym.getValue()).type().getDims();
                     if(dims.size() == 2){
@@ -159,7 +164,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             for( var param : cfg.function.getArgList() ) {
                 int dest = visitor.registers.get(new Variable(param));
                 instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * arg, null));
-                System.out.printf("R%d <=> %s (R%d)\n", arg++, param, dest );
+                if( do_print )
+                    System.out.printf("R%d <=> %s (R%d)\n", arg++, param, dest );
             }
 
             // Load Globals
@@ -167,12 +173,14 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 if( sym.globalLoc != -1 ) {
                     var symvar = new Variable(sym);
                     if( !visitor.registers.containsKey(symvar) ) {
-                        System.out.printf("Global variable %s not live for function %s\n", sym, cfg.func);
+                        if( do_print )
+                            System.out.printf("Global variable %s not live for function %s\n", sym, cfg.func);
                         continue;
                     }
 
                     int dest = visitor.registers.get(symvar);
-                    System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
+                    if( do_print )
+                        System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
                     instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, GLOB_VAR, -4 * sym.globalLoc, null ));
                 }
             }
@@ -372,7 +380,8 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                 }
 
                 int dest = registers.get(symvar);
-                System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
+                if( do_print )
+                    System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
                 callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, GLOB_VAR, -4 * sym.globalLoc, call ));
             }
         }
@@ -705,7 +714,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
     @Override
     public List<DLXCode> visit(StoreStack sstack) {
 
-        if (sstack.val == null) {
+        if (sstack.dest == null) {
             int src;
             if(sstack.src instanceof Literal){
                 src = ((Literal) sstack.src).getInt();

@@ -7,6 +7,7 @@ import ast.*;
 import ir.IRGenerator;
 import ir.cfg.CodeGen.CodeGenerator;
 import ir.cfg.CodeGen.DLXCode;
+import ir.cfg.UnitializedVariable;
 import ir.cfg.optimizations.*;
 import ir.cfg.CFG;
 import ir.cfg.registers.RegisterAllocator;
@@ -232,6 +233,11 @@ public class Compiler {
         gen.visit((RootAST) root);
 
         flowGraphs = gen.getAllCFGs();
+
+        for( CFG cfg : flowGraphs ) {
+            UnitializedVariable.checkUnitializedVars(cfg, true);
+        }
+
         return gen.getMainCFG();
     }
 
