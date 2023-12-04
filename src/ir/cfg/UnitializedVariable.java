@@ -176,6 +176,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                             blkfront = ntac;
                         } else {
                             ntac = blkfront.pushNext();
+                            blkfront = ntac;
                         }
 
                         TAC tac = new Store(ntac, var, Literal.get(0));
@@ -202,6 +203,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                             blkfront = ntac;
                         } else {
                             ntac = blkfront.pushNext();
+                            blkfront = ntac;
                         }
 
                         TAC tac = new Store(ntac, var, Literal.get(0));
@@ -227,6 +229,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                             blkfront = ntac;
                         } else {
                             ntac = blkfront.pushNext();
+                            blkfront = ntac;
                         }
 
                         TAC tac = new Store(ntac, var, Literal.get(0));

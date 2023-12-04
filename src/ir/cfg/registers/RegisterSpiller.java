@@ -68,6 +68,12 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
                     if( instructions.get(i) instanceof Store ) {
                         if( ls.hasBefore() )
                             instructions.add(i++, ls.before1);
+                        if( ls.hasAfter() )
+                            instructions.add(++i, ls.after);
+                    }
+                    else {
+                        if( ls.hasBefore() )
+                            instructions.add(i++, ls.before1);
                         if( ls.hasTwoBefore() )
                             instructions.add(i++, ls.before2);
                         if( ls.hasAfter() )

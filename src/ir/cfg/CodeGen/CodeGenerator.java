@@ -77,7 +77,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
         CodeGenerator visitor = new CodeGenerator();
 
-        RegisterAllocator allocator = new RegisterAllocator(nRegs, do_print);
+        RegisterAllocator allocator = new RegisterAllocator(nRegs, false);
         visitor.registers = allocator.allocateRegisters(cfg);
         visitor.labels = new HashMap<>();
         visitor.isMain = isMain;
@@ -87,7 +87,9 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         visitor.cfg = cfg;
         visitor.do_print = do_print;
 
-        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, do_print);
+        System.out.printf("%s\n", cfg.asDotGraph());
+
+        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, true);
         cleaner.clean();
 
         for( var entry : visitor.registers.entrySet() ) {
@@ -103,13 +105,13 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             System.out.printf("Register Allocation: %s\n", visitor.registers);
             System.out.printf("%s\n", cfg.asDotGraph());
 
-            for (BasicBlock blk : cfg.allNodes) {
-                System.out.printf("BB%d:\n", blk.getNum());
-                for (TAC tac : blk.getInstructions()) {
-                    System.out.printf("%3d: %-20s %15s -> %-15s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
-                }
-            }
-            System.out.println("\n");
+            // for (BasicBlock blk : cfg.allNodes) {
+            //     System.out.printf("BB%d:\n", blk.getNum());
+            //     for (TAC tac : blk.getInstructions()) {
+            //         System.out.printf("%3d: %-20s %15s -> %-15s\n", tac.getId(), tac.genDot(), tac.liveBeforePP, tac.liveAfterPP);
+            //     }
+            // }
+            // System.out.println("\n");
         }
 
         List<DLXCode> instructions = new ArrayList<>();
