@@ -372,6 +372,11 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                         System.out.printf("Global variable %s not live for function %s\n", sym, cfg.func);
                     continue;
                 }
+                // if( !((FunctionSymbol)call.function).getCfg().useCounts.containsKey(symvar) ) {
+                //     if( do_print )
+                //         System.out.printf("Global variable %s is not used by function %s\n", sym, cfg.func);
+                //     continue;
+                // }
 
                 int dest = registers.get(symvar);
                 if( do_print )
@@ -402,7 +407,19 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
         // Have Return?
         if( !((FunctionSymbol) call.function).getRealReturnType().equals(new VoidType()) ) {
-            callCode.addAll( move(31, 1, call) ); // Store safely
+            // Save Return to proper variable
+            if( registers.containsKey(call.dest) ){
+                int dest = registers.get(call.dest);
+                if( dest != -1 ) {
+                    callCode.addAll( move(dest, 1, call) );
+                }
+                else {
+                    throw new RuntimeException("Store return value to spill");
+                }
+            }
+            else {
+                throw new RuntimeException("Function return not in register allocation?");
+            }
         }
 
         // Restore Saved Variables
@@ -429,6 +446,14 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     continue;
                 }
 
+                if( !call.liveBeforePP.contains(symvar) ) continue;
+
+                if( !((FunctionSymbol)call.function).getCfg().useCounts.containsKey(symvar) ) {
+                    if( do_print )
+                        System.out.printf("Global variable %s is not used by function %s\n", sym, cfg.func);
+                    // continue;
+                }
+
                 int dest = registers.get(symvar);
                 if( do_print )
                     System.out.printf("Global variable %s load from GLOBL[%d] to reg %d\n", sym, sym.globalLoc, dest);
@@ -436,22 +461,6 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             }
         }
 
-        // Have Return?
-        if( !((FunctionSymbol) call.function).getRealReturnType().equals(new VoidType()) ) {
-            // Save Return to proper variable
-            if( registers.containsKey(call.dest) ){
-                int dest = registers.get(call.dest);
-                if( dest != -1 ) {
-                    callCode.addAll( move(dest, 31, call) );
-                }
-                else {
-                    throw new RuntimeException("Store return value to spill");
-                }
-            }
-            else {
-                throw new RuntimeException("Function return not in register allocation?");
-            }
-        }
 
 
 
@@ -815,7 +824,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
     @Override
     public List<DLXCode> visit(Or or) {
-        int dest = registers.get(or.dest);
+        int dest = getDest(or.dest);
         if (or.hasImmediate()) {
             boolean lit_lhs = or.left instanceof Literal,
                     lit_rhs = or.right instanceof Literal;
@@ -825,12 +834,12 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                         DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, SPILL_LHS, ((Literal) or.right).getInt(), or)
                 );
             } else if (lit_lhs) {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, registers.get(or.right), ((Literal) or.left).getInt(), or));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, getRight(or.right), ((Literal) or.left).getInt(), or));
             } else {
-                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, registers.get(or.left), ((Literal) or.right).getInt(), or));
+                return Collections.singletonList(DLXCode.immediateOp(DLXCode.OPCODE.ORI, dest, getLeft(or.left), ((Literal) or.right).getInt(), or));
             }
         }
-        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.OR, dest, registers.get(or.left), registers.get(or.right), or));
+        return Collections.singletonList(DLXCode.regOp(DLXCode.OPCODE.OR, dest, getLeft(or.left), getRight(or.right), or));
     }
 
     @Override

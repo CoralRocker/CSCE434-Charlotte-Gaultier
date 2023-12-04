@@ -60,14 +60,13 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     public Value visit(ArgList list) {
         tempNum = 0;
         List<Assignable> args = new ArrayList<>();
-        int ctr = -1;
+        int ctr = 0;
         for( AST ast : list.getArgs() ) {
-            ctr++;
             tempNum = ctr;
             Value val = ast.accept(this);
 
-            if( val instanceof Temporary && ((Temporary)val).num == ctr ) {
-                args.add((Assignable) val);
+            if( val instanceof Assignable ) {
+                args.add( (Assignable) val );
                 continue;
             }
             else {
@@ -76,6 +75,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
                 curBlock.add(new Store(curCFG.instrNumberer.push(), temp, val));
                 args.add(temp);
             }
+            ctr++;
         }
 
         list.argTAC = args;
@@ -305,7 +305,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
     public Value visit(FuncCall fc) {
 
         fc.getArgs().accept(this);
-
 
         tempNum = 0;
         Assignable retval = asnDest;
@@ -698,7 +697,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         if( curCFG.getSymbols() != null ) {
             for( var sym : curCFG.getSymbols().keySet() ) {
                 sym.globalLoc = i++; // Global counter
-                if(curCFG.cfgID == "main") sym.isGlobal = true;
+                if(curCFG.cfgID.equals("main")) sym.isGlobal = true;
             }
         }
         else {

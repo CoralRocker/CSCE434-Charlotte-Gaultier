@@ -86,14 +86,29 @@ public class ProgramPointLiveness {
     public void calculate(boolean do_print) {
         cfg.genAllNodes();
 
-        cfg.breadthFirst(blk -> {
+        HashSet<Assignable> requiredLive = new HashSet<>();
+        if( !cfg.cfgID.equals("main") ) {
+            for (var glob : cfg.getSymbols().keySet()) {
+                if (glob.isGlobal) {
+                    var var = new Variable(glob);
+                    if (!cfg.useCounts.containsKey(var)) continue;
+                    requiredLive.add(var);
+                }
+            }
+        }
+
+        for( var blk : cfg.allNodes ) {
             blk.live_in = new HashSet<>();  // Live in: Variable live at block entry
             blk.live_out = new HashSet<>(); // Live out: Variables live at block exit
             for( TAC tac : blk.getInstructions() ) {
                 tac.liveBeforePP = new HashSet<>();
                 tac.liveAfterPP = new HashSet<>();
             }
-        });
+
+            if( blk.getSuccessors().isEmpty() ) {
+                blk.live_out = new HashSet<>(requiredLive);
+            }
+        }
 
         var changed = new Object(){ boolean b = true; };
         int iterations = 0;
@@ -103,7 +118,12 @@ public class ProgramPointLiveness {
             if( iterations == 1 ) changed.b = true;
             cfg.reverseBreadthFirst(blk -> {
                 HashSet<Assignable> old_live = blk.live_out;
-                blk.live_out = new HashSet<>(old_live.size());
+                if( blk.getSuccessors().isEmpty() ) {
+                    blk.live_out = new HashSet<>(blk.live_out);
+                }
+                else {
+                    blk.live_out = new HashSet<>(old_live.size());
+                }
                 for (var pred : blk.getSuccessors()) {
                     blk.live_out.addAll(pred.live_in);
                 }

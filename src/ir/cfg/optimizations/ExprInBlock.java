@@ -67,12 +67,13 @@ public class ExprInBlock implements TACVisitor<Expression> {
         while (keys.hasNext()) {
             var key = keys.next();
             if (key.contains(expr.dest) || (key != expr && key.dest.equals(expr.dest)) ) {
-                toDelete.add(key);
+                keys.remove();
+                // toDelete.add(key);
             }
         }
 
-        for (Expression del : toDelete)
-            avail.remove(del);
+        // for (Expression del : toDelete)
+        //     avail.remove(del, del);
     }
 
     public static boolean ExprInBlock(BasicBlock blk, boolean do_cse, boolean do_cpp, boolean do_print) {

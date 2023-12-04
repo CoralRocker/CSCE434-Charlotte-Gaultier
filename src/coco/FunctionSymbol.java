@@ -1,5 +1,6 @@
 package coco;
 
+import ir.cfg.CFG;
 import types.*;
 
 import java.util.ArrayList;
@@ -12,6 +13,15 @@ public class FunctionSymbol extends Symbol {
     protected Token.Kind returnType;
 
     private Object value;
+
+    private CFG cfg;
+    public CFG getCfg() {
+        return cfg;
+    }
+
+    public void setCfg(CFG cfg) {
+        this.cfg = cfg;
+    }
 
 
     protected Type realReturnType;
@@ -39,17 +49,26 @@ public class FunctionSymbol extends Symbol {
         return isCalled;
     }
     public Token getDeclarationToken() { return declTok; }
-    public Type getReturnType() { switch(returnType){
-        case INT:
-            return new IntType();
-        case FLOAT:
-            return new FloatType();
-        case BOOL:
-            return new BoolType();
-        case VOID:
-            return new VoidType();
-        default:
-            return new ErrorType("Could not resolve function return type"); }}
+    public Type getReturnType() {
+        if( returnType == null && types.size() == 1 ) {
+            returnType = types.get(0).getType();
+            return types.get(0).getReturnType();
+        }
+
+
+        switch(returnType){
+            case INT:
+                return new IntType();
+            case FLOAT:
+                return new FloatType();
+            case BOOL:
+                return new BoolType();
+            case VOID:
+                return new VoidType();
+            default:
+                return new ErrorType("Could not resolve function return type");
+        }
+    }
 
     public Type getRealReturnType() {
         if(realReturnType != null){

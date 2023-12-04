@@ -4,11 +4,14 @@ import ir.cfg.BasicBlock;
 import ir.cfg.CFG;
 import ir.tac.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 class TacPair {
     public final LoadStack before1;
     public final LoadStack before2;
+
+    public final List<LoadStack> args;
     public final StoreStack after;
 
     public boolean hasTwoBefore() {
@@ -27,9 +30,12 @@ class TacPair {
         this.before1 = before;
         this.before2 = null;
         this.after = after;
+        this.args = null;
     }
 
     public TacPair(LoadStack before1, LoadStack before2, StoreStack after) {
+        this.args = null;
+
         if( before1 == null && before2 != null ) {
             this.before1 = before2;
             this.before2 = null;
@@ -40,6 +46,13 @@ class TacPair {
             this.before2 = before2;
             this.after = after;
         }
+    }
+
+    public TacPair(List<LoadStack> args, StoreStack after) {
+        this.after = after;
+        this.args = args;
+        this.before1 = null;
+        this.before2 = null;
     }
 }
 
@@ -70,6 +83,15 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
                             instructions.add(i++, ls.before1);
                         if( ls.hasAfter() )
                             instructions.add(++i, ls.after);
+                    }
+                    else if( instructions.get(i) instanceof Call ) {
+                        if( ls.args != null && !ls.args.isEmpty() ) {
+                            for( var ld : ls.args ) {
+                                instructions.add(i++, ld );
+                            }
+                        }
+                        if( ls.hasAfter() )
+                            instructions.add( ++i, ls.after );
                     }
                     else {
                         if( ls.hasBefore() )
@@ -105,11 +127,26 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
 
     @Override
     public TacPair visit(Call call) {
+        List<LoadStack> args = null;
+        StoreStack dest = null;
+
         if( call.dest.equals(toSpill) ) {
             TacID newId = call.getIdObj().pushNext();
-            var instr = new StoreStack(newId, call.dest, new Spill(loc, Spill.Register.DEST), call);
-            return new TacPair(null, instr);
+            dest = new StoreStack(newId, call.dest, new Spill(loc, Spill.Register.DEST), call);
         }
+
+        for( var arg : call.args ) {
+            if( arg.equals(toSpill) ) {
+                TacID newId = call.getIdObj().pushPrevious();
+                if( args == null ) args = new ArrayList<>();
+                // TODO What register for this?
+                args.add( new LoadStack(newId, arg, new Spill(loc, Spill.Register.LHS), call) );
+            }
+        }
+
+        if( args != null || dest != null )
+            return new TacPair(args, dest);
+
         return null;
     }
 

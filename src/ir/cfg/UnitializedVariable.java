@@ -54,6 +54,8 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
         HashMap<Assignable, Assignable> funcParams = new HashMap<>();
         if( cfg.function != null ) {
+            cfg.func.setCfg(cfg);
+
             for( var varsym : cfg.function.getArgList() ) {
                 var var = new Variable(varsym);
                 funcParams.put(var, var);
@@ -359,6 +361,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     @Override
     public Assignable visit(Call call) {
         incrementUse(call.dest);
+        for( var arg : call.args ) incrementUse(arg);
         return call.dest;
     }
 
