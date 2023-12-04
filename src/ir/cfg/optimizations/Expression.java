@@ -7,6 +7,14 @@ public class Expression {
     protected TAC op;
     protected Value[] args;
 
+    public boolean isCopy() {
+        return args.length == 1 && op instanceof Store;
+    }
+
+    public boolean isSubexpression() {
+        return args.length == 2 && (op instanceof Assign || op instanceof Not);
+    }
+
     protected void setExprNotDest( Expression expr ) {
         if( !expr.dest.equals(dest) ) throw new RuntimeException("Cannot merge two expressions with differing destinations!");
 
@@ -29,6 +37,14 @@ public class Expression {
         } else {
             return args[0].toString().equals(arg.toString()) || args[1].toString().equals(arg.toString());
         }
+    }
+
+    // Create an expression to search with
+    public Expression(Assignable srch) {
+        this.dest = null;
+        this.op = null;
+        this.args = new Value[1];
+        this.args[0] = srch;
     }
 
     public Expression(Assignable dest, Store op, Value store) {
