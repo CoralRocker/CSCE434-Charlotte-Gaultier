@@ -77,7 +77,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
 
         CodeGenerator visitor = new CodeGenerator();
 
-        RegisterAllocator allocator = new RegisterAllocator(nRegs, false);
+        RegisterAllocator allocator = new RegisterAllocator(nRegs, do_print);
         visitor.registers = allocator.allocateRegisters(cfg);
         visitor.labels = new HashMap<>();
         visitor.isMain = isMain;
@@ -87,9 +87,7 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         visitor.cfg = cfg;
         visitor.do_print = do_print;
 
-        System.out.printf("%s\n", cfg.asDotGraph());
-
-        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, true);
+        LoadStoreCleaner cleaner = new LoadStoreCleaner(cfg, visitor.registers, do_print);
         cleaner.clean();
 
         for( var entry : visitor.registers.entrySet() ) {

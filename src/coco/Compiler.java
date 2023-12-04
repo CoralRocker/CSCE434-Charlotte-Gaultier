@@ -103,8 +103,11 @@ public class Compiler {
                         // Liveness live = new Liveness(cfg, true, true);
                         ProgramPointLiveness lvanal = new ProgramPointLiveness(cfg);
                         lvanal.earlyReturn(debug);
-                        lvanal.calculate(debug);
-                        lvanal.doDCE(debug);
+                        boolean changed = true;
+                        while( changed ) {
+                            lvanal.calculate(debug);
+                            changed = lvanal.doDCE(debug);
+                        }
                     }
                     case "max" -> {
                         boolean changed = true;

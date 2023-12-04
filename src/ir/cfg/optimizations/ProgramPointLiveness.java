@@ -431,7 +431,7 @@ class DeadCode implements TACVisitor<Boolean> {
     }
 
     public Boolean visit(Load load) {
-        return null;
+        return !curTac.liveAfterPP.contains(load.dest);
     }
 
     @Override
@@ -450,37 +450,12 @@ class DeadCode implements TACVisitor<Boolean> {
     }
 
     @Override
-    public Boolean visit(Add add) {
-        return visit((Assign) add);
-    }
-
-    @Override
     public Boolean visit(Assign asn) {
         // Return whether the destination is live after the instruction
         if( !curTac.liveAfterPP.contains(asn.dest) ) {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public Boolean visit(Div div) {
-        return visit((Assign) div);
-    }
-
-    @Override
-    public Boolean visit(Mod mod) {
-        return visit((Assign) mod);
-    }
-
-    @Override
-    public Boolean visit(Mul mul) {
-        return visit((Assign) mul);
-    }
-
-    @Override
-    public Boolean visit(Sub sub) {
-        return visit((Assign) sub);
     }
 
     @Override
@@ -518,11 +493,6 @@ class DeadCode implements TACVisitor<Boolean> {
     }
 
     @Override
-    public Boolean visit(Pow pow) {
-        return visit((Assign) pow);
-    }
-
-    @Override
     public Boolean visit(Temporary temporary) {
         return false;
     }
@@ -533,15 +503,5 @@ class DeadCode implements TACVisitor<Boolean> {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public Boolean visit(And and) {
-        return visit((Assign) and);
-    }
-
-    @Override
-    public Boolean visit(Or or) {
-        return visit((Assign)or);
     }
 }

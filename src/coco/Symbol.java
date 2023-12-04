@@ -25,6 +25,11 @@ public abstract class Symbol {
     public abstract void setNullValue();
 
     @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if( !(other instanceof Symbol) )
             return false;

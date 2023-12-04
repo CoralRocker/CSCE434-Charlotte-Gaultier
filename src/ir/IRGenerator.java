@@ -358,9 +358,11 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
         curCFG.genAllNodes();
 
         // Add main symbols, respecting shadowing
-        for( VariableSymbol var : parent.getSymbols().values() ) {
-            if( !syms.containsKey(var) ) {
-                syms.put(var, var);
+        if( parent.getSymbols() != null ) {
+            for (VariableSymbol var : parent.getSymbols().keySet() ) {
+                if (!syms.containsKey(var)) {
+                    syms.put(var, var);
+                }
             }
         }
 
@@ -444,92 +446,6 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
 
         curBlock = nextBlock;
         nextBlock.setNum(blockNo++);
-
-        // Branch bra = new Branch(curCFG.instrNumberer.push(), is.getIfrel().token().lexeme());
-        // if( val instanceof Variable ) {
-        //     Temporary storage = new Temporary(tempNum++);
-        //     Cmp cmp = new Cmp(curCFG.instrNumberer.push(),
-        //                       val,
-        //                       new Literal(new BoolLiteral(new Token(Token.Kind.TRUE, 0, 0))),
-        //                       storage,
-        //                       "eq" );
-        //     // If We're at the start of the block "rehead" it. Else just move back
-        //     if( curBlock.getInstructions().isEmpty() )
-        //         cmp.getIdObj().moveToBlockFront(curBlock.getNum());
-        //     else
-        //         cmp.getIdObj().moveRelative( -1 );
-
-        //     curBlock.add(cmp);
-        //     bra.setRel("==");
-        //     bra.setVal( storage );
-        // }
-        // else {
-        //     if( !(val instanceof Assignable) ) {
-        //         var temp = new Temporary(tempNum++);
-        //         curBlock.add( new Store(curCFG.instrNumberer.push(), temp, val ));
-        //         val = temp;
-        //         bra.setRel(("!="));
-        //     }
-        //     bra.setVal((Assignable) val);
-        // }
-
-        // bra.getIdObj().moveToEnd();
-        // bra.setDestination(ifblock);
-        // curBlock.add(bra);
-        // Branch elsebra = new Branch(curCFG.instrNumberer.push(), "");
-        // elsebra.setDestination(nextBlock);
-        // curBlock.add(elsebra);
-
-        // BasicBlock elseblock = null, entryBlock = curBlock;
-        // ifblock.setNum(blockNo++);
-        // curBlock.connectAfter(ifblock);
-        // // ifblock.addPredecessor(curBlock);
-        // // curBlock.addSuccessor(ifblock);
-
-
-        // if( is.getElseseq() != null ) {
-        //     elseblock = new BasicBlock(blockNo++, "Else");
-        //     curBlock.connectAfter(elseblock);
-        //     // elseblock.addPredecessor(curBlock);
-        //     // curBlock.addSuccessor(elseblock);
-        // }
-        // nextBlock.setNum(blockNo++);
-
-
-        // curBlock = ifblock;
-        // curCFG.instrNumberer.newBlock(ifblock.getNum());
-        // is.getIfseq().accept(this);
-        // bra = new Branch(curCFG.instrNumberer.push(), "");
-        // bra.setDestination(nextBlock);
-        // curBlock.add( bra );
-
-        // if( is.getElseseq() != null ) {
-        //     curBlock = elseblock;
-        //     curCFG.instrNumberer.newBlock(elseblock.getNum());
-        //     is.getElseseq().accept(this);
-        //     bra = new Branch(curCFG.instrNumberer.push(), "");
-        //     bra.setDestination(nextBlock);
-        //     curBlock.add( bra );
-        //     elsebra.setDestination(elseblock);
-        // }
-
-        // ifblock.connectAfter(nextBlock);
-        // // ifblock.addSuccessor(nextBlock);
-        // // nextBlock.addPredecessor(ifblock);
-
-        // if( elseblock != null ) {
-        //     elseblock.connectAfter(nextBlock);
-        //     // elseblock.addSuccessor(nextBlock);
-        //     // nextBlock.addPredecessor(elseblock);
-        // }
-        // else {
-        //     entryBlock.connectAfter(nextBlock);
-        //     // entryBlock.addSuccessor(nextBlock);
-        //     // nextBlock.addPredecessor(entryBlock);
-        // }
-
-        // curBlock = nextBlock;
-        // curCFG.instrNumberer.newBlock(nextBlock.getNum());
 
         return null;
 
@@ -784,6 +700,9 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
                 sym.globalLoc = i++; // Global counter
                 if(curCFG.cfgID == "main") sym.isGlobal = true;
             }
+        }
+        else {
+            curCFG.setSymbols(new HashMap<>());
         }
 
         if( root.getFuncs() != null ) {

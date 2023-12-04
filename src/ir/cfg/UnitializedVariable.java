@@ -103,6 +103,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
 
         boolean cfgchanged = false;
 
+        // Perform Initialization
         for( var blk : cfg.allNodes ) {
             HashSet<Assignable> uninit = (HashSet<Assignable>) blk.state;
 

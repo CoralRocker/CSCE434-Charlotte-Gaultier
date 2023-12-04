@@ -74,7 +74,7 @@ public class RegisterAllocator {
         for( var blk : cfg.allNodes ) {
             for (TAC tac : blk.getInstructions()) {
                 Set<Assignable> liveAtPoint = new HashSet<>();
-                liveAtPoint.addAll( tac.liveAfterPP );
+                liveAtPoint.addAll( tac.liveBeforePP );
 
                 if( tac.dest != null && !tac.liveBeforePP.contains(tac.dest) ) {
                     liveAtPoint.add( tac.dest );
