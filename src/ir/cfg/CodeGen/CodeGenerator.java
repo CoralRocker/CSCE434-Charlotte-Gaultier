@@ -149,7 +149,15 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     Variable var = new Variable((VariableSymbol)sym.getValue());
                     var.isGlobal = true;
                     if (visitor.registers.containsKey(var)) {
-                        instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, visitor.getDest(var), GLOB_VAR, -1 * ((VariableSymbol)sym.getValue()).globalLoc, null) );
+                        int dest = visitor.registers.get(var);
+                        int loc = dest;
+                        if( dest <= -1 ) {
+                            dest = SPILL_DEST;
+                        }
+                        instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.ADDI, dest, GLOB_VAR, -1 * ((VariableSymbol)sym.getValue()).globalLoc, null) );
+                        if( dest == SPILL_DEST ) {
+                            instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, FRAME_PTR, 4*loc, null));
+                        }
                     }
                 }
             }

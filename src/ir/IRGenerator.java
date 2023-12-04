@@ -111,7 +111,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             // Pop front of dimensions
             arrval.dimensions.removeFirst();
             int perLine = arrval.dimensions.stream().mapToInt(i -> i).reduce(1, (a, b) -> a * b);
-            arrval.offset = new Temporary(tempNum++);
+            arrval.offset = new Temporary(tempNum);
 
             Mul mul = new Mul(curCFG.instrNumberer.push(), arrval.offset, index, Literal.get(perLine * -4));
             curBlock.add(mul);
@@ -135,7 +135,7 @@ public class IRGenerator implements ast.NodeVisitor<Value>, Iterable<ir.cfg.CFG>
             }
             else {
                 int perLine = arrval.dimensions.stream().mapToInt(i -> i).reduce(1, (a, b) -> a * b);
-                Temporary newOffset = new Temporary(tempNum++);
+                Temporary newOffset = new Temporary(tempNum);
                 Mul mul = new Mul(curCFG.instrNumberer.push(), newOffset, index, Literal.get(perLine * -4)); // perLine + index items * 4 bytes / item
                 curBlock.add(mul);
                 Add add = new Add(curCFG.instrNumberer.push(), arrval.offset, arrval.offset, newOffset );

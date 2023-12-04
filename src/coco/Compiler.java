@@ -69,8 +69,6 @@ public class Compiler {
                     argIter.set("cpcf");
                 }
             }
-
-
         }
 
         if( optArguments.isEmpty() )

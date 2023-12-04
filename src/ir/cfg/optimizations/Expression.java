@@ -39,6 +39,14 @@ public class Expression {
         }
     }
 
+    public Expression(Assignable dest, Load op, Value base, Value offset ) {
+        this.dest = dest;
+        this.op = op;
+        this.args = new Value[2];
+        this.args[0] = base;
+        this.args[1] = offset;
+    }
+
     public Expression(Assignable dest, Store op, Value store) {
         this.dest = dest;
         this.op = op;

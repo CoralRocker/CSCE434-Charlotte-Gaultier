@@ -137,7 +137,15 @@ public class ExprInBlock implements TACVisitor<Expression> {
 
     @Override
     public Expression visit(Load load) {
-        return null;
+        Expression expr = new Expression(load.dest, load, load.base, load.offset );
+        Expression contained = contains(expr);
+        Expression retval = null;
+        if (contained == null)
+            avail.put(expr, expr);
+        else
+            retval = contained;
+        kill(expr);
+        return retval;
     }
 
     @Override
