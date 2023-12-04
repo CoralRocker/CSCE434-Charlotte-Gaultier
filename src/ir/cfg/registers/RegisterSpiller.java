@@ -111,7 +111,7 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
 
     @Override
     public TacPair visit(Return ret) {
-        if( ret.dest.equals(toSpill) ) {
+        if( ret.dest != null && ret.dest.equals(toSpill) ) {
             TacID newId = ret.getIdObj().pushPrevious();
             var instr = new LoadStack(newId, ret.dest, new Spill(loc, Spill.Register.DEST), ret);
             ret.dest.spilled.reg = Spill.Register.DEST;

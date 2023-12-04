@@ -173,7 +173,15 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
             int arg = 1;
             for( var param : cfg.function.getArgList() ) {
                 int dest = visitor.registers.get(new Variable(param));
+                int loc = dest;
+                if( dest <= 1 ) {
+                    dest =SPILL_DEST;
+                }
                 instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * arg, null));
+                if( loc <= -1 ) {
+                    instructions.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, FRAME_PTR, 4 * loc, null) );
+                }
+
                 if( do_print )
                     System.out.printf("R%d <=> %s (R%d)\n", arg, param, dest );
                 arg++;
@@ -188,6 +196,12 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
                     if( !visitor.registers.containsKey(symvar) ) {
                         if( do_print )
                             System.out.printf("Global variable %s not live for function %s\n", sym, cfg.func);
+                        continue;
+                    }
+
+                    if( !cfg.allNodes.get(0).live_in.contains(symvar) ) {
+                        if( do_print )
+                            System.out.printf("Global variable %s not live for function %s start\n", sym, cfg.func);
                         continue;
                     }
 
