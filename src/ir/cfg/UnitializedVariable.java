@@ -19,6 +19,11 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     private static HashMap<Assignable, Assignable> intersect(HashMap<Assignable, Assignable> s1, HashMap<Assignable, Assignable> s2) {
         HashMap<Assignable, Assignable> result = new HashMap<>();
 
+        // Short-circuit on null
+        if( s1 == null && s2 == null ) return result;
+        if( s1 == null ) return new HashMap<>(s2);
+        if( s2 == null ) return new HashMap<>(s1);
+
         for( var var : s1.keySet() ) {
             if( s2.containsKey(var) ) {
                 result.put( var, var );
@@ -31,8 +36,8 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
     public static boolean checkUnitializedVars( CFG cfg, boolean do_print ) {
 
         cfg.breadthFirst(blk -> {
-            blk.entry = new HashMap<Assignable, Assignable>();
-            blk.exit = new HashMap<Assignable, Assignable>();
+            blk.entry = null;
+            blk.exit = null;
         });
 
         HashMap<Assignable, Assignable> funcParams = new HashMap<>();
@@ -48,7 +53,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
             changed = false;
 
             for (var blk : cfg.allNodes) {
-                var prevExit = new HashMap<Assignable, Assignable>((HashMap<Assignable, Assignable>) blk.exit);
+                var prevExit = (blk.exit != null ) ? new HashMap<Assignable, Assignable>((HashMap<Assignable, Assignable>) blk.exit) : null ;
 
                 UnitializedVariable visitor = new UnitializedVariable();
                 visitor.cfg = cfg;
@@ -73,7 +78,7 @@ public class UnitializedVariable implements TACVisitor<Assignable> {
                 blk.state = visitor.uninitialized;
 
                 // Check if old exit and new exit are identical
-                if( prevExit.size() != ((HashMap<?, ?>) blk.exit).size() ) {
+                if( prevExit == null || prevExit.size() != ((HashMap<?, ?>) blk.exit).size() ) {
                     changed = true;
                 }
                 else {

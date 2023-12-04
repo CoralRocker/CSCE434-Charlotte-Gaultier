@@ -7,12 +7,39 @@ import ir.tac.*;
 import java.util.List;
 
 class TacPair {
-    public final LoadStack before;
+    public final LoadStack before1;
+    public final LoadStack before2;
     public final StoreStack after;
 
+    public boolean hasTwoBefore() {
+        return before2 != null;
+    }
+
+    public boolean hasBefore() {
+        return before1 != null;
+    }
+
+    public boolean hasAfter() {
+        return after != null;
+    }
+
     public TacPair(LoadStack before, StoreStack after) {
-        this.before = before;
+        this.before1 = before;
+        this.before2 = null;
         this.after = after;
+    }
+
+    public TacPair(LoadStack before1, LoadStack before2, StoreStack after) {
+        if( before1 == null && before2 != null ) {
+            this.before1 = before2;
+            this.before2 = null;
+            this.after = after;
+        }
+        else {
+            this.before1 = before1;
+            this.before2 = before2;
+            this.after = after;
+        }
     }
 }
 
@@ -38,17 +65,13 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
                 TAC tac = instructions.get(i);
                 TacPair ls = tac.accept(this);
                 if( ls != null ) {
-                    if( instructions.get(i) instanceof Store && ls.before != null && ls.after == null )  {
-                        // instructions.set(i, ls.before);
-                        instructions.add(i++, ls.before);
-                    }
-                    else {
-                        if (ls.before != null) {
-                            instructions.add(i++, ls.before);
-                        }
-                        if (ls.after != null) {
+                    if( instructions.get(i) instanceof Store ) {
+                        if( ls.hasBefore() )
+                            instructions.add(i++, ls.before1);
+                        if( ls.hasTwoBefore() )
+                            instructions.add(i++, ls.before2);
+                        if( ls.hasAfter() )
                             instructions.add(++i, ls.after);
-                        }
                     }
                 }
                 i++;
@@ -96,18 +119,17 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
 
     @Override
     public TacPair visit(Assign asn) {
-        LoadStack load = null;
+        LoadStack load1 = null, load2 = null;
         StoreStack store = null;
 
         if( asn.left.equals(toSpill) ) {
             TacID newId = asn.getIdObj().pushPrevious();
-            load = new LoadStack(newId, (Assignable)asn.left, new Spill(loc, Spill.Register.LHS), asn);
+            load1 = new LoadStack(newId, (Assignable)asn.left, new Spill(loc, Spill.Register.LHS), asn);
         }
 
         if( asn.right.equals(toSpill) ) {
-            if( load != null ) throw new RuntimeException("Need more spill locations!");
             TacID newId = asn.getIdObj().pushPrevious();
-            load = new LoadStack(newId, (Assignable)asn.right, new Spill(loc, Spill.Register.RHS), asn);
+            load2 = new LoadStack(newId, (Assignable)asn.right, new Spill(loc, Spill.Register.RHS), asn);
         }
 
         if( asn.dest.equals(toSpill) ) {
@@ -115,10 +137,10 @@ public class RegisterSpiller implements TACVisitor<TacPair> {
             store = new StoreStack(newId, asn.dest, new Spill(loc, Spill.Register.DEST), asn);
         }
 
-        if( load == null && store == null )
+        if( load1 == null && load2 == null && store == null )
             return null;
         else
-            return new TacPair(load, store);
+            return new TacPair(load1, load2, store);
     }
 
     @Override

@@ -351,6 +351,13 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         int saveno = 1;
         for( var sym : call.liveAfterPP ) {
             if( !call.liveBeforePP.contains(sym) ) continue; // If var becomes live at return, don't save
+
+            // If variable is global, no need to save twice
+            if( sym instanceof Variable ) {
+                Variable var = (Variable) sym;
+                if( cfg.getSymbols().get(var.getSym()).globalLoc != -1 ) continue;
+            }
+
             int dest = registers.get(sym);
             sym.saveLocation = saveno++;
             callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.STW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
@@ -401,6 +408,13 @@ public class CodeGenerator implements TACVisitor<List<DLXCode>> {
         // Restore Saved Variables
         for( var sym : call.liveAfterPP ) {
             if( !call.liveBeforePP.contains(sym) ) continue; // If var becomes live at return, don't restore
+
+            // If variable is global, no need to restore twice
+            if( sym instanceof Variable ) {
+                Variable var = (Variable) sym;
+                if( cfg.getSymbols().get(var.getSym()).globalLoc != -1 ) continue;
+            }
+
             int dest = registers.get(sym);
             callCode.add( DLXCode.immediateOp(DLXCode.OPCODE.LDW, dest, FRAME_PTR, -4 * sym.saveLocation, call) );
         }
